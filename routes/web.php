@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\InboundController;
+use App\Http\Controllers\ReceivingOrderController;
 use App\Http\Controllers\RFIDTaggingController;
 use App\Http\Controllers\LocationSuggestionController;
 use Illuminate\Http\Request;
@@ -28,8 +29,10 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Route::resource('/master/transaction-types', TransactionTypeController::class);
-    // Route::resource('/master/chart-of-accounts', ChartOfAccountController::class);
-    // Route::resource('/master/account-mappings', AccountMappingController::class);
+
+    // receiving order
+    Route::get('/receiving-order', [ReceivingOrderController::class, 'index'])->name('receiving-order.index');
+    Route::get('/receiving-order/detail', [ReceivingOrderController::class, 'detail'])->name('receiving-order.index');
 
     // Inbound
     Route::get('/inbounds', [InboundController::class, 'index'])->name('inbound.index');

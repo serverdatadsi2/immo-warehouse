@@ -51,6 +51,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function warehouses()
+    {
+        return $this->belongsToMany(Warehouse::class, 'user_warehouses', 'user_id', 'warehouse_id');
+    }
+
     public $incrementing = false;
     protected $keyType = 'string';
 }

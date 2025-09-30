@@ -16,7 +16,15 @@ import {
     theme,
 } from 'antd';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
-import { Database, Download, LassoSelect, Map, QrCode, Warehouse } from 'lucide-react';
+import {
+    Database,
+    Download,
+    LassoSelect,
+    Map,
+    NotebookText,
+    QrCode,
+    Warehouse,
+} from 'lucide-react';
 import { ReactNode, useCallback, useMemo } from 'react';
 
 const { Header, Sider, Content } = Layout;
@@ -85,12 +93,12 @@ const menuItems = [
         label: 'Inbound QC',
         url: '/inbound-qc',
     }),
-    // getMenuItem({
-    //     key: 'storage',
-    //     icon: <Database size={17} />,
-    //     label: 'Storage',
-    //     url: '/storage',
-    // }),
+    getMenuItem({
+        key: 'receiving-order',
+        icon: <NotebookText size={17} />,
+        label: 'Receiving Orders',
+        url: '/receiving-order',
+    }),
     // getMenuItem({
     //     key: 'search-product',
     //     icon: <Search size={17} />,
@@ -117,16 +125,18 @@ export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Pr
     }, [url]);
 
     return (
-        <ConfigProvider theme={{ 
-            token: { 
-                colorPrimary,
-                colorSuccess,
-                colorWarning,
-                colorBgContainer,
-                // colorBgContainer: '#f8fafc',
-                colorBgLayout: '#ffffff'
-            } 
-        }}>
+        <ConfigProvider
+            theme={{
+                token: {
+                    colorPrimary,
+                    colorSuccess,
+                    colorWarning,
+                    colorBgContainer,
+                    // colorBgContainer: '#f8fafc',
+                    colorBgLayout: '#ffffff',
+                },
+            }}
+        >
             <SystemMessageProvider>
                 <Layout style={{ minHeight: '100vh' }}>
                     <Sider
@@ -136,6 +146,8 @@ export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Pr
                             height: '100vh',
                             position: 'sticky',
                             insetInlineStart: 0,
+                            // backgroundColor: 'blue',
+                            // background: 'linear-gradient(135deg, #1890ff 0%, rgb(89, 134, 67) 50%, rgb(100, 73, 42) 100%)',
                             top: 0,
                             bottom: 0,
                             scrollbarWidth: 'thin',
@@ -148,16 +160,17 @@ export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Pr
                                 type="text"
                                 icon={<Warehouse />}
                                 style={{
-                                    background: 'linear-gradient(135deg, #1890ff 0%, #52c41a 110%)',
+                                    background:
+                                        'linear-gradient(135deg, rgb(89, 134, 67) 0, #1890ff 70%, rgb(123, 187, 63) 90%)',
                                     color: 'white',
                                     fontWeight: 'bold',
                                     padding: '23px 12px 23px 12px',
                                     borderRadius: '8px',
                                     boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)',
-                                    border: 'none'
+                                    border: 'none',
                                 }}
                             >
-                             Immostore - WMS
+                                Immo Warehouse
                             </Button>
                         </div>
                         <Menu
@@ -169,23 +182,25 @@ export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Pr
                         />
                     </Sider>
                     <Layout>
-                        <Header style={{ 
-                            padding: 0, 
-                            background: 'linear-gradient(90deg, #f8fafc 0%, #e6f7ff 100%)',
-                            borderBottom: '1px solid #e6f7ff',
-                            boxShadow: '0 2px 8px rgba(24, 144, 255, 0.1)'
-                        }}>
+                        <Header
+                            style={{
+                                padding: 0,
+                                background: 'linear-gradient(90deg, #f8fafc 0%, #e6f7ff 100%)',
+                                borderBottom: '1px solid #e6f7ff',
+                                boxShadow: '0 2px 8px rgba(24, 144, 255, 0.1)',
+                            }}
+                        >
                             <Row className="w-full">
                                 <Col style={{ textAlign: 'center' }} span={2}>
                                     {navBarLeft}
                                 </Col>
                                 <Col span={20}>
                                     <span
-                                        style={{ 
-                                            fontSize: sizeMD, 
+                                        style={{
+                                            fontSize: sizeMD,
                                             fontWeight: fontWeightStrong,
                                             color: colorPrimary,
-                                            textShadow: '0 1px 2px rgba(24, 144, 255, 0.1)'
+                                            textShadow: '0 1px 2px rgba(24, 144, 255, 0.1)',
                                         }}
                                     >
                                         {navBarTitle}
@@ -214,7 +229,7 @@ export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Pr
                                     background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
                                     borderRadius: borderRadiusLG,
                                     boxShadow: '0 4px 12px rgba(24, 144, 255, 0.08)',
-                                    border: '1px solid #e6f7ff'
+                                    border: '1px solid #e6f7ff',
                                 }}
                             >
                                 <QueryClientProvider client={queryClient}>
@@ -247,15 +262,15 @@ function UserPopoverContent() {
     return (
         <Space direction="vertical">
             <span className="font-bold">{props.auth.user.name}</span>
-            <Button 
-                onClick={onLogout} 
-                danger 
-                type="primary" 
+            <Button
+                onClick={onLogout}
+                danger
+                type="primary"
                 icon={<LogoutOutlined />}
                 style={{
                     background: 'linear-gradient(135deg, #ff4d4f 0%, #fa8c16 100%)',
                     border: 'none',
-                    boxShadow: '0 2px 8px rgba(255, 77, 79, 0.3)'
+                    boxShadow: '0 2px 8px rgba(255, 77, 79, 0.3)',
                 }}
             >
                 Logout
