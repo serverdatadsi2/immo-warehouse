@@ -1,6 +1,6 @@
 import { useSystemMessage } from '@/components/messages/message-provider';
 import { router } from '@inertiajs/react';
-import { Form } from 'antd';
+import { Form, message } from 'antd';
 import { useCallback, useState } from 'react';
 
 export function useAntdInertiaForm<T>(modelName: string) {
@@ -36,7 +36,8 @@ export function useAntdInertiaForm<T>(modelName: string) {
         ({ url, onSuccess }: DestroyParams) => {
             router.delete(url, {
                 onError: (e) => {
-                    showMessge({ action: 'delete', model: modelName, status: 'error' });
+                    if (e.error) message.error(e.error);
+                    else showMessge({ action: 'delete', model: modelName, status: 'error' });
                     setErrors(e as any);
                 },
                 onSuccess: () => {

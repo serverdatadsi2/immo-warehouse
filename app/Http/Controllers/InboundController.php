@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
 use App\Models\WarehouseInbound;
 use App\Models\WarehouseInboundDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Log;
 
 class InboundController extends Controller
 {
@@ -124,6 +126,10 @@ class InboundController extends Controller
     public function deleteDetail(string $detailId)
     {
         $headerId = null;
+        $item = Item::where('warehouse_inbound_detail_id', $detailId)->first();
+        if ($item) {
+            return redirect()->back()->withErrors(['error'=> 'Detail tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
+        }
         DB::transaction(function () use (&$headerId, $detailId) {
             $detail = WarehouseInboundDetail::findOrFail($detailId);
             $headerId = $detail->warehouse_inbound_id;
@@ -145,6 +151,14 @@ class InboundController extends Controller
 
     public function deleteHeader(string $headerId)
     {
+        $item = WarehouseInbound::join('warehouse_inbound_details', 'warehouse_inbound_details.warehouse_inbound_id', '=', 'warehouse_inbounds.id')
+            ->join('items', 'items.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
+            ->where('warehouse_inbounds.id', $headerId)
+            ->first();
+        Log::info($item);
+        if ($item) {
+            return redirect()->back()->withErrors(['error' => 'Inbound tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
+        }
 
         DB::transaction(function () use ($headerId) {
             $header = WarehouseInbound::findOrFail($headerId);

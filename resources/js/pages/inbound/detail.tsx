@@ -12,22 +12,9 @@ import { HeaderForm } from './components/header/form';
 export const DetailContext = createContext<PageProps>({ detailsPagination: null, header: null });
 
 export default function Page({ detailsPagination, header }: PageProps) {
-    // const [messageApi, contextHolder] = message.useMessage();
-
-    // const handleDestroy = useCallback(() => {
-    //     router.delete(`/formulas/${header?.id}`, {
-    //         onSuccess: () => {
-    //             messageApi.success('Success delete Formula.');
-    //         },
-    //         onError: () => {
-    //             messageApi.error('Failed to delete Formula!');
-    //         },
-    //     });
-    // }, [header?.id, messageApi]);
 
     return (
         <AppLayout navBarLeft={<BackButton backUrl="/inbounds" />} navBarTitle="Inbound Detail">
-            {/* {contextHolder} */}
             <Head title="Inbound Detail" />
             <DetailContext.Provider value={{ detailsPagination, header }}>
                 <Space direction="vertical" className="w-full">

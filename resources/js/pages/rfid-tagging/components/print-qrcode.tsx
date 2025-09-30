@@ -20,13 +20,11 @@ const QRCodePrinter = ({ selectInbound }: Props) => {
             if (res.data) {
                 handlePrint(res.data);
             }
-            message.destroy();
-            message.success('Print QRCode berhasil dilakukan');
         },
         onError: () => {
             message.success('Print QRCode Gagal dilakukan');
             message.destroy();
-        },
+        }
     });
 
     const handleClick = useCallback(() => {
@@ -85,7 +83,8 @@ const QRCodePrinter = ({ selectInbound }: Props) => {
                     y = 10;
                 }
             }
-
+            message.destroy();
+            message.success('Print QRCode berhasil dilakukan');
             doc.save(`QRCode-${selectInbound.product_name}.pdf`);
         },
         [selectInbound],
