@@ -7,7 +7,8 @@ use App\Http\Controllers\{
     ReceivingOrderController,
     InboundController,
     RFIDTaggingController,
-    LocationSuggestionController
+    LocationSuggestionController,
+    OutboundController
 };
 
 // HOME
@@ -48,6 +49,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/detail', [InboundController::class, 'detail'])->name('detail');
         Route::post('/detail', [InboundController::class, 'saveDetail']);
         Route::delete('/detail/{detail_id}', [InboundController::class, 'deleteDetail']);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Outbound
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('outbound')->name('outbound')->group(function () {
+        Route::get('/', [OutboundController::class, 'index'])->name('index');
+        Route::post('/', [OutboundController::class, 'saveHeader']);
+        Route::delete('/{header_id}', [OutboundController::class, 'deleteHeader']);
+
+        // Details
+        Route::get('/detail', [OutboundController::class, 'detail'])->name('detail');
+        Route::post('/detail', [OutboundController::class, 'saveDetail']);
+        Route::delete('/detail/{detail_id}', [OutboundController::class, 'deleteDetail']);
     });
 
     /*

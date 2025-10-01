@@ -1,8 +1,10 @@
 import { LucideIcon } from 'lucide-react';
 import type { Config } from 'ziggy-js';
+import { Warehouse } from './warehouse.type';
 
 export interface Auth {
     user: User;
+    warehouses: Warehouse[];
 }
 
 export interface BreadcrumbItem {
@@ -32,7 +34,7 @@ export interface SharedData {
 }
 
 export interface User {
-    id: number;
+    id: string;
     name: string;
     email: string;
     avatar?: string;

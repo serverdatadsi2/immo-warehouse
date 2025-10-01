@@ -19,6 +19,7 @@ import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import {
     Database,
     Download,
+    Lasso,
     LassoSelect,
     Map,
     NotebookText,
@@ -105,12 +106,12 @@ const menuItems = [
     //     label: 'Search Product',
     //     url: '/search-product',
     // }),
-    // getMenuItem({
-    //     key: 'outbound-qc',
-    //     icon: <Lasso size={17} />,
-    //     label: 'Outbound QC',
-    //     url: '/outbound-qc',
-    // }),
+    getMenuItem({
+        key: 'outbound',
+        icon: <Lasso size={17} />,
+        label: 'Outbound',
+        url: '/outbound',
+    }),
 ];
 
 export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Props) {

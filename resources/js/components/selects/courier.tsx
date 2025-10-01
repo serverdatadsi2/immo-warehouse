@@ -1,25 +1,25 @@
 import { useDebounce } from '@/hooks/use-debounce';
 import axiosIns from '@/lib/axios';
 import { OptionSelect } from '@/types/option.type';
-import { Supplier } from '@/types/supplier.type';
+import { Product } from '@/types/product.type';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Divider, Select, SelectProps, Space } from 'antd';
 import { useEffect, useState } from 'react';
 
-export function SupplierAsyncSelect(props: Props) {
+export function CourierAsyncSelect(props: Props) {
     const [search, setSearch] = useState<string>();
     const [options, setOptions] = useState<OptionSelect[]>([]);
     const [page, setPage] = useState<number>(1);
 
-    const { data = [], isLoading } = useQuery({
-        queryKey: ['supplier', search, page],
+    const { data, isLoading } = useQuery({
+        queryKey: ['Couriers', search, page],
         queryFn: async () => {
-            const res = await axiosIns.get<Array<Supplier>>('/api/suppliers', {
+            const res = await axiosIns.get<Array<Product>>('/api/couriers', {
                 params: { search, page },
             });
             return res.data.map((d) => ({
                 value: d.id,
-                label: d.name,
+                label: `${d.code} - ${d.name}`,
             }));
         },
     });
@@ -45,11 +45,10 @@ export function SupplierAsyncSelect(props: Props) {
             {...props}
             showSearch
             defaultActiveFirstOption={false}
-            // suffixIcon={null}
             filterOption={false}
             onSearch={debouncedSearch}
             options={options}
-            placeholder="Search Supplier"
+            placeholder="Search Courier"
             loading={isLoading}
             style={{ width: '100%' }}
             popupRender={(menu) => (

@@ -1,3 +1,9 @@
 {
-    "conventionalCommits.scopes": ["rfid-tagging", "location-suggestion", "auth", "receiving-order"]
+    "conventionalCommits.scopes": [
+        "rfid-tagging",
+        "location-suggestion",
+        "auth",
+        "receiving-order",
+        "outbound"
+    ]
 }

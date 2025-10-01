@@ -14,7 +14,7 @@ type LocationSelectProps = Omit<
     | 'onSearch'
     | 'options'
     | 'style'
-    | 'dropdownRender'
+    | 'popupRender'
     | 'disabled'
 > & {
     type?: 'room' | 'rack' | 'layer';
@@ -78,7 +78,7 @@ export function LocationSelect({
             loading={isLoading}
             style={{ width: '100%' }}
             disabled={!type || (type !== 'room' && !parentId)}
-            dropdownRender={(menu) => (
+            popupRender={(menu) => (
                 <>
                     {menu}
                     {data?.length === 30 && (

@@ -53,7 +53,7 @@ class User extends Authenticatable
 
     public function warehouses()
     {
-        return $this->belongsToMany(Warehouse::class, 'user_warehouses', 'user_id', 'warehouse_id');
+        return $this->belongsToMany(Warehouse::class, 'warehouse_users', 'user_id', 'warehouse_id');
     }
 
     public $incrementing = false;

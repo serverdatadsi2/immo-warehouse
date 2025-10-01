@@ -12,7 +12,7 @@ export function ProductAsyncSelect(props: Props) {
     const [page, setPage] = useState<number>(1);
 
     const { data, isLoading } = useQuery({
-        queryKey: ['Product', search],
+        queryKey: ['Products', search, page],
         queryFn: async () => {
             const res = await axiosIns.get<Array<Product>>('/api/products', {
                 params: { search, page },
@@ -51,7 +51,7 @@ export function ProductAsyncSelect(props: Props) {
             placeholder="Search Product"
             loading={isLoading}
             style={{ width: '100%' }}
-            dropdownRender={(menu) => (
+            popupRender={(menu) => (
                 <>
                     {menu}
                     {data?.length === 30 && (
@@ -72,5 +72,5 @@ export function ProductAsyncSelect(props: Props) {
 
 type Props = Omit<
     SelectProps,
-    'showSearch' | 'loading' | 'filterOption' | 'onSearch' | 'options' | 'style' | 'dropdownRender'
+    'showSearch' | 'loading' | 'filterOption' | 'onSearch' | 'options' | 'style' | 'popupRender'
 >;

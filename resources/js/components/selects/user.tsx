@@ -52,7 +52,7 @@ export function UserAsyncSelect(props: Props) {
             placeholder="Search User"
             loading={isLoading}
             style={{ width: '100%' }}
-            dropdownRender={(menu) => (
+            popupRender={(menu) => (
                 <>
                     {menu}
                     {data?.length === 30 && (
@@ -73,5 +73,5 @@ export function UserAsyncSelect(props: Props) {
 
 type Props = Omit<
     SelectProps,
-    'showSearch' | 'loading' | 'filterOption' | 'onSearch' | 'options' | 'style' | 'dropdownRender'
+    'showSearch' | 'loading' | 'filterOption' | 'onSearch' | 'options' | 'style' | 'popupRender'
 >;
