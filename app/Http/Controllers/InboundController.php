@@ -155,7 +155,7 @@ class InboundController extends Controller
             ->join('items', 'items.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
             ->where('warehouse_inbounds.id', $headerId)
             ->first();
-        Log::info($item);
+
         if ($item) {
             return redirect()->back()->withErrors(['error' => 'Inbound tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
         }

@@ -18,18 +18,18 @@ class ReceivingOrderController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');;
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
 
         $pagination = StoreOrder::query()
             ->leftJoin('stores as s', 's.id', '=', 'store_orders.store_id')
             ->leftJoin('users as u', 'u.id', '=', 'store_orders.approved_by')
-            ->select('s.*', 's.name as store_name', 'u.name as approved_name')
+            ->select('store_orders.*', 's.name as store_name', 'u.name as approved_name')
             ->where('status','approved')
             ->where(function ($q) use ($userWarehouseIds) {
                 $q->whereNull('store_orders.warehouse_id')
                 ->orWhereIn('store_orders.warehouse_id', $userWarehouseIds);
             })
-            ->groupBy('s.id', 's.name', 'u.name')
+            ->groupBy('store_orders.id', 's.name', 'u.name')
             ->paginate(10);
 
         return Inertia::render('receiving-order/index', ['pagination' => $pagination]);
@@ -42,10 +42,20 @@ class ReceivingOrderController extends Controller
         $detailsPagination = null;
 
         if ($headerId) {
-            $header = StoreOrder::findOrFail($headerId);
+            $header = StoreOrder::query()
+            ->where('store_orders.id', $headerId)
+            ->leftJoin('stores as s', 's.id', '=', 'store_orders.store_id')
+            ->leftJoin('users as u', 'u.id', '=', 'store_orders.approved_by')
+            ->select(
+                'store_orders.*',
+                's.name as store_name',
+                'u.name as approved_name'
+            )
+            ->first();
+
             $detailsPagination = StoreOrderDetail::query()
-                ->leftJoin('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
-                ->where('warehouse_inbound_id', $header->id)
+                ->leftJoin('products as p', 'p.id', '=', 'store_order_details.product_id')
+                ->where('store_order_id', $header->id)
                 ->select('store_order_details.*', 'p.name as product_name')
                 ->paginate(5);
         }
@@ -56,40 +66,22 @@ class ReceivingOrderController extends Controller
         ]);
     }
 
-    public function saveHeader(Request $request)
+    public function updateHeader($id)
     {
-        $rules = [
-            'supplier_id' => ['string', 'required', 'exists:suppliers,id'],
-            'received_by' => ['string', 'required', 'exists:users,id'],
-            'warehouse_id' => ['string', 'required', 'exists:warehouses,id'],
-            'invoice_number' => ['string', 'nullable'],
-            'delivery_order_number' => ['string', 'nullable'],
-            'received_date' => ['date', 'required'],
-        ];
+        $user = auth()->user();
 
-        $validated = $request->validate($rules);
+        $order = StoreOrder::findOrFail($id);
 
-        $header = WarehouseInbound::newModelInstance();
-        DB::transaction(function () use ($validated, $request, &$header) {
-            if ($request->id) {
-                $header = WarehouseInbound::updateOrCreate(
-                    ['id' => $request->id],
-                    $validated
-                );
-            } else {
-                $header = WarehouseInbound::create($validated);
-            }
+        // ambil warehouse pertama milik user
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
-            $result = WarehouseInboundDetail::where('warehouse_inbound_id', $header->id)
-                ->selectRaw('COALESCE(SUM(quantity),0) as grand_total, COUNT(*) as quantity_item')
-                ->first();
+        if (!$userWarehouseId) {
+            return back()->withErrors(['error' => 'Maaf and Tidak boleh melakukan proses ini']);
+        }
 
-            $header->update([
-                'grand_total'   => $result->grand_total,
-                'quantity_item' => $result->quantity_item,
-            ]);
-        });
+        $order->warehouse_id = $userWarehouseId;
+        $order->save();
 
-        return to_route('inbound.detail', ['header_id' => $header->id]);
+        return to_route('receiving-order.index');
     }
 }

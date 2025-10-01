@@ -7,18 +7,20 @@ import { Space } from 'antd';
 import { createContext } from 'react';
 import { HeaderItem } from '.';
 import { DetailTable } from './components/detail/table';
-import { HeaderForm } from './components/header/form';
+import DescriptionHeader from './components/header/desctiption';
 
 export const DetailContext = createContext<PageProps>({ detailsPagination: null, header: null });
 
 export default function Page({ detailsPagination, header }: PageProps) {
-
     return (
-        <AppLayout navBarLeft={<BackButton backUrl="/inbounds" />} navBarTitle="Inbound Detail">
-            <Head title="Inbound Detail" />
+        <AppLayout
+            navBarLeft={<BackButton backUrl="/receiving-order" />}
+            navBarTitle="Store Order Detail"
+        >
+            <Head title="Store Order Detail" />
             <DetailContext.Provider value={{ detailsPagination, header }}>
                 <Space direction="vertical" className="w-full">
-                    <HeaderForm />
+                    <DescriptionHeader />
                     <DetailTable />
                 </Space>
             </DetailContext.Provider>

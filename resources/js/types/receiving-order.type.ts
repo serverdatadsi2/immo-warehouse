@@ -1,11 +1,13 @@
 export interface ReceivingOrder {
     id: string;
-    oredr_number: string;
+    order_number: string;
     store_id: string;
+    store_name: string;
     warehouse_id: string;
     requested_at: string; // ISO date string
     approved_at: string; // ISO date string
     approved_by: string;
+    approved_name: string;
     status: string;
     invoice_number: string;
     delivery_order_number: string;

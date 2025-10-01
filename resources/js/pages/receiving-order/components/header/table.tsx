@@ -1,10 +1,10 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import { appendQueryString } from '@/lib/utils';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
-import { EditOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
-import { Button, Pagination, Space, Table } from 'antd';
+import { Button, Pagination, Space, Table, Tooltip } from 'antd';
+import { LayoutList } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { HeaderItem } from '../..';
 
@@ -25,47 +25,27 @@ export function HeaderTable({ pagination }: Props) {
                 },
             },
             {
-                title: 'Supplier',
-                dataIndex: 'supplier_name',
-                key: 'supplier_name',
+                title: 'Nomor Order',
+                dataIndex: 'order_number',
+                key: 'order_number',
             },
             {
-                title: 'Gudang',
-                dataIndex: 'warehouse_name',
-                key: 'warehouse_name',
+                title: 'Store',
+                dataIndex: 'store_name',
+                key: 'store_name',
             },
             {
-                title: 'Faktur',
-                dataIndex: 'invoice_number',
-                key: 'invoice_number',
-            },
-            {
-                title: 'Surat Jalan',
-                dataIndex: 'delivery_order_number',
-                key: 'delivery_order_number',
-            },
-            {
-                title: 'Quantity',
-                dataIndex: 'quantity_item',
-                key: 'quantity_item',
-            },
-            {
-                title: 'Grand Total',
-                dataIndex: 'grand_total',
-                key: 'grand_total',
-            },
-            {
-                title: 'Diterima',
+                title: 'Approve',
                 children: [
                     {
-                        title: 'Nama',
-                        dataIndex: 'received_name',
-                        key: 'received_name',
+                        title: 'By',
+                        dataIndex: 'approved_name',
+                        key: 'approved_name',
                     },
                     {
-                        title: 'Tanggal',
-                        dataIndex: 'received_date',
-                        key: 'received_date',
+                        title: 'Date',
+                        dataIndex: 'approved_at',
+                        key: 'approved_at',
                         render: (v) => <DateDisplay val={v} />,
                     },
                 ],
@@ -75,7 +55,9 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'action',
                 fixed: 'right',
                 render: (_, d) => (
-                    <Button onClick={() => handleAction(d)} icon={<EditOutlined />} />
+                    <Tooltip title="View Detail">
+                        <Button onClick={() => handleAction(d)} icon={<LayoutList size={20} />} />
+                    </Tooltip>
                 ),
             },
         ],

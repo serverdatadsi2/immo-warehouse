@@ -1,61 +1,85 @@
 <?php
 
-use App\Http\Controllers\InboundController;
-use App\Http\Controllers\ReceivingOrderController;
-use App\Http\Controllers\RFIDTaggingController;
-use App\Http\Controllers\LocationSuggestionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use App\Http\Controllers\{
+    ReceivingOrderController,
+    InboundController,
+    RFIDTaggingController,
+    LocationSuggestionController
+};
 
+// HOME
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect('/inbounds');
-    } else {
-        return redirect('/login');
-    }
+    return auth()->check()
+        ? redirect()->route('inbound.index')
+        : redirect('/login');
 })->name('home');
 
-// API route untuk mendapatkan data user
-Route::middleware(['auth'])->get('/api/user', function (Request $request) {
-    return response()->json($request->user());
-});
-
+// MAIN AUTH ROUTES
 Route::middleware(['auth'])->group(function () {
-    Route::get('/inbound-qc', function () {
-        return Inertia('inbound-qc/index');
+
+    // Pages
+    Route::get('/inbound-qc', fn () => Inertia::render('inbound-qc/index'));
+
+    /*
+    |--------------------------------------------------------------------------
+    | Receiving Order
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('receiving-order')->name('receiving-order.')->group(function () {
+        Route::get('/', [ReceivingOrderController::class, 'index'])->name('index');
+        Route::patch('/{header_id}/process', [ReceivingOrderController::class, 'updateHeader'])->name('updateHeader');
+        Route::get('/detail', [ReceivingOrderController::class, 'detail'])->name('detail');
     });
-    Route::get('/rfid-tagging/manual-input', function () {
-        return Inertia('rfid-tagging/manual-input');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Inbounds
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('inbounds')->name('inbound.')->group(function () {
+        Route::get('/', [InboundController::class, 'index'])->name('index');
+        Route::post('/', [InboundController::class, 'saveHeader']);
+        Route::delete('/{header_id}', [InboundController::class, 'deleteHeader']);
+
+        // Details
+        Route::get('/detail', [InboundController::class, 'detail'])->name('detail');
+        Route::post('/detail', [InboundController::class, 'saveDetail']);
+        Route::delete('/detail/{detail_id}', [InboundController::class, 'deleteDetail']);
     });
 
-    // Route::resource('/master/transaction-types', TransactionTypeController::class);
+    /*
+    |--------------------------------------------------------------------------
+    | RFID Tagging
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('rfid-tagging')->name('rfid-tagging.')->group(function () {
+        Route::get('/', [RFIDTaggingController::class, 'index'])->name('index');
+        Route::get('/inbound-detail-list', [RFIDTaggingController::class, 'listDetails'])->name('inbound.listDetails');
+        Route::post('/', [RFIDTaggingController::class, 'insertItemStock']);
+        Route::post('/create-rfid', [RFIDTaggingController::class, 'createRFIDTag']);
+        Route::post('/generate-rfid-tag', [RFIDTaggingController::class, 'generateRFIDTagItems']);
+    });
 
-    // receiving order
-    Route::get('/receiving-order', [ReceivingOrderController::class, 'index'])->name('receiving-order.index');
-    Route::get('/receiving-order/detail', [ReceivingOrderController::class, 'detail'])->name('receiving-order.index');
-
-    // Inbound
-    Route::get('/inbounds', [InboundController::class, 'index'])->name('inbound.index');
-    Route::post('/inbounds', [InboundController::class, 'saveHeader']);
-    Route::delete('/inbounds/{header_id}', [InboundController::class, 'deleteHeader']);
-    // Inbound Details
-    Route::get('/inbounds/detail', [InboundController::class, 'detail'])->name('inbound.detail');
-    Route::post('/inbounds/detail', [InboundController::class, 'saveDetail']);
-    Route::delete('/inbounds/detail/{detail_id}', [InboundController::class, 'deleteDetail']);
-
-    // RFID Tagging
-    Route::post('/rfid-tagging', [RFIDTaggingController::class, 'insertItemStock']);
+    // Items (by inbound details)
     Route::post('/items/by-inbound-details', [RFIDTaggingController::class, 'getRFIDItems']);
-    Route::post('/rfid-tagging/create-rfid', [RFIDTaggingController::class, 'createRFIDTag']);
-    Route::post('/rfid-tagging/generate-rfid-tag', [RFIDTaggingController::class, 'generateRFIDTagItems']);
-    Route::get('/rfid-tagging', [RFIDTaggingController::class, 'index'])->name('rfid-tagging.index');
-    Route::get('/rfid-tagging/inbound-detail-list', [RFIDTaggingController::class, 'listDetails'])->name('inbound.listDetails');
 
-    // Location Suggestion
-    Route::get('/master/location-suggestions', [LocationSuggestionController::class, 'index'])->name('location-suggestions.index');
-    Route::post('/master/location-suggestions', [LocationSuggestionController::class, 'save']);
-    Route::delete('/master/location-suggestions/{id}', [LocationSuggestionController::class, 'delete']);
+    /*
+    |--------------------------------------------------------------------------
+    | Master - Location Suggestions
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('master')->group(function () {
+        Route::prefix('location-suggestions')->name('location-suggestions.')->group(function () {
+            Route::get('/', [LocationSuggestionController::class, 'index'])->name('index');
+            Route::post('/', [LocationSuggestionController::class, 'save']);
+            Route::delete('/{id}', [LocationSuggestionController::class, 'delete']);
+        });
+    });
 });
+
 
 // require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
