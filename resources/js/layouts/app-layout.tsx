@@ -95,6 +95,12 @@ const menuItems = [
         url: '/inbound-qc',
     }),
     getMenuItem({
+        key: 'storage',
+        icon: <NotebookText size={17} />,
+        label: 'Penyimpanan',
+        url: '/storage',
+    }),
+    getMenuItem({
         key: 'receiving-order',
         icon: <NotebookText size={17} />,
         label: 'Receiving Orders',

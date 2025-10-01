@@ -10,8 +10,8 @@ interface PageProps {
 
 export default function LocationSuggestionsPage({ pagination }: PageProps) {
     return (
-        <AppLayout navBarTitle="Location Suggestions">
-            <Head title="Location Suggestions" />
+        <AppLayout navBarTitle="Penyimpanan Barang">
+            <Head title="Penyimpanan Barang" />
             {/* <Button onClick={handleAdd} type="primary" icon={<PlusOutlined />}>
             Add Inbound
         </Button> */}
