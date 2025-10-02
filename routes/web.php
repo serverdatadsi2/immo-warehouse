@@ -23,9 +23,15 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
 
     // Pages
-    Route::get('/inbound-qc', fn () => Inertia::render('inbound-qc/index'));
+    Route::get('/inbound-qc', fn () => Inertia::render('inbound-qc/index'))->name('inbound-dc.index');
 
-        /*
+
+    Route::prefix('storage')->name('storage.')->group(function () {
+        Route::get('/', fn () => Inertia::render('storage/index'))->name('index');
+        Route::get('/assignment', fn () => Inertia::render('storage/assignment'))->name('assignment');
+    });
+
+    /*
     |--------------------------------------------------------------------------
     | Remove RFID
     |--------------------------------------------------------------------------

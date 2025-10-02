@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import {
+    BookMarked,
     Database,
     Delete,
     Download,
@@ -100,6 +101,12 @@ const menuItems = [
         icon: <LassoSelect size={17} />,
         label: 'Inbound QC',
         url: '/inbound-qc',
+    }),
+    getMenuItem({
+        key: 'storage',
+        icon: <BookMarked size={17} />,
+        label: 'Penyimpanan',
+        url: '/storage',
     }),
     getMenuItem({
         key: 'receiving-order',
