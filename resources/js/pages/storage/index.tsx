@@ -1,21 +1,20 @@
 import { AppLayout } from '@/layouts/app-layout';
-import { LaravelPagination } from '@/types/laravel-pagination.type';
-import { LocationSuggestion } from '@/types/location-suggestion.type';
 import { Head } from '@inertiajs/react';
 import TableData from './components/table';
 
-interface PageProps {
-    pagination: LaravelPagination<LocationSuggestion> | null;
-}
+// interface PageProps {
+//     pagination: LaravelPagination<Storage> | null;
+// }
 
-export default function LocationSuggestionsPage({ pagination }: PageProps) {
+export default function StoragePage() {
     return (
         <AppLayout navBarTitle="Penyimpanan Barang">
             <Head title="Penyimpanan Barang" />
             {/* <Button onClick={handleAdd} type="primary" icon={<PlusOutlined />}>
             Add Inbound
         </Button> */}
-            <TableData pagination={pagination} />
+            {/* <TableData pagination={pagination} /> */}
+            <TableData />
         </AppLayout>
     );
 }

@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import {
+    BookMarked,
     Database,
     Delete,
     Download,
@@ -103,7 +104,7 @@ const menuItems = [
     }),
     getMenuItem({
         key: 'storage',
-        icon: <NotebookText size={17} />,
+        icon: <BookMarked size={17} />,
         label: 'Penyimpanan',
         url: '/storage',
     }),

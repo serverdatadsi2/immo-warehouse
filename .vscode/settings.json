@@ -6,6 +6,7 @@
         "receiving-order",
         "outbound",
         "inbound",
-        "remove-rfid"
+        "remove-rfid",
+        "storage"
     ]
 }
