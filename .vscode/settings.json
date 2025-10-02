@@ -8,6 +8,7 @@
         "inbound",
         "remove-rfid",
         "storage",
-        "outbound-qc"
+        "outbound-qc",
+        "doc"
     ]
 }
