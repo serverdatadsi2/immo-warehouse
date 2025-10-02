@@ -5,15 +5,18 @@ import { SupplierAsyncSelect } from '@/components/selects/supplier';
 import { UserAsyncSelect } from '@/components/selects/user';
 import { WarehouseAsyncSelect } from '@/components/selects/warehouse';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { Col, Form, Input, Row, Space } from 'antd';
 import dayjs from 'dayjs';
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import { HeaderItem } from '../..';
 import { DetailContext } from '../../detail';
 
 export function HeaderForm() {
     const { form, errors, post, processing, destroy } = useAntdInertiaForm<HeaderForm>('Inbound');
     const { header } = useContext(DetailContext);
+    const { props } = usePage<SharedData>();
 
     const handleSave = useCallback(() => {
         const formValues = form.getFieldsValue();
@@ -23,6 +26,11 @@ export function HeaderForm() {
     const handleDelete = useCallback(() => {
         destroy({ url: `/inbounds/${header?.id}` });
     }, [destroy, header?.id]);
+
+    useEffect(() => {
+        const { warehouses } = props.auth;
+        if (warehouses?.[0]) form.setFieldValue('warehouse_id', warehouses?.[0]?.id);
+    }, [props, form]);
 
     return (
         <>
@@ -63,9 +71,9 @@ export function HeaderForm() {
                             errorMessage={errors?.warehouse_id}
                             name="warehouse_id"
                             required
-                            label="Gudang"
+                            label="Warehouse"
                         >
-                            <WarehouseAsyncSelect />
+                            <WarehouseAsyncSelect disabled />
                         </FormItem>
                     </Col>
                     <Col span={8}>

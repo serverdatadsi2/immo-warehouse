@@ -1,4 +1,4 @@
-import { AddButton } from '@/components/buttons/common-buttons';
+import { AddButton } from '@/components/buttons/crud-buttons';
 import { DateDisplay } from '@/components/displays/date-display';
 import { LaravelTable } from '@/components/tables/laravel-table';
 import { appendQueryString } from '@/lib/utils';

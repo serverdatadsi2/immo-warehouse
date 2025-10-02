@@ -18,6 +18,7 @@ import {
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import {
     Database,
+    Delete,
     Download,
     Lasso,
     LassoSelect,
@@ -87,6 +88,12 @@ const menuItems = [
         icon: <QrCode size={17} />,
         label: 'RFID Tagging',
         url: '/rfid-tagging',
+    }),
+    getMenuItem({
+        key: 'remove-rfid',
+        icon: <Delete size={17} />,
+        label: 'Remove RFID',
+        url: '/remove-rfid',
     }),
     getMenuItem({
         key: 'inbound-qc',

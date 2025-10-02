@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\{
+    RemoveRFIDController,
     ReceivingOrderController,
     InboundController,
     RFIDTaggingController,
@@ -23,6 +24,17 @@ Route::middleware(['auth'])->group(function () {
 
     // Pages
     Route::get('/inbound-qc', fn () => Inertia::render('inbound-qc/index'));
+
+        /*
+    |--------------------------------------------------------------------------
+    | Remove RFID
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('remove-rfid')->name('receiving-order.')->group(function () {
+        Route::get("/", [RemoveRFIDController::class, "index"])->name("index");
+        Route::get("/check-rfid/{rfidId}", [RemoveRFIDController::class, "checkRfid"])->name('checkRfid');
+        Route::post("/remove", [RemoveRFIDController::class, "removeRfid"]);
+    });
 
     /*
     |--------------------------------------------------------------------------

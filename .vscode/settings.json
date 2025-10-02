@@ -4,6 +4,8 @@
         "location-suggestion",
         "auth",
         "receiving-order",
-        "outbound"
+        "outbound",
+        "inbound",
+        "remove-rfid"
     ]
 }
