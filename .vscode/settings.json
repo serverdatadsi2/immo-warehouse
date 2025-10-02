@@ -5,6 +5,7 @@
         "auth",
         "receiving-order",
         "outbound",
-        "inbound"
+        "inbound",
+        "remove-rfid"
     ]
 }
