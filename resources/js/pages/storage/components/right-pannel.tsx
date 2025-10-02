@@ -59,7 +59,6 @@ export function RightPannel({
 
     return (
         <Card
-            size="small"
             actions={[
                 <Button onClick={handleScanItems} disabled={!scannedLocation}>
                     Scan Barang

@@ -24,6 +24,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Pages
     Route::get('/inbound-qc', fn () => Inertia::render('inbound-qc/index'))->name('inbound-dc.index');
+    Route::get('/outbound-qc', fn () => Inertia::render('outbound-qc/index'))->name('outbound-dc.index');
 
 
     Route::prefix('storage')->name('storage.')->group(function () {

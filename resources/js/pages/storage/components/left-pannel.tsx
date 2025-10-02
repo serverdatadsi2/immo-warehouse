@@ -5,7 +5,7 @@ const { Meta } = Card;
 
 export function LeftPannel({ storageData }: { storageData: any[] }) {
     return (
-        <Card size="small">
+        <Card>
             <Meta
                 style={{
                     borderRadius: 4,
