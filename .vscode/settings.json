@@ -9,6 +9,7 @@
         "remove-rfid",
         "storage",
         "outbound-qc",
-        "doc"
+        "doc",
+        "search-product"
     ]
 }

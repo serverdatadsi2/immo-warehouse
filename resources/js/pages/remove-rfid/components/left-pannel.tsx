@@ -1,8 +1,8 @@
+import QRCodeScanner from '@/components/scanner/qr-scanner';
 import axiosIns from '@/lib/axios';
 import { Button, Card, Space, Typography, message } from 'antd';
 import { useCallback, useState } from 'react';
 import { useRemoveRfid } from '../context';
-import QRCodeScanner from './qr-scanner';
 
 const { Text } = Typography;
 

@@ -9,7 +9,8 @@ use App\Http\Controllers\{
     InboundController,
     RFIDTaggingController,
     LocationSuggestionController,
-    OutboundController
+    OutboundController,
+    SearchProductController
 };
 
 // HOME
@@ -30,6 +31,16 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('storage')->name('storage.')->group(function () {
         Route::get('/', fn () => Inertia::render('storage/index'))->name('index');
         Route::get('/assignment', fn () => Inertia::render('storage/assignment'))->name('assignment');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Search Product
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('search-product')->name('search-product.')->group(function () {
+        Route::get('/', [SearchProductController::class, "index"])->name('index');
+        Route::get('/warehouse/{rfid}', [SearchProductController::class, 'searchLocationProduct'])->name('searchLocation');
     });
 
     /*

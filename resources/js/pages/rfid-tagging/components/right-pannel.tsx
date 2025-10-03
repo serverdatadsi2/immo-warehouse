@@ -1,7 +1,7 @@
 import { useSystemMessage } from '@/components/messages/message-provider';
 import { router } from '@inertiajs/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, Card, List, Typography } from 'antd';
+import { Button, Card, List, message, Typography } from 'antd';
 import { useCallback, useState } from 'react';
 import { useRfidTagging } from '../context';
 const { Text } = Typography;
@@ -24,21 +24,27 @@ export function RightPannel() {
             },
             {
                 onSuccess: () => {
+                    setData([]);
                     showMessge({ action: 'save', model: 'RFID Tagging', status: 'success' });
                     queryClient.invalidateQueries({ queryKey: ['inbound-detail-list'] }); //refetch
                 },
                 onError: (e) => {
+                    message.destroy();
                     showMessge({ action: 'save', model: 'RFID Tagging', status: 'error' });
                     // eslint-disable-next-line no-console
                     console.error('error update stock', e);
                 },
                 onFinish: () => {
                     setLoading(false);
-                    // setScanning((s) => !s);
+                    message.destroy();
+                },
+                onStart: () => {
+                    setLoading(true);
+                    message.loading('Loading...', 0);
                 },
             },
         );
-    }, [selected, data, showMessge, queryClient]);
+    }, [selected, data, setData, showMessge, queryClient]);
 
     return (
         <Card

@@ -58,27 +58,29 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
     }, [isActive, capture]);
 
     return (
-        <Card className="mb-6 shadow-xl">
-            <div className="flex flex-col items-center">
-                <div className="relative mb-4 h-64 w-full overflow-hidden rounded-lg bg-gray-200">
-                    <Webcam
-                        ref={webcamRef}
-                        audio={false}
-                        screenshotFormat="image/jpeg"
-                        videoConstraints={{ facingMode }}
-                        className="h-full w-full object-cover"
-                    />
+        <div className="flex justify-center">
+            <Card className="max-w-4xl mb-6 shadow-xl">
+                <div className="flex flex-col items-center">
+                    <div className="relative mb-4 h-64 w-full overflow-hidden rounded-lg bg-gray-200">
+                        <Webcam
+                            ref={webcamRef}
+                            audio={false}
+                            screenshotFormat="image/jpeg"
+                            videoConstraints={{ facingMode }}
+                            className="h-full w-full object-cover"
+                        />
+                    </div>
+
+                    <Button onClick={onSwitchCamera} className="mb-4">
+                        Switch Camera
+                    </Button>
+
+                    <p className="mb-4 text-center text-gray-600">
+                        Arahkan kamera ke QR code RFID untuk memindai secara otomatis
+                    </p>
                 </div>
-
-                <Button onClick={onSwitchCamera} className="mb-4">
-                    Switch Camera
-                </Button>
-
-                <p className="mb-4 text-center text-gray-600">
-                    Arahkan kamera ke QR code RFID untuk memindai secara otomatis
-                </p>
-            </div>
-        </Card>
+            </Card>
+        </div>
     );
 };
 

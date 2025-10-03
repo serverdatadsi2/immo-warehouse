@@ -27,6 +27,7 @@ import {
     Map,
     NotebookText,
     QrCode,
+    Search,
     Warehouse,
 } from 'lucide-react';
 import { ReactNode, useCallback, useMemo } from 'react';
@@ -80,6 +81,12 @@ const menuItems = [
         ],
     }),
     getMenuItem({
+        key: 'search-product',
+        icon: <Search size={17} />,
+        label: 'Search Product',
+        url: '/search-product',
+    }),
+    getMenuItem({
         key: 'inbounds',
         icon: <HardDriveDownload size={17} />,
         label: 'Inbound',
@@ -115,12 +122,6 @@ const menuItems = [
         label: 'Receiving Orders',
         url: '/receiving-order',
     }),
-    // getMenuItem({
-    //     key: 'search-product',
-    //     icon: <Search size={17} />,
-    //     label: 'Search Product',
-    //     url: '/search-product',
-    // }),
     getMenuItem({
         key: 'outbound-qc',
         icon: <Lasso size={17} />,

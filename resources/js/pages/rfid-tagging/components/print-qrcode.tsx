@@ -24,7 +24,7 @@ const QRCodePrinter = ({ selectInbound }: Props) => {
         onError: () => {
             message.success('Print QRCode Gagal dilakukan');
             message.destroy();
-        }
+        },
     });
 
     const handleClick = useCallback(() => {
