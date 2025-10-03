@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\Product;
 use App\Models\RFIDTag;
 use App\Models\WarehouseInboundDetail;
 use App\Models\WarehouseStock;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 
 class RFIDTaggingController extends Controller
 {
@@ -164,7 +167,8 @@ class RFIDTaggingController extends Controller
 
         $allAvailable = $items->merge($newItems);
 
-        return response()->json($allAvailable);
+        return $allAvailable;
+        // return response()->json($allAvailable);
     }
 
     public function getRFIDItems(Request $request)
@@ -180,5 +184,76 @@ class RFIDTaggingController extends Controller
         $items = Item::where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])->where('product_id', $validated['product_id'])->where('expired_date', $validated['expired_date'])->get();
 
         return response()->json($items);
+    }
+
+    public function generatePdfWithRFID(Request $request)
+    {
+        $items = $this->generateRFIDTagItems($request); // sudah return collection
+        $product = Product::findOrFail($request->product_id);
+
+        $pdf = new \FPDF('P','mm','A4');
+        $pdf->AddPage();
+        $pageWidth = $pdf->GetPageWidth();
+        $pageHeight = $pdf->GetPageHeight();
+
+        $qrSize = 20;
+        $cols = 3;
+        $cellHeight = 28;
+        $cellWidth = $pageWidth / $cols;
+
+        $x = 10;
+        $y = 10;
+
+        foreach ($items as $i => $item) {
+            $rfid_tag_id = $item->rfid_tag_id;
+
+            // Generate QR ke binary string PNG
+            $options = new QROptions([
+                'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+                'eccLevel'   => QRCode::ECC_L,
+                'scale'      => 3,
+            ]);
+            $qrcode = (new QRCode($options))->render($rfid_tag_id);
+
+            // Simpan ke file sementara dengan ekstensi .png
+            $tempFile = storage_path("app/tmp/".md5($rfid_tag_id).".png");
+            if (!file_exists(dirname($tempFile))) {
+                mkdir(dirname($tempFile), 0777, true);
+            }
+            file_put_contents($tempFile, $qrcode);
+
+            // Masukkan QR ke PDF
+            $pdf->Image($tempFile, $x, $y, $qrSize, $qrSize);
+
+            // Text di bawah dan kanan QR
+            $pdf->SetFont('Arial','',7);
+            $pdf->Text($x+2, $y+$qrSize+4, $rfid_tag_id);
+
+            $pdf->SetFont('Arial','',8);
+            $pdf->Text($x+$qrSize+2, $y+6, $product->product_name);
+            $pdf->Text($x+$qrSize+2, $y+10, "Code: ".$product->product_code);
+
+            // Posisi kolom
+            if ((($i+1) % $cols) == 0) {
+                $x = 10;
+                $y += $cellHeight;
+            } else {
+                $x += $cellWidth;
+            }
+
+            // Page break
+            if ($y + $cellHeight > $pageHeight - 10) {
+                $pdf->AddPage();
+                $x = 10;
+                $y = 10;
+            }
+
+            // Hapus file sementara
+            @unlink($tempFile);
+        }
+
+        return response($pdf->Output('S'))
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="rfid-qrcodes.pdf"');
     }
 }

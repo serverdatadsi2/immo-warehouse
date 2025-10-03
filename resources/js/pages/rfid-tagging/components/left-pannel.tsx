@@ -10,7 +10,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button, Card, Input, List, message, Space } from 'antd';
 import { useCallback, useState } from 'react';
 import { useRfidTagging } from '../context';
-import QRCodePrinter from './print-qrcode';
+import QRCodePrinter from './print-qrcode-backend';
 const { Meta } = Card;
 
 export function LeftPannel() {

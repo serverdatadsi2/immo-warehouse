@@ -42,7 +42,9 @@ export default function SearchProductPage() {
                     isActive={!data}
                 />
             )}
-
+            <Button onClick={() => handleScan('470998a6-6e93-43d3-9a33-ce0169247af1')}>
+                Scan Now
+            </Button>
             {data && (
                 <Space direction="vertical" size={20} className="w-full text-center">
                     <Space
