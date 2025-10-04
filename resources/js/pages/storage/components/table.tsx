@@ -14,7 +14,7 @@ const pagination = data;
 
 export default function TableData() {
     const handleAdd = useCallback(() => {
-        router.get('/storage/assignment');
+        router.get('/storage-warehouse/assignment');
     }, []);
 
     const handlePageChange = useCallback((page: number) => {

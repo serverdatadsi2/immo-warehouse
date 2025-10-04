@@ -111,10 +111,10 @@ const menuItems = [
         url: '/inbound-qc',
     }),
     getMenuItem({
-        key: 'storage',
+        key: 'storage-warehouse',
         icon: <BookMarked size={17} />,
         label: 'Penyimpanan',
-        url: '/storage',
+        url: '/storage-warehouse',
     }),
     getMenuItem({
         key: 'receiving-order',
