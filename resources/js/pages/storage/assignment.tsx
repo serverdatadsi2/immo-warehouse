@@ -12,7 +12,7 @@ export default function AssignmentPage() {
     const [storageData, setStorageData] = useState<any[]>([]);
     return (
         <AppLayout
-            navBarLeft={<BackButton backUrl="/storage" />}
+            navBarLeft={<BackButton backUrl="/storage-warehouse" />}
             navBarTitle="Lokasi Penyimpanan Barang"
         >
             <Head title="Lokasi Penyimpanan Barang" />
