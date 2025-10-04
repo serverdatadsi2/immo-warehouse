@@ -167,8 +167,7 @@ class RFIDTaggingController extends Controller
 
         $allAvailable = $items->merge($newItems);
 
-        return $allAvailable;
-        // return response()->json($allAvailable);
+        return response()->json($allAvailable);
     }
 
     public function getRFIDItems(Request $request)
@@ -188,72 +187,94 @@ class RFIDTaggingController extends Controller
 
     public function generatePdfWithRFID(Request $request)
     {
-        $items = $this->generateRFIDTagItems($request); // sudah return collection
-        $product = Product::findOrFail($request->product_id);
+        try {
+            $items = $this->generateRFIDTagItems($request)->getData();
+            $product = Product::findOrFail($request->product_id);
 
-        $pdf = new \FPDF('P','mm','A4');
-        $pdf->AddPage();
-        $pageWidth = $pdf->GetPageWidth();
-        $pageHeight = $pdf->GetPageHeight();
+            $pdf = new \FPDF('P','mm','A4');
+            $pdf->AddPage();
+            $pageWidth = $pdf->GetPageWidth();
+            $pageHeight = $pdf->GetPageHeight();
 
-        $qrSize = 20;
-        $cols = 3;
-        $cellHeight = 28;
-        $cellWidth = $pageWidth / $cols;
+            $qrSize = 20;
+            $cols = 3;
+            $cellHeight = 25;
+            $cellWidth = $pageWidth / $cols;
 
-        $x = 10;
-        $y = 10;
+            $x = 6;
+            $y = 10;
 
-        foreach ($items as $i => $item) {
-            $rfid_tag_id = $item->rfid_tag_id;
+            foreach ($items as $i => $item) {
+                $rfid_tag_id = $item->rfid_tag_id;
 
-            // Generate QR ke binary string PNG
-            $options = new QROptions([
-                'outputType' => QRCode::OUTPUT_IMAGE_PNG,
-                'eccLevel'   => QRCode::ECC_L,
-                'scale'      => 3,
-            ]);
-            $qrcode = (new QRCode($options))->render($rfid_tag_id);
+                // Generate QR ke binary string PNG
+                $options = new QROptions([
+                    'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+                    'eccLevel'   => QRCode::ECC_L,
+                    'scale'      => 3,
+                    'imageBase64' => false,
+                ]);
+                $qrcode = (new QRCode($options))->render($rfid_tag_id);
+                if (!$qrcode) {
+                    throw new \Exception("Gagal generate QR untuk $rfid_tag_id");
+                }
+                // Simpan ke file sementara dengan ekstensi .png
+                $tempFile = storage_path("app/tmp/".md5($rfid_tag_id).".png");
+                if (!file_exists(dirname($tempFile))) {
+                    mkdir(dirname($tempFile), 0777, true);
+                }
+                file_put_contents($tempFile, $qrcode);
 
-            // Simpan ke file sementara dengan ekstensi .png
-            $tempFile = storage_path("app/tmp/".md5($rfid_tag_id).".png");
-            if (!file_exists(dirname($tempFile))) {
-                mkdir(dirname($tempFile), 0777, true);
+                // Masukkan QR ke PDF
+                $pdf->Image($tempFile, $x, $y, $qrSize, $qrSize);
+
+                // Text di bawah
+                $pdf->SetFont('Arial','',7);
+                $pdf->Text($x+2, $y+$qrSize+1, $rfid_tag_id);
+
+                // Mulai tulis teks di kanan QR
+                $pdf->SetXY($x + $qrSize , $y+2);
+
+                // Wrap product name max 50mm
+                $pdf->MultiCell(50, 3, $product->name, 0, 'L');
+
+                // Setelah MultiCell, Y sudah bergeser ke bawah otomatis,
+                // jadi posisikan lagi untuk product code
+                $pdf->SetX($x + $qrSize);
+                $pdf->MultiCell(40, 4, "Code: ".$product->code, 0, 'L');
+
+                // Posisi kolom
+                if ((($i+1) % $cols) == 0) {
+                    $x = 6;
+                    $y += $cellHeight;
+                } else {
+                    $x += $cellWidth;
+                }
+
+                // Page break
+                if ($y + $cellHeight > $pageHeight - 10) {
+                    $pdf->AddPage();
+                    $x = 6;
+                    $y = 10;
+                }
+
+                // Hapus file sementara
+                @unlink($tempFile);
             }
-            file_put_contents($tempFile, $qrcode);
 
-            // Masukkan QR ke PDF
-            $pdf->Image($tempFile, $x, $y, $qrSize, $qrSize);
+            return response($pdf->Output('S'))
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="'.$product->name.'-rfid-qrcodes.pdf"');
 
-            // Text di bawah dan kanan QR
-            $pdf->SetFont('Arial','',7);
-            $pdf->Text($x+2, $y+$qrSize+4, $rfid_tag_id);
-
-            $pdf->SetFont('Arial','',8);
-            $pdf->Text($x+$qrSize+2, $y+6, $product->product_name);
-            $pdf->Text($x+$qrSize+2, $y+10, "Code: ".$product->product_code);
-
-            // Posisi kolom
-            if ((($i+1) % $cols) == 0) {
-                $x = 10;
-                $y += $cellHeight;
-            } else {
-                $x += $cellWidth;
-            }
-
-            // Page break
-            if ($y + $cellHeight > $pageHeight - 10) {
-                $pdf->AddPage();
-                $x = 10;
-                $y = 10;
-            }
-
-            // Hapus file sementara
-            @unlink($tempFile);
+        } catch (\Throwable $e) {
+            \Log::error($e);
+            // Kirim error ke frontend
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate PDF',
+                'error'   => $e->getMessage(),
+            ], 500);
         }
-
-        return response($pdf->Output('S'))
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="rfid-qrcodes.pdf"');
     }
+
 }
