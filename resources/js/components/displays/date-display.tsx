@@ -34,3 +34,30 @@ export function DateDisplay({ val, longMonth }: Props) {
 
     return <span>{displayValue}</span>;
 }
+
+export function DateTimeDisplay({ val, longMonth }: Props) {
+    const displayValue = useMemo(() => {
+        if (!val) return '—';
+
+        try {
+            const dateObj = typeof val === 'string' ? new Date(val) : val;
+
+            const options: Intl.DateTimeFormatOptions = {
+                timeZone: 'Asia/Jakarta',
+                day: '2-digit',
+                month: longMonth ? 'long' : '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hourCycle: 'h23',
+            };
+
+            // Format like "15/08/2025 14.40"
+            return new Intl.DateTimeFormat('id-ID', options).format(dateObj);
+        } catch {
+            return 'Invalid Date';
+        }
+    }, [val, longMonth]);
+
+    return <span>{displayValue}</span>;
+}

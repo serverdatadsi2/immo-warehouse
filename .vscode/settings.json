@@ -10,6 +10,7 @@
         "storage",
         "outbound-qc",
         "doc",
-        "search-product"
+        "search-product",
+        "inbound-qc"
     ]
 }

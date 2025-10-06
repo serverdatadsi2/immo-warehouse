@@ -10,7 +10,8 @@ use App\Http\Controllers\{
     RFIDTaggingController,
     LocationSuggestionController,
     OutboundController,
-    SearchProductController
+    SearchProductController,
+    WarehouseQcController
 };
 
 // HOME
@@ -24,13 +25,23 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
 
     // Pages
-    Route::get('/inbound-qc', fn () => Inertia::render('inbound-qc/index'))->name('inbound-dc.index');
     Route::get('/outbound-qc', fn () => Inertia::render('outbound-qc/index'))->name('outbound-dc.index');
 
 
     Route::prefix('storage-warehouse')->name('storage-warehouse.')->group(function () {
         Route::get('/', fn () => Inertia::render('storage/index'))->name('index');
         Route::get('/assignment', fn () => Inertia::render('storage/assignment'))->name('assignment');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Inbound QC
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('inbound-qc')->name('inbound-qc.')->group(function () {
+        Route::get('/', [WarehouseQcController::class, "index"])->name('index');
+        Route::post('/reject-labelling', [WarehouseQcController::class, "updateRejectLabelInbounQc"]);
+        Route::get('/monitoring-inbound', [WarehouseQcController::class, 'inboundQC'])->name('inboundQC');
     });
 
     /*

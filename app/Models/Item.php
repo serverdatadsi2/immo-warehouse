@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Ramsey\Uuid\Uuid;
 
 class Item extends Model
@@ -16,5 +17,15 @@ class Item extends Model
     public function newUniqueId(): string
     {
         return (string) Uuid::uuid4();
+    }
+
+    public function rfidTag(): BelongsTo
+    {
+        return $this->belongsTo(RFIDTag::class, 'rfid_tag_id', 'id');
+    }
+
+    public function currentCondition(): BelongsTo
+    {
+        return $this->belongsTo(ItemCondition::class, 'current_condition_id', 'id');
     }
 }
