@@ -11,7 +11,8 @@ use App\Http\Controllers\{
     LocationSuggestionController,
     OutboundController,
     SearchProductController,
-    WarehouseQcController
+    WarehouseQcController,
+    WarehouseStorageController
 };
 
 // HOME
@@ -27,10 +28,15 @@ Route::middleware(['auth'])->group(function () {
     // Pages
     Route::get('/outbound-qc', fn () => Inertia::render('outbound-qc/index'))->name('outbound-dc.index');
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | Storage Warehouse
+    |--------------------------------------------------------------------------
+    */
     Route::prefix('storage-warehouse')->name('storage-warehouse.')->group(function () {
-        Route::get('/', fn () => Inertia::render('storage/index'))->name('index');
-        Route::get('/assignment', fn () => Inertia::render('storage/assignment'))->name('assignment');
+        Route::get('/', [WarehouseStorageController::class,'index'])->name('index');
+        Route::get('/assignment',[WarehouseStorageController::class,'listProductUnsignLocation'])->name('listProductUnsignLocation');
+        Route::post('/assignment',[WarehouseStorageController::class,'store']);
     });
 
     /*

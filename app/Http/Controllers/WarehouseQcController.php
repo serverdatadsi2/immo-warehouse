@@ -6,7 +6,6 @@ use App\Http\Resources\InboundQCResource;
 use App\Models\Item;
 use App\Models\ItemCondition;
 use App\Models\WarehouseQC;
-use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -54,7 +53,7 @@ class WarehouseQcController extends Controller
 
             // Cek jika Item tidak ditemukan
             if (!$item) {
-                \DB::rollback(); // Rollback jika item tidak ditemukan
+                \DB::rollback();
                 // Throw exception agar frontend menerima error yang jelas
                 throw ValidationException::withMessages([
                     'rfid' => 'RFID ini tidak terdaftar atau sudah tidak aktif.'
@@ -66,12 +65,7 @@ class WarehouseQcController extends Controller
                 'current_condition_id' => $itemCondition->id,
             ]);
 
-            // D. Create/Update WarehouseStock (Pastikan stok dicatat)
-            WarehouseStock::firstOrCreate(
-                ['warehouse_id' => $warehouseId, 'item_id' => $item->id]
-            );
-
-            // E. Create WarehouseQC Record (Log Reject)
+            // D. Create WarehouseQC Record (Log Reject)
             WarehouseQC::firstOrCreate([
                 'item_id' => $item->id,
                 'qc_type' => 'inbound',
@@ -112,6 +106,7 @@ class WarehouseQcController extends Controller
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
             ->join('users as u', 'u.id', '=', 'warehouse_qc.performed_by')
             ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
+            ->whereNull('i.status')
             ->select(
                 'warehouse_qc.*',
                 'p.id as product_id', 'p.name as product_name',
@@ -136,7 +131,8 @@ class WarehouseQcController extends Controller
         $summaryQuery = WarehouseQC::query()
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
-            ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id');
+            ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
+            ->whereNull('i.status');
 
         // Terapkan filter yang
         if ($search) { $summaryQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
@@ -157,6 +153,7 @@ class WarehouseQcController extends Controller
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->whereNull('i.status')
             // Terapkan filter yang sama
             ->when($search, fn($q) => $q->where('p.name', 'ILIKE', '%' . $search . '%'))
             ->when($from, fn($q) => $q->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()))

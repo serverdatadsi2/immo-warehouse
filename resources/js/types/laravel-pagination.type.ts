@@ -13,3 +13,16 @@ export type LaravelPagination<T> = {
     to: number | null;
     total: number;
 };
+
+export type SimplePagination<T> = {
+    current_page: number;
+    current_page_url: string;
+    data: T[];
+    first_page_url: string;
+    from: number | null;
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number | null;
+};

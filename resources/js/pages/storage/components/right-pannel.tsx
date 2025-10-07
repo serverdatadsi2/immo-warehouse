@@ -1,135 +1,179 @@
-import { Button, Card, Col, Empty, List, Row, Typography, message } from 'antd';
+import { FormItem } from '@/components/forms/form-item';
+import QRCodeScanner from '@/components/scanner/qr-scanner';
+import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { SaveOutlined, ScanOutlined, StopOutlined } from '@ant-design/icons'; // Import SaveOutlined
+import { Button, Card, Col, Form, Input, Row, notification } from 'antd';
+import React, { useCallback, useState } from 'react';
 
-const { Text } = Typography;
-const { Meta } = Card;
+const RightPannel: React.FC = () => {
+    const { form, post, processing, errors } = useAntdInertiaForm<{
+        rfid: string;
+        location: string;
+    }>('Lokasi Penyimpanan Barang');
+    const [isScanningRfid, setIsScanningRfid] = useState<boolean>(false);
+    const [isScanningLocation, setIsScanningLocation] = useState<boolean>(false);
+    const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
 
-// Simulasi data produk
-const dummyItems = [
-    { id: 'PRD-001', name: 'Shampoo Herbal' },
-    { id: 'PRD-002', name: 'Sabun Cair' },
-    { id: 'PRD-003', name: 'Face Wash' },
-    { id: 'PRD-004', name: 'Body Lotion' },
-    { id: 'PRD-005', name: 'Hair Oil' },
-];
+    const handleSwitchCamera = useCallback(() => {
+        setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
+    }, []);
 
-// Generator RFID sederhana
-const generateRFID = () => 'RFID-' + Math.floor(Math.random() * 1000000) + '-' + Date.now();
+    const handleScanRfid = useCallback(
+        (value: string) => {
+            setIsScanningRfid(false);
+            form.setFieldsValue({ rfid: value });
+            notification.success({ message: 'RFID berhasil discan!', duration: 1 });
+        },
+        [form],
+    );
 
-export function RightPannel({
-    scannedLocation,
-    setScannedLocation,
-    scannedItems,
-    setScannedItems,
-    setStorageData,
-}: any) {
-    const handleScanLocation = () => {
-        const location = 'Gudang A > Ruang 1 > Rak 01 > Layer A';
-        setScannedLocation(location);
-        message.success(`Lokasi ditetapkan: ${location}`);
-    };
+    const handleScanLocation = useCallback(
+        (value: string) => {
+            setIsScanningLocation(false);
+            form.setFieldsValue({ location: value });
+            notification.success({ message: 'Lokasi berhasil discan!', duration: 1 });
+        },
+        [form],
+    );
 
-    const handleScanItems = () => {
-        const items = dummyItems.map((item) => ({
-            ...item,
-            rfid: generateRFID(),
-        }));
-        setScannedItems(items);
-        message.success(`${items.length} barang berhasil di-scan`);
-    };
+    const handleSubmit = useCallback(async () => {
+        const formValues = await form.validateFields();
+        post({
+            url: '/storage-warehouse/assignment',
+            data: formValues,
+            onSuccess: () => {
+                form.resetFields();
+            },
+        });
+    }, [form, post]);
 
-    const handleAssignAll = () => {
-        if (!scannedLocation) {
-            message.error('Lokasi belum di-scan!');
-            return;
-        }
-        if (scannedItems.length === 0) {
-            message.error('Belum ada barang yang di-scan!');
-            return;
-        }
-
-        const newStorage = scannedItems.map((item: any) => ({
-            ...item,
-            location: scannedLocation,
-        }));
-
-        setStorageData((prev: any[]) => [...prev, ...newStorage]);
-        setScannedItems([]);
-        message.success(`${newStorage.length} barang berhasil ditempatkan`);
-    };
+    const handleCancle = useCallback(() => {
+        form.resetFields();
+    }, [form]);
 
     return (
         <Card
             actions={[
-                <Button onClick={handleScanItems} disabled={!scannedLocation}>
-                    Scan Barang
+                <Button key="cancel" onClick={handleCancle} disabled={processing}>
+                    Batal
                 </Button>,
                 <Button
-                    danger
-                    onClick={() => setScannedItems([])}
-                    disabled={scannedItems.length < 1}
+                    key="save"
+                    type="primary"
+                    icon={<SaveOutlined />}
+                    onClick={handleSubmit}
+                    loading={processing}
+                    disabled={isScanningRfid || isScanningLocation}
+                    className="!bg-blue-600"
                 >
-                    Clear
-                </Button>,
-                <Button type="primary" onClick={handleAssignAll} disabled={scannedItems.length < 1}>
-                    Assign Semua
+                    Simpan (Lokasi Penyimpanan)
                 </Button>,
             ]}
         >
-            <Meta
+            <Card.Meta
                 style={{
-                    borderRadius: 4,
                     margin: '-12px -12px 0 -12px',
                     padding: 10,
                 }}
-                title="Barang Menunggu Penempatan"
-                description="List barang hasil scan yang siap ditempatkan"
+                title="Scan Barang dan Lokasi"
+                description="Scan Barang dan lokasi untuk melakukan assignment manual."
             />
 
-            <Row>
-                <Col span={19}>
-                    <Text>Lokasi terpilih: </Text>
-                    <Text strong>{scannedLocation ?? 'Belum scan lokasi'}</Text>
-                </Col>
-                <Col span={5}>
-                    <Button type="primary" onClick={handleScanLocation}>
-                        Scan Lokasi
-                    </Button>
-                </Col>
-            </Row>
-
-            <List
-                size="small"
-                dataSource={scannedItems}
-                locale={{ emptyText: <Empty description="Belum ada barang di-scan" /> }}
-                renderItem={(item: any, i: number) => (
-                    <List.Item
-                        actions={[
-                            <Button
-                                size="small"
-                                danger
-                                onClick={() =>
-                                    setScannedItems((prev: any[]) =>
-                                        prev.filter((x) => x.rfid !== item.rfid),
-                                    )
-                                }
-                            >
-                                Cancel
-                            </Button>,
-                        ]}
-                    >
-                        <List.Item.Meta
-                            title={
-                                <div className="flex gap-x-2">
-                                    <Text>{i + 1}.</Text>
-                                    <Text>{item.name}</Text>
-                                    <Text type="secondary">RFID: {item.rfid}</Text>
-                                </div>
-                            }
-                            description="Dalam antrian penempatan"
+            <Form form={form} layout="vertical" className="mt-4">
+                {isScanningRfid ? (
+                    <div className="space-y-2 text-center mb-5 border p-2 rounded">
+                        <Button
+                            danger
+                            icon={<StopOutlined />}
+                            onClick={() => setIsScanningRfid(false)}
+                        >
+                            Stop Scan Barang
+                        </Button>
+                        <QRCodeScanner
+                            onSwitchCamera={handleSwitchCamera}
+                            facingMode={facingMode}
+                            onScan={handleScanRfid} // Menggunakan handler khusus RFID
+                            isActive={isScanningRfid}
                         />
-                    </List.Item>
+                    </div>
+                ) : (
+                    <Row gutter={5} align="middle">
+                        <Col span={17}>
+                            <FormItem
+                                name="rfid"
+                                label="QR Code / RFID Tag Barang"
+                                rules={[{ required: true, message: 'Harap masukkan Tag ID!' }]}
+                                errorMessage={errors?.rfid}
+                            >
+                                <Input
+                                    placeholder="Klik Tombol disamping untuk scan..."
+                                    onPressEnter={handleSubmit}
+                                    autoComplete="off"
+                                />
+                            </FormItem>
+                        </Col>
+                        <Col span={7}>
+                            <Button
+                                icon={<ScanOutlined />}
+                                type="primary"
+                                onClick={() => setIsScanningRfid(true)}
+                                className="!bg-emerald-600 mt-1.5"
+                                disabled={isScanningLocation} // Tidak boleh scan dua sekaligus
+                            >
+                                Scan Barang
+                            </Button>
+                        </Col>
+                    </Row>
                 )}
-            />
+
+                {isScanningLocation ? (
+                    <div className="space-y-2 text-center mb-5 border p-2 rounded">
+                        <Button
+                            danger
+                            icon={<StopOutlined />}
+                            onClick={() => setIsScanningLocation(false)}
+                        >
+                            Stop Scan Lokasi
+                        </Button>
+                        <QRCodeScanner
+                            onSwitchCamera={handleSwitchCamera}
+                            facingMode={facingMode}
+                            onScan={handleScanLocation} // Menggunakan handler khusus Lokasi
+                            isActive={isScanningLocation}
+                        />
+                    </div>
+                ) : (
+                    <Row gutter={5} align="middle">
+                        <Col span={17}>
+                            <FormItem
+                                name="location"
+                                label="RFID Tag Location"
+                                rules={[{ required: true, message: 'Harap masukkan Tag ID!' }]}
+                                errorMessage={errors?.location}
+                            >
+                                <Input
+                                    placeholder="Klik Tombol disamping untuk scan..."
+                                    onPressEnter={handleSubmit}
+                                    autoComplete="off"
+                                />
+                            </FormItem>
+                        </Col>
+                        <Col span={7}>
+                            <Button
+                                icon={<ScanOutlined />}
+                                type="primary"
+                                onClick={() => setIsScanningLocation(true)}
+                                className="!bg-emerald-600 mt-1.5"
+                                disabled={isScanningRfid}
+                            >
+                                Scan Lokasi
+                            </Button>
+                        </Col>
+                    </Row>
+                )}
+            </Form>
         </Card>
     );
-}
+};
+
+export default RightPannel;

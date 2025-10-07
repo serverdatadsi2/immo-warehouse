@@ -1,22 +1,16 @@
-import { AddButton } from '@/components/buttons/crud-buttons';
-import { LaravelTable } from '@/components/tables/laravel-table';
+import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
+import { SimplePagination } from '@/types/laravel-pagination.type';
 import { Storage } from '@/types/storage.type';
 import { router } from '@inertiajs/react';
-import { TableProps } from 'antd';
+import { TableProps, Tag } from 'antd';
 import { useCallback, useMemo } from 'react';
-import { data } from './data';
 
-// interface Props {
-//     pagination: LaravelPagination<Storage> | null;
-// }
-const pagination = data;
+interface Props {
+    pagination: SimplePagination<Storage> | null;
+}
 
-export default function TableData() {
-    const handleAdd = useCallback(() => {
-        router.get('/storage-warehouse/assignment');
-    }, []);
-
+export default function TableData({ pagination }: Props) {
     const handlePageChange = useCallback((page: number) => {
         router.get(appendQueryString('page', String(page)));
     }, []);
@@ -33,55 +27,62 @@ export default function TableData() {
                 },
             },
             {
-                title: 'Nama Barang',
-                dataIndex: 'product_name',
+                title: 'Barang',
                 key: 'product',
+                children: [
+                    {
+                        title: 'Nama',
+                        dataIndex: 'product_name',
+                        key: 'product_name',
+                    },
+                    {
+                        title: 'Kode',
+                        dataIndex: 'product_code',
+                        key: 'product_code',
+                    },
+                ],
             },
+
             {
-                title: 'Code',
-                dataIndex: 'product_code',
-                key: 'product_code',
-            },
-            {
-                title: 'Location',
+                title: 'Lokasi Barang',
                 key: 'location',
                 dataIndex: 'location',
-                // render: (record: Storage) => {
-                //     const parts: string[] = [];
-                //     if (record.room_name) parts.push(record?.room_name);
-                //     if (record.rack_name) parts.push(record?.rack_name);
-                //     if (record.layer_name) parts.push(record?.layer_name);
-
-                //     return parts.join(' > ');
-                // },
+                render: (_, record: Storage) => {
+                    const parts: string[] = [];
+                    if (record?.warehouse_name) parts.push(record?.warehouse_name);
+                    if (record?.room_name) parts.push(record?.room_name);
+                    if (record?.rack_name) parts.push(record?.rack_name);
+                    if (record?.layer_name) parts.push(record?.layer_name);
+                    return parts.join(' > ');
+                },
             },
             {
-                title: 'Quantity',
-                dataIndex: 'quantity',
-                key: 'quantity',
+                title: 'Status',
+                dataIndex: 'status',
+                key: 'status',
+                render: (status) => (
+                    <Tag color={status === 'Good' ? 'green' : 'red'}>
+                        {status ? status.toUpperCase() : '-'}
+                    </Tag>
+                ),
             },
             {
-                title: 'Kapasitas',
+                title: 'Stok',
                 dataIndex: 'quantity',
                 key: 'quantity',
             },
         ],
-        [],
+        [pagination],
     );
 
     return (
-        <div>
-            <div style={{ marginBottom: 16 }}>
-                <AddButton onClick={handleAdd}>Assignment Item</AddButton>
-            </div>
-
-            <LaravelTable<Storage>
-                columns={columns}
-                dataSource={pagination?.data}
-                rowKey="id"
-                pagination={pagination}
-                onPageChange={handlePageChange}
-            />
-        </div>
+        <CustomTable<Storage>
+            size="small"
+            columns={columns}
+            dataSource={pagination?.data}
+            rowKey={(record, i) => `${record.product_id}-${i}`}
+            onPaginationChange={(page) => handlePageChange(page)}
+            page={pagination?.current_page || 1}
+        />
     );
 }

@@ -123,7 +123,7 @@ const TableMonitoring = () => {
                         <br />
                         <SelectRangePicker
                             value={filters?.dateRange}
-                            onChange={(range) => handleFilterChange('date_range', range)}
+                            onChange={(range) => handleFilterChange('dateRange', range)}
                         />
                     </Col>
                     <Col span={4}>
@@ -187,7 +187,6 @@ const TableMonitoring = () => {
                 columns={columns}
                 dataSource={data?.data}
                 loading={isLoading}
-                pagination={false}
                 onPaginationChange={(page) => handleFilterChange('page', page)}
                 page={data?.pagination.current_page || 1}
                 bordered

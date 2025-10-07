@@ -1,23 +1,28 @@
-import { Card, Empty, List, Space, Typography } from 'antd';
+import { DateDisplay } from '@/components/displays/date-display';
+import { UnsignProductLocation } from '@/types/storage.type';
+import { Card, Divider, Empty, List, Space, Typography } from 'antd';
 
 const { Text } = Typography;
 const { Meta } = Card;
 
-export function LeftPannel({ storageData }: { storageData: any[] }) {
+interface Props {
+    data: UnsignProductLocation[];
+}
+
+export function LeftPannel({ data }: Props) {
     return (
         <Card>
             <Meta
                 style={{
-                    borderRadius: 4,
                     margin: '-12px -12px 0 -12px',
                     padding: 10,
                 }}
-                title="Data Storage Gudang"
-                description="List barang yang sudah ditempatkan"
+                title="Barang Menunggu Penempatan"
+                description="List barang yang sudah siap ditempatkan di gudang"
             />
             <List
                 size="small"
-                dataSource={storageData}
+                dataSource={data}
                 locale={{ emptyText: <Empty description="Belum ada barang ditempatkan" /> }}
                 renderItem={(item, i) => (
                     <List.Item>
@@ -25,14 +30,18 @@ export function LeftPannel({ storageData }: { storageData: any[] }) {
                             title={
                                 <Space>
                                     <Text strong>{i + 1}.</Text>
-                                    <Text>{item.name}</Text>
-                                    <Text type="secondary">({item.id})</Text>
+                                    <Text>{item.product_name}</Text>
+                                    {/* <Text type="secondary">({item.product_code})</Text> */}
                                 </Space>
                             }
                             description={
-                                <Text type="secondary">
-                                    Lokasi: {item.location} | RFID: {item.rfid}
-                                </Text>
+                                <Space>
+                                    <Text type="secondary">
+                                        Inbound: <DateDisplay val={item.inbound_date} />
+                                    </Text>
+                                    <Divider type="vertical" className="border border-gray-600" />
+                                    <Text type="secondary">Quantity: {item.quantity}</Text>
+                                </Space>
                             }
                         />
                     </List.Item>

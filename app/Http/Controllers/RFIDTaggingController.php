@@ -31,7 +31,7 @@ class RFIDTaggingController extends Controller
                 ->leftJoin('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_inbound_details.warehouse_inbound_id')
                 ->leftJoin('items as i', 'i.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
                 ->select('warehouse_inbound_details.*', 'p.name as product_name', 'p.code as product_code', 'received_date', 'warehouse_id')
-                ->where('i.status', '=', null)
+                ->whereNull('i.status')
                 ->orderBy('received_date', 'asc')
                 ->groupBy('warehouse_inbound_details.id', 'p.name', 'p.code', 'wi.received_date', 'wi.warehouse_id');
 
@@ -57,20 +57,20 @@ class RFIDTaggingController extends Controller
         $validated = $request->validate($rules);
 
         DB::transaction(function () use ($validated) {
-            $stocks = [];
+            // $stocks = [];
 
             foreach ($validated['rfid_tags'] as $rfidId) {
                 $item = Item::where('rfid_tag_id', $rfidId)->firstOrFail();
-                $item->update(['status' => 'warehouse_stock']);
+                // $item->update(['status' => 'warehouse_stock']);
 
                 // Simpan Stock
-                $stocks[] = [
-                    'warehouse_id' => $validated['warehouse_id'],
-                    'item_id' => $item->id,
-                ];
+                // $stocks[] = [
+                //     'warehouse_id' => $validated['warehouse_id'],
+                //     'item_id' => $item->id,
+                // ];
             }
 
-            WarehouseStock::insert($stocks);
+            // WarehouseStock::insert($stocks);
         });
 
         return to_route('rfid-tagging.index');

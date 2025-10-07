@@ -48,7 +48,6 @@ export function RightPannel() {
 
     return (
         <Card
-            size="small"
             actions={[
                 <Button
                     danger

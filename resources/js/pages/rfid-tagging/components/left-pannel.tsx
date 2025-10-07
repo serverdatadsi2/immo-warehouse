@@ -79,7 +79,6 @@ export function LeftPannel() {
         <>
             <Space direction="vertical" size="large" className="w-full">
                 <Card
-                    size="small"
                     actions={[
                         <div className="mx-10">
                             <Button
