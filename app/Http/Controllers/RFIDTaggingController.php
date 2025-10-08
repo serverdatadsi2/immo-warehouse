@@ -27,6 +27,7 @@ class RFIDTaggingController extends Controller
         // ambil warehouse pertama milik user
         $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
         $search = $request->input('search');
+        \Log::info($userWarehouseIds);
 
         $query = WarehouseInboundDetail::query()
                 ->join('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')

@@ -14,7 +14,8 @@ export function UserAsyncSelect(props: Props) {
     const { data = [], isLoading } = useQuery({
         queryKey: ['users', search, page],
         queryFn: async () => {
-            const res = await axiosIns.get<Array<User>>('/api/users', {
+            // const res = await axiosIns.get<Array<User>>('/api/users', {
+            const res = await axiosIns.get<Array<User>>('/users', {
                 params: { search, page },
             });
             return res.data.map((d) => ({

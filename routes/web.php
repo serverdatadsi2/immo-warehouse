@@ -11,7 +11,8 @@ use App\Http\Controllers\{
     OutboundController,
     SearchProductController,
     WarehouseQcController,
-    WarehouseStorageController
+    WarehouseStorageController,
+    UserController
 };
 
 // HOME
@@ -23,6 +24,10 @@ Route::get('/', function () {
 
 // MAIN AUTH ROUTES
 Route::middleware(['auth'])->group(function () {
+
+    // get user for asyncSelectUser component
+    Route::get('/users', [UserController::class, "index"])->name('user.index');
+
 
     /*
     |--------------------------------------------------------------------------

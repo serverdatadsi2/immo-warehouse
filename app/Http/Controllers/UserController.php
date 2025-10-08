@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\ChartOfAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
-class UserApiController extends Controller
+class UserController extends Controller
 {
     public function index(Request $request)
     {
@@ -16,7 +15,14 @@ class UserApiController extends Controller
         $page = $request->input('page');
         $offset = ($page - 1) * 30;
 
+        $user = auth()->user();
+        $warehouseUserIds = $user->warehouses()->pluck('warehouses.id');
+        $user = $request->user();
+
         $data = User::query()
+            ->join('warehouse_users as wu', 'wu.user_id', '=', 'users.id')
+            ->where('wms_access', true)
+            ->whereIn('wu.warehouse_id', $warehouseUserIds)
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'ILIKE', "%{$search}%");
             })

@@ -11,6 +11,7 @@
         "outbound-qc",
         "doc",
         "search-product",
-        "inbound-qc"
+        "inbound-qc",
+        "select-user"
     ]
 }
