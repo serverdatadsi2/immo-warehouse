@@ -6,7 +6,6 @@ use App\Models\Item;
 use App\Models\Product;
 use App\Models\RFIDTag;
 use App\Models\WarehouseInboundDetail;
-use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
@@ -24,13 +23,16 @@ class RFIDTaggingController extends Controller
 
     public function listDetails(Request $request)
     {
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
         $search = $request->input('search');
 
         $query = WarehouseInboundDetail::query()
                 ->join('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
                 ->join('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_inbound_details.warehouse_inbound_id')
                 ->leftJoin('items as i', 'i.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
-                // ->select('warehouse_inbound_details.*', 'p.name as product_name', 'p.code as product_code', 'received_date', 'warehouse_id')
+                ->whereIn('wi.warehouse_id', $userWarehouseIds)
                 ->select(
                     'warehouse_inbound_details.id',
                     'warehouse_inbound_details.product_id',

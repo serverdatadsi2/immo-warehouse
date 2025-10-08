@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\{
@@ -25,31 +24,6 @@ Route::get('/', function () {
 // MAIN AUTH ROUTES
 Route::middleware(['auth'])->group(function () {
 
-    // Pages
-    Route::get('/outbound-qc', fn () => Inertia::render('outbound-qc/index'))->name('outbound-dc.index');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Storage Warehouse
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('storage-warehouse')->name('storage-warehouse.')->group(function () {
-        Route::get('/', [WarehouseStorageController::class,'index'])->name('index');
-        Route::get('/assignment',[WarehouseStorageController::class,'listProductUnsignLocation'])->name('listProductUnsignLocation');
-        Route::post('/assignment',[WarehouseStorageController::class,'store']);
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Inbound QC
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('inbound-qc')->name('inbound-qc.')->group(function () {
-        Route::get('/', [WarehouseQcController::class, "index"])->name('index');
-        Route::post('/reject-labelling', [WarehouseQcController::class, "updateRejectLabelInbounQc"]);
-        Route::get('/monitoring-inbound', [WarehouseQcController::class, 'inboundQC'])->name('inboundQC');
-    });
-
     /*
     |--------------------------------------------------------------------------
     | Search Product
@@ -58,28 +32,6 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('search-product')->name('search-product.')->group(function () {
         Route::get('/', [SearchProductController::class, "index"])->name('index');
         Route::get('/warehouse/{rfid}', [SearchProductController::class, 'searchLocationProduct'])->name('searchLocation');
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Remove RFID
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('remove-rfid')->name('receiving-order.')->group(function () {
-        Route::get("/", [RemoveRFIDController::class, "index"])->name("index");
-        Route::get("/check-rfid/{rfidId}", [RemoveRFIDController::class, "checkRfid"])->name('checkRfid');
-        Route::post("/remove", [RemoveRFIDController::class, "removeRfid"]);
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Receiving Order
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('receiving-order')->name('receiving-order.')->group(function () {
-        Route::get('/', [ReceivingOrderController::class, 'index'])->name('index');
-        Route::patch('/{header_id}/process', [ReceivingOrderController::class, 'updateHeader'])->name('updateHeader');
-        Route::get('/detail', [ReceivingOrderController::class, 'detail'])->name('detail');
     });
 
     /*
@@ -100,22 +52,6 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Outbound
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('outbound')->name('outbound')->group(function () {
-        Route::get('/', [OutboundController::class, 'index'])->name('index');
-        Route::post('/', [OutboundController::class, 'saveHeader']);
-        Route::delete('/{header_id}', [OutboundController::class, 'deleteHeader']);
-
-        // Details
-        Route::get('/detail', [OutboundController::class, 'detail'])->name('detail');
-        Route::post('/detail', [OutboundController::class, 'saveDetail']);
-        Route::delete('/detail/{detail_id}', [OutboundController::class, 'deleteDetail']);
-    });
-
-    /*
-    |--------------------------------------------------------------------------
     | RFID Tagging
     |--------------------------------------------------------------------------
     */
@@ -130,6 +66,74 @@ Route::middleware(['auth'])->group(function () {
 
     // Items (by inbound details)
     Route::post('/items/by-inbound-details', [RFIDTaggingController::class, 'getRFIDItems']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Remove RFID
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('remove-rfid')->name('remove-rfid.')->group(function () {
+        Route::get("/", [RemoveRFIDController::class, "index"])->name("index");
+        Route::get("/check-rfid/{rfidId}", [RemoveRFIDController::class, "checkRfid"])->name('checkRfid');
+        Route::post("/remove", [RemoveRFIDController::class, "removeRfid"]);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Inbound QC
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('inbound-qc')->name('inbound-qc.')->group(function () {
+        Route::get('/', [WarehouseQcController::class, "index"])->name('index');
+        Route::post('/reject-labelling', [WarehouseQcController::class, "updateRejectLabelInbounQc"]);
+        Route::get('/monitoring-inbound', [WarehouseQcController::class, 'inboundQC'])->name('inboundQC');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Storage Warehouse
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('storage-warehouse')->name('storage-warehouse.')->group(function () {
+        Route::get('/', [WarehouseStorageController::class,'index'])->name('index');
+        Route::get('/assignment',[WarehouseStorageController::class,'listProductUnsignLocation'])->name('listProductUnsignLocation');
+        Route::post('/assignment',[WarehouseStorageController::class,'store']);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Receiving Order
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('receiving-order')->name('receiving-order.')->group(function () {
+        Route::get('/', [ReceivingOrderController::class, 'index'])->name('index');
+        Route::patch('/{header_id}/process', [ReceivingOrderController::class, 'updateHeader'])->name('updateHeader');
+        Route::get('/detail', [ReceivingOrderController::class, 'detail'])->name('detail');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Outbound QC
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/outbound-qc', fn () => Inertia::render('outbound-qc/index'))->name('outbound-dc.index');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Outbound
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('outbound')->name('outbound')->group(function () {
+        Route::get('/', [OutboundController::class, 'index'])->name('index');
+        Route::post('/', [OutboundController::class, 'saveHeader']);
+        Route::delete('/{header_id}', [OutboundController::class, 'deleteHeader']);
+
+        // Details
+        Route::get('/detail', [OutboundController::class, 'detail'])->name('detail');
+        Route::post('/detail', [OutboundController::class, 'saveDetail']);
+        Route::delete('/detail/{detail_id}', [OutboundController::class, 'deleteDetail']);
+    });
 
     /*
     |--------------------------------------------------------------------------

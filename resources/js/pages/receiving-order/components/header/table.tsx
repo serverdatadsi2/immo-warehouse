@@ -3,7 +3,7 @@ import { appendQueryString } from '@/lib/utils';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
-import { Button, Pagination, Space, Table, Tooltip } from 'antd';
+import { Button, Pagination, Space, Table, Tag, Tooltip } from 'antd';
 import { LayoutList } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { HeaderItem } from '../..';
@@ -51,6 +51,12 @@ export function HeaderTable({ pagination }: Props) {
                 ],
             },
             {
+                title: 'Status Order',
+                dataIndex: 'status',
+                key: 'status',
+                render: (v) => renderOrderStatusTag(v),
+            },
+            {
                 title: 'Action',
                 key: 'action',
                 fixed: 'right',
@@ -95,4 +101,39 @@ export function HeaderTable({ pagination }: Props) {
 
 type Props = {
     pagination: LaravelPagination<HeaderItem> | undefined;
+};
+
+const renderOrderStatusTag = (status) => {
+    let color;
+    let text;
+
+    const normalizedStatus = (status || '').toLowerCase();
+
+    switch (normalizedStatus) {
+        case 'approved':
+            color = 'green';
+            text = 'APPROVED';
+            break;
+        case 'received':
+            color = 'blue';
+            text = 'RECEIVED';
+            break;
+        case 'processing':
+            color = 'gold';
+            text = 'PROCESSING';
+            break;
+        case 'shipped':
+            color = 'purple';
+            text = 'SHIPPED';
+            break;
+        default:
+            color = 'default';
+            text = status ? status.toUpperCase() : 'UNKNOWN';
+    }
+
+    return (
+        <Tag color={color} key={status}>
+            {text}
+        </Tag>
+    );
 };

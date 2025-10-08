@@ -16,11 +16,15 @@ class InboundController extends Controller
     public function index(Request $request)
     {
         // Gate::authorize('formula.read');
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
 
         $pagination = WarehouseInbound::query()
             ->leftJoin('suppliers as s', 'warehouse_inbounds.supplier_id', '=', 's.id')
             ->leftJoin('warehouses as w', 'warehouse_inbounds.warehouse_id', '=', 'w.id')
             ->leftJoin('users as u', 'warehouse_inbounds.received_by', '=', 'u.id')
+            ->whereIn('w.id', $userWarehouseIds)
             ->select('warehouse_inbounds.*', 's.name as supplier_name', 'w.name as warehouse_name', 'u.name as received_name')
             ->groupBy('warehouse_inbounds.id', 's.name', 'w.name', 'u.name')
             ->paginate(10);

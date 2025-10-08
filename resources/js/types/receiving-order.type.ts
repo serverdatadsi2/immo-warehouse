@@ -27,3 +27,9 @@ export interface ReceivingOrderDetail {
     created_at: string;
     updated_at: string;
 }
+
+export interface Params {
+    search?: string;
+    status?: 'approved' | 'received' | 'processing' | 'shipped';
+    dateRange?: [string, string]; // [isoDateString, isoDateString]
+}

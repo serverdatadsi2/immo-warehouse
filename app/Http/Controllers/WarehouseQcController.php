@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\InboundQCResource;
 use App\Models\Item;
 use App\Models\ItemCondition;
+use App\Models\ItemConditionHistory;
 use App\Models\WarehouseQC;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -65,8 +66,10 @@ class WarehouseQcController extends Controller
                 'current_condition_id' => $itemCondition->id,
             ]);
 
+
+
             // D. Create WarehouseQC Record (Log Reject)
-            WarehouseQC::firstOrCreate([
+            $qc = WarehouseQC::firstOrCreate([
                 'item_id' => $item->id,
                 'qc_type' => 'inbound',
                 'warehouse_id' => $warehouseId,
@@ -76,6 +79,16 @@ class WarehouseQcController extends Controller
                 'performed_at' => now(),
                 'performed_by' => $user->id,
             ]);
+
+            // E. Create History Condition
+            ItemConditionHistory::firstOrCreate([
+                'item_id' => $item->id,
+                'item_condition_id' => $itemCondition->id,
+                'changed_by' => $user->id,
+                'reference_type' => 'inbound_qc',
+                'reference_id' => $qc->id,
+            ],
+            ['changed_at' => now(),]);
 
             \DB::commit();
 
@@ -93,6 +106,10 @@ class WarehouseQcController extends Controller
 
     public function inboundQC(Request $request)
     {
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+
         $search = $request->input('search');
         $status = $request->input('status');
         $from = $request->input('from');
@@ -106,6 +123,7 @@ class WarehouseQcController extends Controller
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
             ->join('users as u', 'u.id', '=', 'warehouse_qc.performed_by')
             ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
+            ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->whereNull('i.status')
             ->select(
                 'warehouse_qc.*',
@@ -132,6 +150,7 @@ class WarehouseQcController extends Controller
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
+            ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->whereNull('i.status');
 
         // Terapkan filter yang
@@ -153,6 +172,7 @@ class WarehouseQcController extends Controller
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->whereNull('i.status')
             // Terapkan filter yang sama
             ->when($search, fn($q) => $q->where('p.name', 'ILIKE', '%' . $search . '%'))

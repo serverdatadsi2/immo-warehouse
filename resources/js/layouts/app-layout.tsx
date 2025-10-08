@@ -14,6 +14,7 @@ import {
     Row,
     Space,
     theme,
+    Typography,
 } from 'antd';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import {
@@ -283,8 +284,11 @@ function UserPopoverContent() {
     }, []);
 
     return (
-        <Space direction="vertical">
-            <span className="font-bold">{props.auth.user.name}</span>
+        <Space direction="vertical" size={15} className="text-center">
+            <Space direction="vertical" size={0.5}>
+                <Typography.Text strong>{props.auth.user.name}</Typography.Text>
+                <span className="!text-xs text-gray-500">{props.auth.warehouses[0].name}</span>
+            </Space>
             <Button
                 onClick={onLogout}
                 danger

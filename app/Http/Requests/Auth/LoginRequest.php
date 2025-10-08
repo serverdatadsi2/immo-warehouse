@@ -49,9 +49,9 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // Check if user has wms_access
+        // Check if user has wms_access and Cek Relasi dan Soft Delete warehouses
         $user = Auth::user();
-        if (!$user || !$user->wms_access) {
+        if (!$user || !$user->wms_access || $user->warehouses->isEmpty()) {
             Auth::logout();
             RateLimiter::hit($this->throttleKey());
 

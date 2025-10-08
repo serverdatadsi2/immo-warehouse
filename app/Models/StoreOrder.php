@@ -14,4 +14,8 @@ class StoreOrder extends Model
     {
         return (string) Uuid::uuid4();
     }
+    public function details()
+    {
+        return $this->hasMany(StoreOrderDetail::class, 'store_order_id', 'id');
+    }
 }

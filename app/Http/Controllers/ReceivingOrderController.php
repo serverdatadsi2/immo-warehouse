@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Item;
 use App\Models\StoreOrder;
 use App\Models\StoreOrderDetail;
-use App\Models\WarehouseInbound;
-use App\Models\WarehouseInboundDetail;
+use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\ValidationException;
 use Log;
 
 class ReceivingOrderController extends Controller
@@ -17,22 +18,42 @@ class ReceivingOrderController extends Controller
 
     public function index(Request $request)
     {
+        $filters = $request->only(['search', 'status', 'dateRange']);
+        $search = $filters['search'] ?? null;
+        $dates = $request->query('dateRange');
+
         $user = auth()->user();
         $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
 
-        $pagination = StoreOrder::query()
-            ->leftJoin('stores as s', 's.id', '=', 'store_orders.store_id')
-            ->leftJoin('users as u', 'u.id', '=', 'store_orders.approved_by')
+        $query = StoreOrder::query()
+            ->join('stores as s', 's.id', '=', 'store_orders.store_id')
+            ->join('users as u', 'u.id', '=', 'store_orders.approved_by')
             ->select('store_orders.*', 's.name as store_name', 'u.name as approved_name')
-            ->where('status','approved')
+            ->where('status',$filters['status'] ?? 'approved')
             ->where(function ($q) use ($userWarehouseIds) {
                 $q->whereNull('store_orders.warehouse_id')
                 ->orWhereIn('store_orders.warehouse_id', $userWarehouseIds);
             })
-            ->groupBy('store_orders.id', 's.name', 'u.name')
-            ->paginate(10);
+            ->groupBy('store_orders.id', 's.name', 'u.name');
 
-        return Inertia::render('receiving-order/index', ['pagination' => $pagination]);
+        if (!empty($search)) {
+
+            $query->where(function ($q) use ($search) {
+                $q->where('s.name', 'ILIKE', "%{$search}%")
+                  ->orWhere('store_orders.order_number', 'ILIKE', "%{$search}%");
+            });
+        }
+        if (!empty($dates) && count($dates) === 2) {
+            $from = trim($dates[0]);
+            $to = trim($dates[1]);
+
+            $query->where('store_orders.approved_at', '>=', Carbon::parse($from)->startOfDay());
+            $query->where('store_orders.approved_at', '<=', Carbon::parse($to)->endOfDay());
+        }
+
+        $pagination = $query->paginate(10);
+
+        return Inertia::render('receiving-order/index', ['pagination' => $pagination, 'params' => $filters]);
     }
 
     public function detail(Request $request)
@@ -69,19 +90,73 @@ class ReceivingOrderController extends Controller
     public function updateHeader($id)
     {
         $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+
+        $selectColumns = [
+            'p.id as product_id', 'p.name as product_name', 'p.code as product_code',
+            'w.id as warehouse_id', 'w.name as warehouse_name',
+        ];
+
+        $groupingColumns = [
+            'p.id', 'p.name', 'p.code',
+            'w.id', 'w.name',
+            'ic.name',
+        ];
+
+        $query = WarehouseStock::query()
+            ->join('items as i', function ($join) {
+                    $join->on('i.id', '=', 'warehouse_items.item_id')
+                        ->where('i.status', '=', 'warehouse_stock');
+                })
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->leftJoin('item_conditions as ic', 'ic.id', '=', 'i.current_condition_id')
+            ->join('warehouses as w', 'w.id', '=', 'warehouse_items.warehouse_id')
+            ->where('w.id',$userWarehouseId)
+            ->where('ic.name','Good')
+
+            ->select(array_merge($selectColumns, [
+                \DB::raw('COUNT(warehouse_items.id) AS quantity')
+            ]));
+
+        $query->groupBy($groupingColumns);
+        $availableStocks = $query->get();
+
+        $availableStocksMap = $availableStocks->keyBy('product_id')->map(function ($stock) {
+            return (int) $stock->quantity;
+        });
+
+        $orderDetails = StoreOrderDetail::with('product')->where('store_order_id',$id)->get();
+
+        $stockErrors = [];
+        foreach ($orderDetails as $detail) {
+            $approvedQuantity = (int) $detail->approved_qty;
+            $productId = $detail->product_id;
+
+            // Ambil stok yang tersedia dari map
+            $availableQuantity = $availableStocksMap->get($productId, 0);
+
+            // Bandingkan
+            if ($approvedQuantity > $availableQuantity) {
+
+                $stockErrors[] = ["Stok {$detail->product->name} tidak mencukupi."];
+            }
+        }
+
+         if (!empty($stockErrors)) {
+            return back()->withErrors(['message' => $stockErrors[0]['message']]);
+        }
 
         $order = StoreOrder::findOrFail($id);
-
-        // ambil warehouse pertama milik user
-        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
         if (!$userWarehouseId) {
             return back()->withErrors(['error' => 'Maaf and Tidak boleh melakukan proses ini']);
         }
 
         $order->warehouse_id = $userWarehouseId;
+        $order->status = 'received';
         $order->save();
 
-        return to_route('receiving-order.index');
+        return to_route('outbound-dc.index');
+        // return to_route('receiving-order.index');
     }
 }

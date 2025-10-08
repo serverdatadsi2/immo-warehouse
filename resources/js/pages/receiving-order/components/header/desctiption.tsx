@@ -1,7 +1,7 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import { router } from '@inertiajs/react';
 import type { DescriptionsProps } from 'antd';
-import { Button, Descriptions, message } from 'antd';
+import { Button, Descriptions, message, notification } from 'antd';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { DetailContext } from '../../detail';
 
@@ -17,14 +17,18 @@ const DescriptionHeader: React.FC = () => {
                     message.success('Order berhasil diproses ✅');
                 },
                 onError: (e) => {
-                    message.error(e.error);
+                    notification.error({
+                        message: 'Error',
+                        description: e.message || 'Terjadi kesalahan saat memproses order.',
+                        duration: 10,
+                    });
                 },
             },
         );
     }, [header]);
 
-    const items: DescriptionsProps['items'] = useMemo(
-        () => [
+    const items: DescriptionsProps['items'] = useMemo(() => {
+        const baseItems = [
             {
                 key: '1',
                 label: 'Nomor  Order',
@@ -40,7 +44,10 @@ const DescriptionHeader: React.FC = () => {
                 label: 'Tanggal Disetujui',
                 children: <DateDisplay val={header?.approved_at} />,
             },
-            {
+        ];
+
+        if (header?.status === 'approved') {
+            baseItems.push({
                 key: '4',
                 label: 'Action',
                 children: (
@@ -48,16 +55,17 @@ const DescriptionHeader: React.FC = () => {
                         Proses
                     </Button>
                 ),
-            },
-        ],
-        [header, handleProcess],
-    );
+            });
+        }
+
+        return baseItems;
+    }, [header, handleProcess]);
 
     return (
         <Descriptions
             title={`Store Order : ${header?.store_name}`}
             layout="vertical"
-            column={2}
+            column={header?.status === 'approved' ? 2 : 3}
             items={items}
         />
     );

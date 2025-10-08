@@ -2,13 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\InboundQCResource;
 use App\Models\Item;
-use App\Models\ItemCondition;
-use App\Models\WarehouseQC;
 use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -28,11 +24,6 @@ class WarehouseStorageController extends Controller
 
         // Pastikan user memiliki warehouse yang terdaftar
         $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
-        if ($userWarehouseIds->isEmpty()) {
-            throw ValidationException::withMessages([
-                'warehouse' => 'User tidak terasosiasi dengan Warehouse mana pun.'
-            ]);
-        }
 
         $selectColumns = [
             'p.id as product_id', 'p.name as product_name', 'p.code as product_code',
@@ -63,6 +54,11 @@ class WarehouseStorageController extends Controller
                 })
             ->join('products as p', 'p.id', '=', 'i.product_id')
             ->leftJoin('item_conditions as ic', 'ic.id', '=', 'i.current_condition_id')
+            // ->join('warehouse_locations as wl', 'wl.warehouse_id', '=', 'w.id')
+            // ->join('locations as lr', function($q){
+                //         $q->on('lr.id', '=', 'i.current_location_id')
+                //         ->where('wl.location_id', '=', "lr.id");
+                // })
             ->leftJoin('locations as lr', 'lr.id', '=', 'i.current_location_id')
             ->leftJoin('locations as rk', 'rk.id', '=', 'lr.location_parent_id')
             ->leftJoin('locations as rm', 'rm.id', '=', 'rk.location_parent_id')
@@ -94,12 +90,17 @@ class WarehouseStorageController extends Controller
 
     public function listProductUnsignLocation(Request $request)
     {
+        $user = auth()->user();
+        // Pastikan user memiliki warehouse yang terdaftar
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+
         $result = Item::query()
                 ->join('warehouse_qc as wq', 'wq.item_id', '=','items.id')
                 ->join('warehouse_inbound_details as wid', 'wid.id', '=','items.warehouse_inbound_detail_id')
                 ->join('warehouse_inbounds as wi', 'wi.id', '=', 'wid.warehouse_inbound_id')
                 ->join('products as p', 'p.id', '=', 'items.product_id')
                 ->whereNull('items.status')
+                ->whereIn('wq.warehouse_id',$userWarehouseIds)
                 ->groupBy('p.id', 'p.code', 'p.name', 'wi.received_date')
                 ->select(
                     'p.id as product_id',

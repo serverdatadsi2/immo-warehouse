@@ -53,7 +53,9 @@ class User extends Authenticatable
 
     public function warehouses()
     {
-        return $this->belongsToMany(Warehouse::class, 'warehouse_users', 'user_id', 'warehouse_id');
+        return $this->belongsToMany(Warehouse::class, 'warehouse_users', 'user_id', 'warehouse_id')
+                            // filter data  soft deleted
+                    ->whereNull('warehouses.deleted_at');
     }
 
     public $incrementing = false;

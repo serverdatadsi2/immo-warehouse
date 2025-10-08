@@ -214,4 +214,4 @@ const SelectRangePicker: React.FC<SelectRangePickerProps> = ({
     );
 };
 
-export default React.memo(SelectRangePicker);
+export default SelectRangePicker;
