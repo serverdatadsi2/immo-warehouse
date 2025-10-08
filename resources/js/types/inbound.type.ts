@@ -32,4 +32,5 @@ export interface InboundDetailWithRelation extends InboundDetail {
     product_code: string;
     received_date: string; // ISO date string
     warehouse_id: string;
+    quantity_inbound: number;
 }

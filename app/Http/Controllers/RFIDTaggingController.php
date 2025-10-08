@@ -27,13 +27,54 @@ class RFIDTaggingController extends Controller
         $search = $request->input('search');
 
         $query = WarehouseInboundDetail::query()
-                ->leftJoin('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
-                ->leftJoin('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_inbound_details.warehouse_inbound_id')
+                ->join('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
+                ->join('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_inbound_details.warehouse_inbound_id')
                 ->leftJoin('items as i', 'i.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
-                ->select('warehouse_inbound_details.*', 'p.name as product_name', 'p.code as product_code', 'received_date', 'warehouse_id')
-                ->whereNull('i.status')
+                // ->select('warehouse_inbound_details.*', 'p.name as product_name', 'p.code as product_code', 'received_date', 'warehouse_id')
+                ->select(
+                    'warehouse_inbound_details.id',
+                    'warehouse_inbound_details.product_id',
+                    'warehouse_inbound_details.warehouse_inbound_id',
+                    'warehouse_inbound_details.quantity as quantity_inbound',
+                    'p.name as product_name',
+                    'p.code as product_code',
+                    'wi.received_date',
+                    'wi.warehouse_id',
+                    'warehouse_inbound_details.expired_date',
+
+                    // 1. Hitung jumlah item yang sudah QC (current_condition_id TIDAK NULL)
+                    // 2. Kurangi quantity inbound detail dengan quantity qc 'quantity'
+                    DB::raw('
+                        warehouse_inbound_details.quantity - COUNT(
+                            CASE
+                                WHEN i.current_condition_id IS NOT NULL THEN i.id
+                                ELSE NULL
+                            END
+                        ) AS quantity'
+                    )
+                )
                 ->orderBy('received_date', 'asc')
-                ->groupBy('warehouse_inbound_details.id', 'p.name', 'p.code', 'wi.received_date', 'wi.warehouse_id');
+                ->groupBy(
+                    'warehouse_inbound_details.id',
+                    'warehouse_inbound_details.product_id',
+                    'warehouse_inbound_details.warehouse_inbound_id',
+                    'warehouse_inbound_details.quantity',
+                    'p.name',
+                    'p.code',
+                    'wi.received_date',
+                    'wi.warehouse_id',
+                    'warehouse_inbound_details.expired_date'
+                )
+
+                // Memastikan quantity sisa (hasil perhitungan) lebih besar dari 0
+                ->havingRaw('
+                    warehouse_inbound_details.quantity - COUNT(
+                        CASE
+                            WHEN i.current_condition_id IS NOT NULL THEN i.id
+                            ELSE NULL
+                        END
+                    ) > 0'
+                );
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -55,13 +96,14 @@ class RFIDTaggingController extends Controller
         ];
 
         $validated = $request->validate($rules);
+        $user = $request->user();
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $user) {
             // $stocks = [];
 
             foreach ($validated['rfid_tags'] as $rfidId) {
                 $item = Item::where('rfid_tag_id', $rfidId)->firstOrFail();
-                // $item->update(['status' => 'warehouse_stock']);
+                // $item->update(['rfid_installed_by' => $user->id]);
 
                 // Simpan Stock
                 // $stocks[] = [
@@ -133,6 +175,8 @@ class RFIDTaggingController extends Controller
 
         $items = Item::where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])
                     ->where('product_id', $validated['product_id'])
+                    ->whereNull('current_condition_id') // Hanya yang belum QC
+                    ->whereNull('status') // Hanya yang belum QC
                     ->where('expired_date', $validated['expired_date'])
                     ->get();
 
@@ -189,6 +233,7 @@ class RFIDTaggingController extends Controller
     {
         try {
             $items = $this->generateRFIDTagItems($request)->getData();
+
             $product = Product::findOrFail($request->product_id);
 
             $pdf = new \FPDF('P','mm','A4');
@@ -238,8 +283,7 @@ class RFIDTaggingController extends Controller
                 // Wrap product name max 50mm
                 $pdf->MultiCell(50, 3, $product->name, 0, 'L');
 
-                // Setelah MultiCell, Y sudah bergeser ke bawah otomatis,
-                // jadi posisikan lagi untuk product code
+                //  product code
                 $pdf->SetX($x + $qrSize);
                 $pdf->MultiCell(40, 4, "Code: ".$product->code, 0, 'L');
 
