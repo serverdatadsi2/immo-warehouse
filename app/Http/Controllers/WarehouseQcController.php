@@ -259,12 +259,10 @@ class WarehouseQcController extends Controller
         if ($from)  $dataQuery->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay());
         if ($to)  $dataQuery->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay());
 
-        $paginatedResults = $dataQuery->orderBy('warehouse_qc.performed_at', 'desc')
+        $pagination = $dataQuery->orderBy('warehouse_qc.performed_at', 'desc')
                             ->simplePaginate($pageSize);
 
-        return response()->json([
-            'pagination' => $paginatedResults,
-        ]);
+        return response()->json($pagination);
     }
 
     public function storeOrderWithRelation(Request $request)
@@ -307,8 +305,6 @@ class WarehouseQcController extends Controller
             'condition' => ['string', 'nullable', 'max:255'],
             'note' => ['string', 'nullable'],
         ];
-
-        \Log::info('Masuk ke rejectOutboundQc dengan data:', $request->all());
 
         $user = auth()->user();
 
@@ -387,6 +383,7 @@ class WarehouseQcController extends Controller
                     'item_id' => $item->id,
                     'qc_type' => 'outbound',
                     'warehouse_id' => $userWarehouseId,
+                    'item_condition_id' => $item->current_condition_id,
                     'status' => 'rejected',
                 ],
         [

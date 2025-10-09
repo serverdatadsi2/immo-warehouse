@@ -67,7 +67,7 @@ export function StoreOrderComponent({ params, pagination }: Props) {
         ];
     }, []);
     return (
-        <Card>
+        <Card className="!mr-4">
             <Card.Meta title="Store Order" />
             <Input
                 allowClear

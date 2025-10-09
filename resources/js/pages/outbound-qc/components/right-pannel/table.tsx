@@ -45,6 +45,8 @@ const LogTable = () => {
         },
     });
 
+    // console.log(pagination?.pagination?.data, 'pagination');
+
     const columns = useMemo(
         (): TableProps<InboundQC>['columns'] => [
             {
@@ -60,7 +62,7 @@ const LogTable = () => {
             { title: 'RFID Tag', dataIndex: 'rfid', render: (text) => <code>{text}</code> },
             {
                 title: 'Waktu Scan',
-                dataIndex: 'scan_time',
+                dataIndex: 'performed_at',
                 render: (val) => <DateTimeDisplay val={val} />,
             },
             {
@@ -89,7 +91,7 @@ const LogTable = () => {
     );
 
     return (
-        <div>
+        <div className="ml-4">
             <Filters
                 filters={filters}
                 setFilters={setFilters}
@@ -106,7 +108,6 @@ const LogTable = () => {
                 loading={isLoading}
                 onPaginationChange={(page) => handleFilterChange('page', page)}
                 page={pagination?.current_page || 1}
-                bordered
                 rowKey="rfid"
             />
 
