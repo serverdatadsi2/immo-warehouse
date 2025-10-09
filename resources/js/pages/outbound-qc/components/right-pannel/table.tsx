@@ -1,7 +1,8 @@
 import { DateTimeDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
 import axiosIns from '@/lib/axios';
-import { FilterQc, InboundQC, MonitoringInboundQc } from '@/types/inbound-qc.type';
+import { FilterQc, InboundQC } from '@/types/inbound-qc.type';
+import { SimplePagination } from '@/types/laravel-pagination.type';
 import { useQuery } from '@tanstack/react-query';
 import { TableProps, Tag } from 'antd';
 import dayjs from 'dayjs';
@@ -21,10 +22,14 @@ const LogTable = () => {
         page: 1,
     });
 
-    const { data, isLoading, refetch } = useQuery({
+    const {
+        data: pagination,
+        isLoading,
+        refetch,
+    } = useQuery({
         queryKey: ['monitoring-outbound-qc', filters],
         queryFn: async () => {
-            const res = await axiosIns.get<MonitoringInboundQc>(
+            const res = await axiosIns.get<SimplePagination<OutboundQC>>(
                 '/outbound-qc/monitoring-outbound',
                 {
                     params: {
@@ -46,7 +51,7 @@ const LogTable = () => {
                 title: 'No.',
                 key: 'serial',
                 render: (_: any, __: InboundQC, index: number) => {
-                    const currentPage = data?.pagination?.current_page ?? 1;
+                    const currentPage = pagination?.current_page ?? 1;
                     const perPage = 10;
                     return (currentPage - 1) * perPage + index + 1;
                 },
@@ -69,7 +74,7 @@ const LogTable = () => {
             },
             { title: 'Note', dataIndex: 'note' },
         ],
-        [data],
+        [pagination],
     );
     const handleFilterChange = useCallback(
         (key, value) => {
@@ -97,10 +102,10 @@ const LogTable = () => {
                 size="small"
                 style={{ marginTop: '24px' }}
                 columns={columns}
-                dataSource={data?.data}
+                dataSource={pagination?.data}
                 loading={isLoading}
                 onPaginationChange={(page) => handleFilterChange('page', page)}
-                page={data?.pagination.current_page || 1}
+                page={pagination?.current_page || 1}
                 bordered
                 rowKey="rfid"
             />
@@ -117,3 +122,5 @@ const LogTable = () => {
 };
 
 export default LogTable;
+
+type OutboundQC = InboundQC;

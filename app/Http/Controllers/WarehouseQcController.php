@@ -128,6 +128,7 @@ class WarehouseQcController extends Controller
             ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->where('i.status', 'warehouse_processing')
+            ->where('warehouse_qc.qc_type', 'inbound')
             ->select(
                 'warehouse_qc.*',
                 'p.id as product_id', 'p.name as product_name',
@@ -154,6 +155,7 @@ class WarehouseQcController extends Controller
             ->join('products as p', 'p.id', '=', 'i.product_id')
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
+            ->where('warehouse_qc.qc_type', 'inbound')
             ->where('i.status', 'warehouse_processing');
 
         // Terapkan filter yang
@@ -177,6 +179,7 @@ class WarehouseQcController extends Controller
             ->join('products as p', 'p.id', '=', 'i.product_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->where('i.status', 'warehouse_processing')
+            ->where('warehouse_qc.qc_type', 'inbound')
             // Terapkan filter yang sama
             ->when($search, fn($q) => $q->where('p.name', 'ILIKE', '%' . $search . '%'))
             ->when($from, fn($q) => $q->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()))
@@ -241,7 +244,8 @@ class WarehouseQcController extends Controller
             ->join('users as u', 'u.id', '=', 'warehouse_qc.performed_by')
             ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
-            ->whereNull('i.status')
+            ->where('i.status', 'warehouse_processing')
+            ->where('warehouse_qc.qc_type', 'outbound')
             ->select(
                 'warehouse_qc.*',
                 'p.id as product_id', 'p.name as product_name',
