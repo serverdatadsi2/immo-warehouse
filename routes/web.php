@@ -123,9 +123,9 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('outbound-qc')->name('outbound-qc.')->group(function () {
-        Route::get('/', [WarehouseQcController::class, 'outboundQc'])->name('index');
-        Route::post('/rejected', [WarehouseQcController::class, 'rejectOutboundQc']);
-
+        Route::get('/', [WarehouseQcController::class, 'storeOrderWithRelation'])->name('index');
+        Route::post('/rejected', [WarehouseQcController::class, 'rejectOutboundQC']);
+        Route::get('/monitoring-outbound', [WarehouseQcController::class, 'outboundQC'])->name('outboundQC');
     });
 
     /*

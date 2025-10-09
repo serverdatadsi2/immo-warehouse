@@ -2,7 +2,6 @@ import { ConditionAutoComplete } from '@/components/auto-complate/condition';
 import QRCodeScanner from '@/components/scanner/qr-scanner';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
 import { QrcodeOutlined, ScanOutlined, StopOutlined } from '@ant-design/icons';
-import { useQueryClient } from '@tanstack/react-query';
 import { Button, Col, Form, Input, Modal, Row } from 'antd';
 import React, { useCallback, useState } from 'react';
 
@@ -13,7 +12,7 @@ interface Props {
 
 const RejectedModalForm: React.FC<Props> = React.memo(({ visible, onClose }) => {
     const { form, post, processing } = useAntdInertiaForm('Reject Outbound QC');
-    const queryClient = useQueryClient();
+    // const queryClient = useQueryClient();
 
     const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
     const [scan, setScan] = useState<boolean>(false);
@@ -38,10 +37,10 @@ const RejectedModalForm: React.FC<Props> = React.memo(({ visible, onClose }) => 
             onSuccess: () => {
                 onClose();
                 form.resetFields();
-                queryClient.invalidateQueries({ queryKey: ['all-conditions'] }); //refetch
+                // queryClient.invalidateQueries({ queryKey: ['monitoring-outbound-qc'] }); //refetch
             },
         });
-    }, [form, post, onClose, queryClient]);
+    }, [form, post, onClose]);
 
     return (
         <Modal

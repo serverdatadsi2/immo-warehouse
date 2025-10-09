@@ -43,14 +43,14 @@ export function Filters({ filters, setFilters, setSearch, search, setVisible }: 
                     Status
                     <br />
                     <Select
-                        value={filters?.status || 'All'}
+                        value={filters?.status || ''}
                         style={{ width: '100%' }}
                         onChange={(value) => handleFilterChange('status', value)}
                         allowClear
                     >
-                        <Select.Option value="All">Semua</Select.Option>
-                        <Select.Option value="Good">Good</Select.Option>
-                        <Select.Option value="Bad">Bad</Select.Option>
+                        <Select.Option value="">All</Select.Option>
+                        <Select.Option value="accepted">Accepted</Select.Option>
+                        <Select.Option value="rejected">Rejected</Select.Option>
                     </Select>
                 </Col>
                 <Col span={6}>

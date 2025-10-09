@@ -127,7 +127,7 @@ class WarehouseQcController extends Controller
             ->join('users as u', 'u.id', '=', 'warehouse_qc.performed_by')
             ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
-            ->whereNull('i.status')
+            ->where('i.status', 'warehouse_processing')
             ->select(
                 'warehouse_qc.*',
                 'p.id as product_id', 'p.name as product_name',
@@ -154,7 +154,7 @@ class WarehouseQcController extends Controller
             ->join('products as p', 'p.id', '=', 'i.product_id')
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
-            ->whereNull('i.status');
+            ->where('i.status', 'warehouse_processing');
 
         // Terapkan filter yang
         if ($search) { $summaryQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
@@ -176,7 +176,7 @@ class WarehouseQcController extends Controller
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
-            ->whereNull('i.status')
+            ->where('i.status', 'warehouse_processing')
             // Terapkan filter yang sama
             ->when($search, fn($q) => $q->where('p.name', 'ILIKE', '%' . $search . '%'))
             ->when($from, fn($q) => $q->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()))
@@ -221,8 +221,49 @@ class WarehouseQcController extends Controller
             'summary' => $summaryData,
         ]);
     }
+    public function outboundQC(Request $request)
+    {
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
 
-    public function outboundQc(Request $request)
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $pageSize = 10;
+
+        $dataQuery = WarehouseQC::query()
+            ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
+            ->join('rfid_tags as rt', 'rt.id', '=', 'i.rfid_tag_id')
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
+            ->join('users as u', 'u.id', '=', 'warehouse_qc.performed_by')
+            ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
+            ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
+            ->whereNull('i.status')
+            ->select(
+                'warehouse_qc.*',
+                'p.id as product_id', 'p.name as product_name',
+                'w.id as warehouse_id', 'w.name as warehouse_name',
+                'ic.name as condition_name', 'u.name as performed_by',
+                'rt.value as rfid'
+            );
+
+        if ($search)  $dataQuery->where('p.name', 'ILIKE', '%' . $search . '%');
+        if ($status) $dataQuery->where('warehouse_qc.status', '=', $status);
+        if ($from)  $dataQuery->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay());
+        if ($to)  $dataQuery->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay());
+
+        $paginatedResults = $dataQuery->orderBy('warehouse_qc.performed_at', 'desc')
+                            ->simplePaginate($pageSize);
+
+        return response()->json([
+            'pagination' => $paginatedResults,
+        ]);
+    }
+
+    public function storeOrderWithRelation(Request $request)
     {
         $search = $request->input('search');
 
@@ -255,7 +296,7 @@ class WarehouseQcController extends Controller
         ]);
     }
 
-    public function rejectOutboundQc(Request $request)
+    public function rejectOutboundQC(Request $request)
     {
         $rules = [
             'rfid' => ['string', 'required', 'exists:rfid_tags,value'],

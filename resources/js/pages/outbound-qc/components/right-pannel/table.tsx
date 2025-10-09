@@ -22,17 +22,20 @@ const LogTable = () => {
     });
 
     const { data, isLoading, refetch } = useQuery({
-        queryKey: ['monitoring-inboun-qc', filters],
+        queryKey: ['monitoring-outbound-qc', filters],
         queryFn: async () => {
-            const res = await axiosIns.get<MonitoringInboundQc>('/inbound-qc/monitoring-inbound', {
-                params: {
-                    page: filters.page,
-                    status: filters.status,
-                    search: filters.search,
-                    from: filters.dateRange?.[0].toISOString(),
-                    to: filters.dateRange?.[1].toISOString(),
+            const res = await axiosIns.get<MonitoringInboundQc>(
+                '/outbound-qc/monitoring-outbound',
+                {
+                    params: {
+                        page: filters.page,
+                        status: filters.status,
+                        search: filters.search,
+                        from: filters.dateRange?.[0].toISOString(),
+                        to: filters.dateRange?.[1].toISOString(),
+                    },
                 },
-            });
+            );
             return res.data;
         },
     });
@@ -59,7 +62,9 @@ const LogTable = () => {
                 title: 'Status',
                 dataIndex: 'status',
                 render: (status) => (
-                    <Tag color={status === 'Good' ? 'green' : 'red'}>{status.toUpperCase()}</Tag>
+                    <Tag color={status === 'accepted' ? 'green' : 'red'}>
+                        {status.toUpperCase()}
+                    </Tag>
                 ),
             },
             { title: 'Note', dataIndex: 'note' },
