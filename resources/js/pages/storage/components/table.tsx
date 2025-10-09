@@ -1,3 +1,4 @@
+import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
@@ -42,7 +43,12 @@ export default function TableData({ pagination }: Props) {
                     },
                 ],
             },
-
+            {
+                title: 'Expired Date',
+                dataIndex: 'expired_date',
+                key: 'expired_date',
+                render: (val) => <DateDisplay val={val} />,
+            },
             {
                 title: 'Lokasi Barang',
                 key: 'location',

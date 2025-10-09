@@ -18,4 +18,9 @@ class StoreOrder extends Model
     {
         return $this->hasMany(StoreOrderDetail::class, 'store_order_id', 'id');
     }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class, 'store_id', 'id');
+    }
 }

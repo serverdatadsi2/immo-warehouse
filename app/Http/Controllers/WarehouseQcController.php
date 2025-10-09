@@ -6,6 +6,7 @@ use App\Http\Resources\InboundQCResource;
 use App\Models\Item;
 use App\Models\ItemCondition;
 use App\Models\ItemConditionHistory;
+use App\Models\StoreOrder;
 use App\Models\WarehouseQC;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -64,6 +65,7 @@ class WarehouseQcController extends Controller
             // C. Update Item (Mengganti kondisi dan status)
             $item->update([
                 'current_condition_id' => $itemCondition->id,
+                'status' => 'warehouse_processing'
             ]);
 
 
@@ -73,6 +75,7 @@ class WarehouseQcController extends Controller
                 'item_id' => $item->id,
                 'qc_type' => 'inbound',
                 'warehouse_id' => $warehouseId,
+                'status' => 'accepted',
             ],
     [
                 'item_condition_id' => $itemCondition->id,
@@ -217,5 +220,149 @@ class WarehouseQcController extends Controller
             'data' => InboundQCResource::collection($paginatedResults->items()),
             'summary' => $summaryData,
         ]);
+    }
+
+    public function outboundQc(Request $request)
+    {
+        $search = $request->input('search');
+
+        $storeOrders = StoreOrder::query()
+                        ->when($search, function ($query, $search) {
+                            $query->whereHas('store', function ($subQuery) use ($search) {
+                            $subQuery->where('name', 'ILIKE', '%' . $search . '%');
+                        });
+                    })
+                    ->with([
+                        'details' => function ($query) {
+                            $query->select('id', 'store_order_id', 'product_id', 'approved_qty');
+                        },
+                        'details.product' => function ($query) {
+                            $query->select('id', 'name');
+                        },
+                        'store' => function ($query) {
+                            $query->select('id', 'name');
+                        }
+                    ])
+                    ->where('status', 'received')
+                    ->orderBy('approved_at', 'asc')
+                    ->paginate(7);
+
+        return inertia('outbound-qc/index', [
+            'pagination' => $storeOrders,
+            'params' => (object) [
+                'search' => $search
+             ]
+        ]);
+    }
+
+    public function rejectOutboundQc(Request $request)
+    {
+        $rules = [
+            'rfid' => ['string', 'required', 'exists:rfid_tags,value'],
+            'condition' => ['string', 'nullable', 'max:255'],
+            'note' => ['string', 'nullable'],
+        ];
+
+        \Log::info('Masuk ke rejectOutboundQc dengan data:', $request->all());
+
+        $user = auth()->user();
+
+        // Pastikan user memiliki warehouse yang terdaftar
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+
+
+        $validated = $request->validate($rules);
+
+        try {
+            \DB::beginTransaction();
+
+
+            // Temukan Item berdasarkan RFID dan pastikan bisa di-update
+            $item = Item::whereHas('rfidTag', function ($query) use ($validated) {
+                        $query->where('value', $validated['rfid']);
+                    })
+                    ->whereHas('warehouse', function ($query) use ($userWarehouseId) {
+                        $query->where('warehouse_id', $userWarehouseId);
+                    })
+                    ->first();
+
+            // Cek jika Item tidak ditemukan
+            if (!$item) {
+                \DB::rollback();
+                // Throw exception agar frontend menerima error yang jelas
+                throw ValidationException::withMessages([
+                    'rfid' => 'RFID ini tidak terdaftar atau sudah tidak aktif.'
+                ]);
+            }
+
+            if(!empty($validated['condition'])){
+                // A. Cek/Buat ItemCondition
+                $itemCondition = ItemCondition::firstOrCreate(
+                    ['name' => $validated['condition']]
+                );
+
+                // B. Update Item (Mengganti kondisi dan status)
+                $item->update([
+                    'current_condition_id' => $itemCondition->id,
+                    'status' => 'warehouse_processing'
+                ]);
+
+                // D. Create WarehouseQC Record (Log Reject)
+                $qc = WarehouseQC::firstOrCreate([
+                    'item_id' => $item->id,
+                    'qc_type' => 'outbound',
+                    'warehouse_id' => $userWarehouseId,
+                    'status' => 'rejected',
+                ],
+        [
+                    'item_condition_id' => $itemCondition->id,
+                    'performed_at' => now(),
+                    'performed_by' => $user->id,
+                    'note' => $validated['note'] ?? null,
+                ]);
+
+                // E. Create History Condition
+                ItemConditionHistory::firstOrCreate([
+                    'item_id' => $item->id,
+                    'item_condition_id' => $itemCondition->id,
+                    'changed_by' => $user->id,
+                    'reference_type' => 'inbound_qc',
+                    'reference_id' => $qc->id,
+                ],
+                ['changed_at' => now(),]);
+            }else{
+
+                 // Update Item (Mengganti kondisi dan status)
+                $item->update([
+                    'status' => 'warehouse_processing'
+                ]);
+
+                // Create WarehouseQC Record (Log Reject)
+                $qc = WarehouseQC::firstOrCreate([
+                    'item_id' => $item->id,
+                    'qc_type' => 'outbound',
+                    'warehouse_id' => $userWarehouseId,
+                    'status' => 'rejected',
+                ],
+        [
+                    'performed_at' => now(),
+                    'performed_by' => $user->id,
+                    'note' => $validated['note'] ?? null,
+                ]);
+            }
+
+
+            \DB::commit();
+
+            return to_route('outbound-qc.index');
+
+        } catch (\Exception $e) {
+            // Jika terjadi error (termasuk ValidationException dari atas), lakukan rollback
+            if (\DB::transactionLevel() > 0) {
+                \DB::rollback();
+            }
+            // Throw ulang exception
+            throw $e;
+        }
     }
 }

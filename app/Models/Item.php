@@ -28,4 +28,9 @@ class Item extends Model
     {
         return $this->belongsTo(ItemCondition::class, 'current_condition_id', 'id');
     }
+
+    public function warehouse()
+    {
+        return $this->hasOne(WarehouseStock::class, 'item_id', 'id');
+    }
 }

@@ -8,9 +8,6 @@ use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Validation\ValidationException;
 use Log;
 
 class ReceivingOrderController extends Controller
@@ -61,6 +58,7 @@ class ReceivingOrderController extends Controller
         $headerId = $request->input('header_id');
         $header = null;
         $detailsPagination = null;
+        $availableStocks = null;
 
         if ($headerId) {
             $header = StoreOrder::query()
@@ -78,12 +76,67 @@ class ReceivingOrderController extends Controller
                 ->leftJoin('products as p', 'p.id', '=', 'store_order_details.product_id')
                 ->where('store_order_id', $header->id)
                 ->select('store_order_details.*', 'p.name as product_name')
-                ->paginate(5);
+                ->paginate(10);
+
+
+        if($header->status !== 'approved'&& $header->status !== 'requested'&& $header->status !== 'draft'){
+
+            $productIds = $detailsPagination->pluck('product_id')->toArray();
+
+            $user = auth()->user();
+            $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+
+            $selectColumns = [
+                'p.id as product_id', 'p.name as product_name', 'p.code as product_code',
+                'w.id as warehouse_id', 'w.name as warehouse_name',
+                'lr.name as layer_name', 'lr.code as layer_code',
+                'rk.name as rack_name', 'rk.code as rack_code',
+                'rm.name as room_name', 'rm.code as room_code',
+                'i.expired_date', 'wi.received_date as inbound_at',
+            ];
+
+            $groupingColumns = [
+                'p.id', 'p.name', 'p.code',
+                'w.id', 'w.name',
+                'ic.name',
+                'lr.name', 'lr.code',
+                'rk.name', 'rk.code',
+                'rm.name', 'rm.code',
+                'i.expired_date', 'wi.received_date',
+            ];
+
+            $query = WarehouseStock::query()
+                ->join('items as i', function ($join) {
+                        $join->on('i.id', '=', 'warehouse_items.item_id')
+                            ->where('i.status', '=', 'warehouse_stock');
+                    })
+                ->join('warehouse_inbound_details as wid', 'wid.id', '=', 'i.warehouse_inbound_detail_id')
+                ->join('warehouse_inbounds as wi', 'wi.id', '=', 'wid.warehouse_inbound_id')
+                ->join('products as p', 'p.id', '=', 'i.product_id')
+                ->leftJoin('item_conditions as ic', 'ic.id', '=', 'i.current_condition_id')
+                ->join('warehouses as w', 'w.id', '=', 'warehouse_items.warehouse_id')
+                ->leftJoin('locations as lr', 'lr.id', '=', 'i.current_location_id')
+                ->leftJoin('locations as rk', 'rk.id', '=', 'lr.location_parent_id')
+                ->leftJoin('locations as rm', 'rm.id', '=', 'rk.location_parent_id')
+                ->where('w.id',$userWarehouseId)
+                ->whereIn('p.id',$productIds)
+                ->where('ic.name','Good')
+                ->orderBy('i.expired_date','asc')
+                ->orderBy('wi.received_date','asc')
+
+                ->select(array_merge($selectColumns, [
+                    \DB::raw('COUNT(warehouse_items.id) AS quantity')
+                ]));
+            $query->groupBy($groupingColumns);
+            $availableStocks = $query->get();
+
+            }
         }
 
         return Inertia::render('receiving-order/detail', [
             'detailsPagination' => $detailsPagination,
-            'header' => $header
+            'header' => $header,
+            'availableStocks' => $availableStocks,
         ]);
     }
 
@@ -143,7 +196,7 @@ class ReceivingOrderController extends Controller
         }
 
          if (!empty($stockErrors)) {
-            return back()->withErrors(['message' => $stockErrors[0]['message']]);
+            return back()->withErrors(['message' => $stockErrors[0]]);
         }
 
         $order = StoreOrder::findOrFail($id);
@@ -156,7 +209,7 @@ class ReceivingOrderController extends Controller
         $order->status = 'received';
         $order->save();
 
-        return to_route('outbound-dc.index');
-        // return to_route('receiving-order.index');
+        // return to_route('outbound-dc.index');
+        return to_route('receiving-order.detail', ['header_id' => $id]);
     }
 }

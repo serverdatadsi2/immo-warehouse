@@ -44,39 +44,12 @@ export function DetailTable() {
 
     return (
         <>
-            {/* <Space direction="vertical" className="w-full"> */}
             <LaravelTable<DetailItem>
                 rowKey="id"
                 columns={columns}
                 onPageChange={handlePageChange}
                 pagination={pagination}
-                // hidePagination
-                // summary={() => (
-                //     <>
-                //         <Table.Summary.Row>
-                //             <Table.Summary.Cell index={0} colSpan={3}></Table.Summary.Cell>
-                //             <Table.Summary.Cell index={4}>
-                //                 <b>Total Item</b>
-                //             </Table.Summary.Cell>
-                //             <Table.Summary.Cell index={5}>
-                //                 {header?.quantity_item}
-                //             </Table.Summary.Cell>
-                //             <Table.Summary.Cell index={6}></Table.Summary.Cell>
-                //         </Table.Summary.Row>
-                //         <Table.Summary.Row>
-                //             <Table.Summary.Cell index={0} colSpan={3}></Table.Summary.Cell>
-                //             <Table.Summary.Cell index={4}>
-                //                 <b>Grand Total</b>
-                //             </Table.Summary.Cell>
-                //             <Table.Summary.Cell index={5}>
-                //                 {header?.grand_total}
-                //             </Table.Summary.Cell>
-                //             <Table.Summary.Cell index={6}></Table.Summary.Cell>
-                //         </Table.Summary.Row>
-                //     </>
-                // )}
             />
-            {/* </Space> */}
         </>
     );
 }

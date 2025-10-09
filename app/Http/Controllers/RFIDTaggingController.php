@@ -27,7 +27,6 @@ class RFIDTaggingController extends Controller
         // ambil warehouse pertama milik user
         $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
         $search = $request->input('search');
-        \Log::info($userWarehouseIds);
 
         $query = WarehouseInboundDetail::query()
                 ->join('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
@@ -176,10 +175,11 @@ class RFIDTaggingController extends Controller
 
         $qty = (int) $validated['quantity'];
 
-        $items = Item::where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])
+        $items = Item::query()
+                    ->where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])
                     ->where('product_id', $validated['product_id'])
                     ->whereNull('current_condition_id') // Hanya yang belum QC
-                    ->whereNull('status') // Hanya yang belum QC
+                    ->where('items.status', 'warehouse_processing') // Hanya yang belum QC
                     ->where('expired_date', $validated['expired_date'])
                     ->get();
 
@@ -206,6 +206,7 @@ class RFIDTaggingController extends Controller
                     [
                         'product_id' => $validated['product_id'],
                         'expired_date' => $validated['expired_date'],
+                        'status' => 'warehouse_processing',
                     ],
                 );
             }
@@ -227,7 +228,10 @@ class RFIDTaggingController extends Controller
 
         $validated = $request->validate($rules);
 
-        $items = Item::where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])->where('product_id', $validated['product_id'])->where('expired_date', $validated['expired_date'])->get();
+        $items = Item::where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])
+                    ->where('product_id', $validated['product_id'])
+                    ->where('expired_date', $validated['expired_date'])
+                    ->get();
 
         return response()->json($items);
     }

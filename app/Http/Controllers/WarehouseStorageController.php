@@ -16,8 +16,8 @@ class WarehouseStorageController extends Controller
 
         $filters = $request->only(['search', 'location', 'status']);
         $search = $filters['search'] ?? '';
-        $location = $filters['location'] ?? '';
         $status = $filters['status'] ?? '';
+        $location = $filters['location'] ?? '';
         $pageSize = 20;
 
         $user = auth()->user();
@@ -36,12 +36,13 @@ class WarehouseStorageController extends Controller
             'lr.name as layer_name', 'lr.code as layer_code',
             'rk.name as rack_name', 'rk.code as rack_code',
             'rm.name as room_name', 'rm.code as room_code',
+            'i.expired_date'
         ];
 
         $groupingColumns = [
             'p.id', 'p.name', 'p.code',
             'w.id', 'w.name',
-            'ic.name',
+            'ic.name', 'i.expired_date',
             'lr.name', 'lr.code',
             'rk.name', 'rk.code',
             'rm.name', 'rm.code',

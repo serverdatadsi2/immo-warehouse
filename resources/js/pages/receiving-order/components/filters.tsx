@@ -60,10 +60,8 @@ export function Filters({ params }: Props) {
     );
 
     const handleClear = useCallback(() => {
-        handleFilterChange('search', undefined);
-        handleFilterChange('status', 'approved');
-        handleFilterChange('dateRange', undefined);
-    }, [handleFilterChange]);
+        router.visit('/receiving-order', { replace: true });
+    }, []);
 
     const disabledDate = (current) => {
         return current && current.isAfter(dayjs().endOf('day'));

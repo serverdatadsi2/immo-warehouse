@@ -12,7 +12,8 @@ use App\Http\Controllers\{
     SearchProductController,
     WarehouseQcController,
     WarehouseStorageController,
-    UserController
+    OutboundQCController,
+    UserController,
 };
 
 // HOME
@@ -121,8 +122,11 @@ Route::middleware(['auth'])->group(function () {
     | Outbound QC
     |--------------------------------------------------------------------------
     */
-    Route::get('/outbound-qc', fn () => Inertia::render('outbound-qc/index'))->name('outbound-dc.index');
+    Route::prefix('outbound-qc')->name('outbound-qc.')->group(function () {
+        Route::get('/', [WarehouseQcController::class, 'outboundQc'])->name('index');
+        Route::post('/rejected', [WarehouseQcController::class, 'rejectOutboundQc']);
 
+    });
 
     /*
     |--------------------------------------------------------------------------

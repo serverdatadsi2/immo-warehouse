@@ -1,24 +1,29 @@
 import { AppLayout } from '@/layouts/app-layout';
-import { Pannel } from '@/layouts/pannel';
-import { Outbound } from '@/types/outbound.type';
+import { LaravelPagination } from '@/types/laravel-pagination.type';
+import { Params, StoreOrderWithRelatons } from '@/types/outbound-qc.type';
 import { Head } from '@inertiajs/react';
-import { useState } from 'react';
-import { LeftPannel } from './components/left-pannel';
-import { RightPannel } from './components/right-pannel';
+import { Splitter } from 'antd';
+import { StoreOrderComponent } from './components/left-pannel/store-order';
+import LogTable from './components/right-pannel/table';
 
-export default function Page() {
-    const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+export default function Page({ params, pagination }: Props) {
     return (
         <AppLayout navBarTitle="Outbound QC">
             <Head title="Outbound QC" />
-            <Pannel
-                leftPanel={
-                    <LeftPannel selectedOrder={selectedOrder} setSelectedOrder={setSelectedOrder} />
-                }
-                rightPannel={<RightPannel selectedOrder={selectedOrder} />}
-            />
+
+            <Splitter>
+                <Splitter.Panel defaultSize="40%" min="10%" max="80%" collapsible>
+                    <StoreOrderComponent params={params} pagination={pagination} />
+                </Splitter.Panel>
+                <Splitter.Panel collapsible>
+                    <LogTable />
+                </Splitter.Panel>
+            </Splitter>
         </AppLayout>
     );
 }
 
-export type HeaderItem = Outbound;
+interface Props {
+    params: Params;
+    pagination: LaravelPagination<StoreOrderWithRelatons>;
+}

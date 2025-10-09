@@ -62,7 +62,7 @@ export function ConditionAutoComplete(props: Props) {
             onChange={handleChange}
             onSearch={handleSearch}
             options={options}
-            placeholder="Pilih Kondisi atau Masukkan Nilai Baru"
+            placeholder={props.placeholder ?? 'Pilih Kondisi atau Masukkan Nilai Baru'}
             style={{ width: '100%' }}
         >
             <Input suffix={isLoading ? <LoadingOutlined /> : null} />
