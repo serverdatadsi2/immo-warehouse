@@ -42,7 +42,12 @@ class WarehouseStorageController extends Controller
         $groupingColumns = [
             'p.id', 'p.name', 'p.code',
             'w.id', 'w.name',
-            'ic.name', 'i.expired_date',
+            \DB::raw("(CASE
+                WHEN ic.name IS NULL THEN NULL
+                WHEN ic.name = 'Good' THEN 'Good'
+                ELSE 'Bad'
+            END)"),
+            'i.expired_date',
             'lr.name', 'lr.code',
             'rk.name', 'rk.code',
             'rm.name', 'rm.code',

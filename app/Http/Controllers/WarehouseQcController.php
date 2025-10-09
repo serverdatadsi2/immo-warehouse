@@ -129,6 +129,13 @@ class WarehouseQcController extends Controller
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->where('i.status', 'warehouse_processing')
             ->where('warehouse_qc.qc_type', 'inbound')
+            // ✅ pastikan RFID belum pernah QC outbound
+            ->whereNotIn('i.rfid_tag_id', function ($sub) {
+                $sub->select('i2.rfid_tag_id')
+                    ->from('warehouse_qc as qc2')
+                    ->join('items as i2', 'i2.id', '=', 'qc2.item_id')
+                    ->where('qc2.qc_type', 'outbound');
+            })
             ->select(
                 'warehouse_qc.*',
                 'p.id as product_id', 'p.name as product_name',
