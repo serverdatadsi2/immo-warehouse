@@ -16,7 +16,7 @@ const LogTable = () => {
     const [search, setSearch] = useState<string>();
 
     const [filters, setFilters] = useState<FilterQc>({
-        status: 'All',
+        status: '',
         search: '',
         dateRange: [dayjs(), dayjs()],
         page: 1,
