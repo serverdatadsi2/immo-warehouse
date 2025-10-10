@@ -7,7 +7,7 @@ import { WarehouseAsyncSelect } from '@/components/selects/warehouse';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
 import { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { Col, Form, Input, Row, Space } from 'antd';
+import { Card, Col, Form, Input, Row, Space } from 'antd';
 import dayjs from 'dayjs';
 import { useCallback, useContext, useEffect } from 'react';
 import { HeaderItem } from '../..';
@@ -33,7 +33,14 @@ export function HeaderForm() {
     }, [props, form]);
 
     return (
-        <>
+        <Card
+            style={{
+                background: '#f5faff',
+                borderRadius: 12,
+                boxShadow: '0 2px 8px #1890ff11',
+                marginBottom: 24,
+            }}
+        >
             <Form form={form} layout="vertical" initialValues={header ?? undefined}>
                 <Row gutter={[16, 8]}>
                     <Col span={8}>
@@ -60,7 +67,7 @@ export function HeaderForm() {
                         <FormItem
                             name="received_date"
                             errorMessage={errors?.received_date}
-                            label="Tanggal diterima"
+                            label="Tanggal Diterima"
                             required
                         >
                             <LocaleDatePicker defaultValue={dayjs()} />
@@ -82,7 +89,7 @@ export function HeaderForm() {
                             name="delivery_order_number"
                             label="Nomor Surat Jalan"
                         >
-                            <Input />
+                            <Input placeholder="Masukkan nomor surat jalan..." />
                         </FormItem>
                     </Col>
                     <Col span={8}>
@@ -91,18 +98,16 @@ export function HeaderForm() {
                             name="invoice_number"
                             label="Nomor Faktur"
                         >
-                            <Input />
+                            <Input placeholder="Masukkan nomor faktur..." />
                         </FormItem>
                     </Col>
                 </Row>
+                <Space style={{ marginTop: 24 }}>
+                    <DeleteButton onClick={handleDelete} disabled={!header || processing} />
+                    <SaveButton onClick={handleSave} disabled={processing} />
+                </Space>
             </Form>
-            <Space>
-                <DeleteButton onClick={handleDelete} disabled={!header || processing} />
-                {/* <PrintModal /> */}
-                <SaveButton onClick={handleSave} disabled={processing} />
-                {/* <PostJurnalButton onClick={handlePostJournal} disabled={processing || !header} /> */}
-            </Space>
-        </>
+        </Card>
     );
 }
 

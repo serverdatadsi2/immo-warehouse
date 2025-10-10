@@ -1,17 +1,18 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import { Storage } from '@/types/storage.type';
-import { Card, Table, Tag, type TableProps } from 'antd';
+import { Table, Tag, type TableProps } from 'antd';
 import { useContext, useMemo } from 'react';
 import { DetailContext } from '../../detail';
 
 export function StockTable() {
     const { availableStocks: data, detailsPagination: pagination } = useContext(DetailContext);
 
-    const columns = useMemo(
-        (): TableProps<Storage>['columns'] => [
+    const columns = useMemo<TableProps<Storage>['columns']>(
+        () => [
             {
                 title: 'No.',
                 key: 'serial',
+                align: 'center',
                 render: (_: any, __: Storage, index: number) => {
                     const currentPage = pagination?.current_page ?? 1;
                     const perPage = pagination?.per_page ?? 10;
@@ -22,29 +23,38 @@ export function StockTable() {
                 title: 'Inbound',
                 dataIndex: 'inbound_at',
                 key: 'inbound_at',
+                align: 'center',
                 render: (val) => <DateDisplay val={val} />,
             },
             {
-                title: 'Nama',
+                title: 'Nama Produk',
                 dataIndex: 'product_name',
                 key: 'product_name',
+                align: 'left',
             },
             {
                 title: 'Expired Date',
                 dataIndex: 'expired_date',
                 key: 'expired_date',
+                align: 'center',
                 render: (val) => <DateDisplay val={val} />,
             },
             {
                 title: 'Stok',
                 dataIndex: 'quantity',
                 key: 'quantity',
-                render: (val) => <Tag color="blue">{val}</Tag>,
+                align: 'center',
+                render: (val) => (
+                    <Tag color="blue" style={{ fontWeight: 'bold' }}>
+                        {val}
+                    </Tag>
+                ),
             },
             {
                 title: 'Lokasi Barang',
                 key: 'location',
                 dataIndex: 'location',
+                align: 'left',
                 render: (_, record: Storage) => {
                     const parts: string[] = [];
                     if (record?.warehouse_name) parts.push(record?.warehouse_name);
@@ -59,18 +69,14 @@ export function StockTable() {
     );
 
     return (
-        <Card className="!border-green-200 !mt-7 shadow-green-200 !shadow-md">
-            <Card.Meta title="Available Stock" className="text-center" />
-            <div className="!mt-5 border rounded !border-amber-200 shadow-amber-200 shadow-sm">
-                <Table<Storage>
-                    scroll={{ x: 'max-content' }}
-                    size="small"
-                    rowKey="product_id"
-                    dataSource={data ?? []}
-                    columns={columns}
-                    pagination={false}
-                />
-            </div>
-        </Card>
+        <Table<Storage>
+            scroll={{ x: 'max-content' }}
+            size="small"
+            rowKey="product_id"
+            dataSource={data ?? []}
+            columns={columns}
+            pagination={false}
+            bordered
+        />
     );
 }

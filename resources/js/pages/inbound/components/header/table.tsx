@@ -4,7 +4,7 @@ import { LaravelPagination } from '@/types/laravel-pagination.type';
 import { EditOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
-import { Button, Pagination, Space, Table } from 'antd';
+import { Button, Pagination, Space, Table, Tag } from 'antd';
 import { useCallback, useMemo } from 'react';
 import { HeaderItem } from '../..';
 
@@ -18,6 +18,7 @@ export function HeaderTable({ pagination }: Props) {
             {
                 title: 'No.',
                 key: 'serial',
+                align: 'center',
                 render: (_: any, __: HeaderItem, index: number) => {
                     const currentPage = pagination?.current_page ?? 1;
                     const perPage = pagination?.per_page ?? 10;
@@ -28,31 +29,47 @@ export function HeaderTable({ pagination }: Props) {
                 title: 'Supplier',
                 dataIndex: 'supplier_name',
                 key: 'supplier_name',
+                align: 'center',
             },
             {
                 title: 'Gudang',
                 dataIndex: 'warehouse_name',
                 key: 'warehouse_name',
+                align: 'center',
             },
             {
                 title: 'Faktur',
                 dataIndex: 'invoice_number',
                 key: 'invoice_number',
+                align: 'center',
             },
             {
                 title: 'Surat Jalan',
                 dataIndex: 'delivery_order_number',
                 key: 'delivery_order_number',
+                align: 'center',
             },
             {
                 title: 'Quantity',
                 dataIndex: 'quantity_item',
                 key: 'quantity_item',
+                align: 'center',
+                render: (qty) => (
+                    <Tag color="blue" style={{ fontWeight: 'bold' }}>
+                        {qty}
+                    </Tag>
+                ),
             },
             {
                 title: 'Grand Total',
                 dataIndex: 'grand_total',
                 key: 'grand_total',
+                align: 'center',
+                render: (total) => (
+                    <Tag color="gold" style={{ fontWeight: 'bold' }}>
+                        {total}
+                    </Tag>
+                ),
             },
             {
                 title: 'Diterima',
@@ -61,21 +78,29 @@ export function HeaderTable({ pagination }: Props) {
                         title: 'Nama',
                         dataIndex: 'received_name',
                         key: 'received_name',
+                        align: 'center',
                     },
                     {
                         title: 'Tanggal',
                         dataIndex: 'received_date',
                         key: 'received_date',
+                        align: 'center',
                         render: (v) => <DateDisplay val={v} />,
                     },
                 ],
             },
             {
-                title: 'Action',
+                title: 'Aksi',
                 key: 'action',
                 fixed: 'right',
+                align: 'center',
                 render: (_, d) => (
-                    <Button onClick={() => handleAction(d)} icon={<EditOutlined />} />
+                    <Button
+                        onClick={() => handleAction(d)}
+                        icon={<EditOutlined />}
+                        type="primary"
+                        style={{ borderRadius: 8 }}
+                    />
                 ),
             },
         ],
@@ -105,6 +130,7 @@ export function HeaderTable({ pagination }: Props) {
                     pageSize={pagination.per_page}
                     total={pagination.total}
                     onChange={handlePageChange}
+                    style={{ marginTop: 16 }}
                 />
             )}
         </Space>

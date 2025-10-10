@@ -1,9 +1,11 @@
 import { FormItem } from '@/components/forms/form-item';
 import QRCodeScanner from '@/components/scanner/qr-scanner';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
-import { SaveOutlined, ScanOutlined, StopOutlined } from '@ant-design/icons'; // Import SaveOutlined
-import { Button, Card, Col, Form, Input, Row, notification } from 'antd';
+import { SaveOutlined, ScanOutlined, StopOutlined } from '@ant-design/icons';
+import { Button, Card, Col, Form, Input, Row, Typography, notification } from 'antd';
 import React, { useCallback, useState } from 'react';
+
+const { Title, Text } = Typography;
 
 const RightPannel: React.FC = () => {
     const { form, post, processing, errors } = useAntdInertiaForm<{
@@ -53,6 +55,11 @@ const RightPannel: React.FC = () => {
 
     return (
         <Card
+            style={{
+                background: '#f5faff',
+                borderRadius: 12,
+                boxShadow: '0 2px 8px #1890ff11',
+            }}
             actions={[
                 <Button key="cancel" onClick={handleCancle} disabled={processing}>
                     Batal
@@ -70,14 +77,12 @@ const RightPannel: React.FC = () => {
                 </Button>,
             ]}
         >
-            <Card.Meta
-                style={{
-                    margin: '-12px -12px 0 -12px',
-                    padding: 10,
-                }}
-                title="Scan Barang dan Lokasi"
-                description="Scan Barang dan lokasi untuk melakukan assignment manual."
-            />
+            <Title level={5} style={{ color: '#1890ff', marginBottom: 0 }}>
+                Scan Barang dan Lokasi
+            </Title>
+            <Text type="secondary" style={{ marginBottom: 16, display: 'block' }}>
+                Scan barang dan lokasi untuk melakukan assignment manual.
+            </Text>
 
             <Form form={form} layout="vertical" className="mt-4">
                 {isScanningRfid ? (
@@ -92,7 +97,7 @@ const RightPannel: React.FC = () => {
                         <QRCodeScanner
                             onSwitchCamera={handleSwitchCamera}
                             facingMode={facingMode}
-                            onScan={handleScanRfid} // Menggunakan handler khusus RFID
+                            onScan={handleScanRfid}
                             isActive={isScanningRfid}
                         />
                     </div>
@@ -100,8 +105,12 @@ const RightPannel: React.FC = () => {
                     <Row gutter={5} align="middle">
                         <Col span={17}>
                             <FormItem
+                                label={
+                                    <Text strong style={{ color: '#1890ff' }}>
+                                        QR Code / RFID Tag Barang
+                                    </Text>
+                                }
                                 name="rfid"
-                                label="QR Code / RFID Tag Barang"
                                 rules={[{ required: true, message: 'Harap masukkan Tag ID!' }]}
                                 errorMessage={errors?.rfid}
                             >
@@ -118,7 +127,7 @@ const RightPannel: React.FC = () => {
                                 type="primary"
                                 onClick={() => setIsScanningRfid(true)}
                                 className="!bg-emerald-600 mt-1.5"
-                                disabled={isScanningLocation} // Tidak boleh scan dua sekaligus
+                                disabled={isScanningLocation}
                             >
                                 Scan Barang
                             </Button>
@@ -138,7 +147,7 @@ const RightPannel: React.FC = () => {
                         <QRCodeScanner
                             onSwitchCamera={handleSwitchCamera}
                             facingMode={facingMode}
-                            onScan={handleScanLocation} // Menggunakan handler khusus Lokasi
+                            onScan={handleScanLocation}
                             isActive={isScanningLocation}
                         />
                     </div>
@@ -146,8 +155,19 @@ const RightPannel: React.FC = () => {
                     <Row gutter={5} align="middle">
                         <Col span={17}>
                             <FormItem
+                                label={
+                                    <Text
+                                        strong
+                                        style={{
+                                            color: '#1890ff',
+                                            marginTop: 16,
+                                            display: 'block',
+                                        }}
+                                    >
+                                        RFID Tag Lokasi
+                                    </Text>
+                                }
                                 name="location"
-                                label="RFID Tag Location"
                                 rules={[{ required: true, message: 'Harap masukkan Tag ID!' }]}
                                 errorMessage={errors?.location}
                             >
@@ -163,7 +183,7 @@ const RightPannel: React.FC = () => {
                                 icon={<ScanOutlined />}
                                 type="primary"
                                 onClick={() => setIsScanningLocation(true)}
-                                className="!bg-emerald-600 mt-1.5"
+                                className="!bg-emerald-600 mt-5"
                                 disabled={isScanningRfid}
                             >
                                 Scan Lokasi

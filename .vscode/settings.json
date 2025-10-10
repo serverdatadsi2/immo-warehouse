@@ -12,6 +12,7 @@
         "doc",
         "search-product",
         "inbound-qc",
-        "select-user"
+        "select-user",
+        "packing"
     ]
 }

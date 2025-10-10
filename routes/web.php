@@ -12,7 +12,7 @@ use App\Http\Controllers\{
     SearchProductController,
     WarehouseQcController,
     WarehouseStorageController,
-    OutboundQCController,
+    PackingController,
     UserController,
 };
 
@@ -90,7 +90,7 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('inbound-qc')->name('inbound-qc.')->group(function () {
-        Route::get('/', [WarehouseQcController::class, "index"])->name('index');
+        Route::get('/', [WarehouseQcController::class, "indexInboundQC"])->name('index');
         Route::post('/reject-labelling', [WarehouseQcController::class, "updateRejectLabelInbounQc"]);
         Route::get('/monitoring-inbound', [WarehouseQcController::class, 'inboundQC'])->name('inboundQC');
     });
@@ -123,9 +123,20 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('outbound-qc')->name('outbound-qc.')->group(function () {
-        Route::get('/', [WarehouseQcController::class, 'storeOrderWithRelation'])->name('index');
+        Route::get('/', [WarehouseQcController::class, 'indexOutboundQC'])->name('index');
         Route::post('/rejected', [WarehouseQcController::class, 'rejectOutboundQC']);
         Route::get('/monitoring-outbound', [WarehouseQcController::class, 'outboundQC'])->name('outboundQC');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Packing
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('packing')->name('packing.')->group(function () {
+        Route::get('/', [PackingController::class, 'index'])->name('index');
+        Route::patch('/{order_id}/update-status', [PackingController::class, 'updateStatus'])->name('updateStatus');
+        // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
     });
 
     /*

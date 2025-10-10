@@ -6,7 +6,6 @@ use App\Http\Resources\InboundQCResource;
 use App\Models\Item;
 use App\Models\ItemCondition;
 use App\Models\ItemConditionHistory;
-use App\Models\StoreOrder;
 use App\Models\WarehouseQC;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -15,7 +14,7 @@ use Inertia\Inertia;
 
 class WarehouseQcController extends Controller
 {
-    public function index(Request $request)
+    public function indexInboundQC(Request $request)
     {
         return Inertia::render('inbound-qc/index');
     }
@@ -163,7 +162,14 @@ class WarehouseQcController extends Controller
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->where('warehouse_qc.qc_type', 'inbound')
-            ->where('i.status', 'warehouse_processing');
+            ->where('i.status', 'warehouse_processing')
+            // ✅ pastikan RFID belum pernah QC outbound
+            ->whereNotIn('i.rfid_tag_id', function ($sub) {
+                $sub->select('i2.rfid_tag_id')
+                    ->from('warehouse_qc as qc2')
+                    ->join('items as i2', 'i2.id', '=', 'qc2.item_id')
+                    ->where('qc2.qc_type', 'outbound');
+            });
 
         // Terapkan filter yang
         if ($search) { $summaryQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
@@ -231,6 +237,11 @@ class WarehouseQcController extends Controller
             'summary' => $summaryData,
         ]);
     }
+
+    public function indexOutboundQC(Request $request)
+    {
+        return Inertia::render('outbound-qc/index');
+    }
     public function outboundQC(Request $request)
     {
         $user = auth()->user();
@@ -270,39 +281,6 @@ class WarehouseQcController extends Controller
                             ->simplePaginate($pageSize);
 
         return response()->json($pagination);
-    }
-
-    public function storeOrderWithRelation(Request $request)
-    {
-        $search = $request->input('search');
-
-        $storeOrders = StoreOrder::query()
-                        ->when($search, function ($query, $search) {
-                            $query->whereHas('store', function ($subQuery) use ($search) {
-                            $subQuery->where('name', 'ILIKE', '%' . $search . '%');
-                        });
-                    })
-                    ->with([
-                        'details' => function ($query) {
-                            $query->select('id', 'store_order_id', 'product_id', 'approved_qty');
-                        },
-                        'details.product' => function ($query) {
-                            $query->select('id', 'name');
-                        },
-                        'store' => function ($query) {
-                            $query->select('id', 'name');
-                        }
-                    ])
-                    ->where('status', 'received')
-                    ->orderBy('approved_at', 'asc')
-                    ->paginate(7);
-
-        return inertia('outbound-qc/index', [
-            'pagination' => $storeOrders,
-            'params' => (object) [
-                'search' => $search
-             ]
-        ]);
     }
 
     public function rejectOutboundQC(Request $request)

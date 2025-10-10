@@ -22,4 +22,5 @@ export interface UnsignProductLocation {
     inbound_date: string; //iso date string
     quantity: number;
     product_id: string;
+    qc_type: string;
 }

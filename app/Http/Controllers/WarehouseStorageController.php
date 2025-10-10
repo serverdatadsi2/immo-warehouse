@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\LocationHistory;
 use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -105,14 +106,15 @@ class WarehouseStorageController extends Controller
                 ->join('warehouse_inbound_details as wid', 'wid.id', '=','items.warehouse_inbound_detail_id')
                 ->join('warehouse_inbounds as wi', 'wi.id', '=', 'wid.warehouse_inbound_id')
                 ->join('products as p', 'p.id', '=', 'items.product_id')
-                ->whereNull('items.status')
+                ->where('items.status','warehouse_processing')
                 ->whereIn('wq.warehouse_id',$userWarehouseIds)
-                ->groupBy('p.id', 'p.code', 'p.name', 'wi.received_date')
+                ->groupBy('p.id', 'p.code', 'p.name', 'wi.received_date', 'wq.qc_type')
                 ->select(
                     'p.id as product_id',
                     'wi.received_date as inbound_date',
                     'p.name as product_name',
                     'p.code as product_code',
+                    'wq.qc_type',
                     \DB::raw('COUNT(items.id) AS quantity')
                 )
                 ->get();
@@ -122,6 +124,9 @@ class WarehouseStorageController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+
         $rules = [
             'rfid' => ['string', 'required', 'exists:rfid_tags,value'],
             'location' => ['string', 'required',
@@ -130,18 +135,20 @@ class WarehouseStorageController extends Controller
                     }),],
         ];
 
-        $user = auth()->user();
+        $validated = $request->validate($rules);
 
-        // Pastikan user memiliki warehouse yang terdaftar
-        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
-        if ($userWarehouseIds->isEmpty()) {
+        $hasAccess = \DB::table('locations as l')
+            // Join ke tabel pivot 'warehouse_locations'
+            ->join('warehouse_locations as wl', 'l.id', '=', 'wl.location_id')
+            ->where('l.id', $validated['location'])
+            ->where('wl.warehouse_id', $userWarehouseId)
+            ->exists();
+
+        if (!$hasAccess) {
             throw ValidationException::withMessages([
-                'warehouse' => 'User tidak terasosiasi dengan Warehouse mana pun.'
+                'location' => ['Lokasi yang dipilih tidak terkait dengan gudang yang dapat diakses oleh Anda.'],
             ]);
         }
-        $warehouseId = $userWarehouseIds[0];
-
-        $validated = $request->validate($rules);
 
         try {
             \DB::beginTransaction();
@@ -165,8 +172,13 @@ class WarehouseStorageController extends Controller
             ]);
 
             WarehouseStock::firstOrCreate(
-                ['warehouse_id' => $warehouseId, 'item_id' => $item->id]
+                ['warehouse_id' => $userWarehouseId, 'item_id' => $item->id]
             );
+
+            LocationHistory::create([
+                'item_id' => $item->id,
+                'location_id' => $validated['location'],
+            ]);
 
             \DB::commit();
 

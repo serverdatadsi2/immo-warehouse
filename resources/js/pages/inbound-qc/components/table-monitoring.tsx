@@ -6,12 +6,24 @@ import axiosIns from '@/lib/axios';
 import { FilterQc, InboundQC, MonitoringInboundQc } from '@/types/inbound-qc.type';
 import { QrcodeOutlined, SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Col, Input, Row, Select, Statistic, TableProps, Tag } from 'antd';
+import {
+    Button,
+    Card,
+    Col,
+    Input,
+    Row,
+    Select,
+    Statistic,
+    TableProps,
+    Tag,
+    Typography,
+} from 'antd';
 import dayjs from 'dayjs';
 import { useCallback, useMemo, useState } from 'react';
 import RejectLabelingModal from './reject-labeling';
 
 const { Option } = Select;
+const { Text } = Typography;
 
 const TableMonitoring = () => {
     const [filters, setFilters] = useState<FilterQc>({
@@ -44,28 +56,38 @@ const TableMonitoring = () => {
             {
                 title: 'No.',
                 key: 'serial',
+                align: 'center',
                 render: (_: any, __: InboundQC, index: number) => {
                     const currentPage = data?.pagination?.current_page ?? 1;
                     const perPage = 10;
                     return (currentPage - 1) * perPage + index + 1;
                 },
             },
-            { title: 'Product Name', dataIndex: 'product_name' },
-            { title: 'RFID Tag', dataIndex: 'rfid', render: (text) => <code>{text}</code> },
-            { title: 'Gudang', dataIndex: 'warehouse_name' },
+            { title: 'Product Name', dataIndex: 'product_name', align: 'left' },
+            {
+                title: 'RFID Tag',
+                dataIndex: 'rfid',
+                render: (text) => <code>{text}</code>,
+                align: 'center',
+            },
+            { title: 'Gudang', dataIndex: 'warehouse_name', align: 'center' },
             {
                 title: 'Waktu Scan',
                 dataIndex: 'scan_time',
                 render: (val) => <DateTimeDisplay val={val} />,
+                align: 'center',
             },
             {
                 title: 'Status',
                 dataIndex: 'status',
+                align: 'center',
                 render: (status) => (
-                    <Tag color={status === 'Good' ? 'green' : 'red'}>{status.toUpperCase()}</Tag>
+                    <Tag color={status === 'Good' ? 'green' : 'red'} style={{ fontWeight: 'bold' }}>
+                        {status ? status.toUpperCase() : '-'}
+                    </Tag>
                 ),
             },
-            { title: 'Kondisi', dataIndex: 'condition' },
+            { title: 'Kondisi', dataIndex: 'condition', align: 'center' },
         ],
         [data],
     );
@@ -85,7 +107,7 @@ const TableMonitoring = () => {
 
     return (
         <div>
-            <Row gutter={16}>
+            <Row gutter={16} style={{ marginBottom: 24 }}>
                 <Col span={6}>
                     <Card className="!bg-gray-50">
                         <Statistic title="Total Item Diperiksa" value={data?.summary.grand_total} />
@@ -106,7 +128,7 @@ const TableMonitoring = () => {
                         <Statistic
                             title="Kondisi Buruk Tertinggi"
                             value={
-                                data?.summary.highestBadProduct.percentage
+                                data?.summary.highestBadProduct?.percentage
                                     ? `${data?.summary.highestBadProduct.product_name} (${data?.summary.highestBadProduct.percentage} %)`
                                     : '-'
                             }
@@ -116,82 +138,94 @@ const TableMonitoring = () => {
                 </Col>
             </Row>
 
-            <Card style={{ marginTop: '24px' }}>
-                <Row gutter={16} align="bottom">
+            <Card
+                style={{
+                    marginBottom: 24,
+                    background: '#f5faff',
+                    borderRadius: 12,
+                    boxShadow: '0 2px 8px #1890ff11',
+                }}
+            >
+                <Row gutter={16} align="middle">
                     <Col span={6}>
-                        Tanggal Scan
-                        <br />
+                        <Text strong style={{ color: '#1890ff' }}>
+                            📅 Tanggal Scan
+                        </Text>
                         <SelectRangePicker
                             value={filters?.dateRange}
                             onChange={(range) => handleFilterChange('dateRange', range)}
+                            style={{ marginTop: 4, borderRadius: 8, width: '100%' }}
                         />
                     </Col>
                     <Col span={4}>
-                        Status
-                        <br />
+                        <Text strong style={{ color: '#1890ff' }}>
+                            📝 Status
+                        </Text>
                         <Select
                             value={filters?.status || 'All'}
-                            style={{ width: '100%' }}
+                            style={{ marginTop: 4, borderRadius: 8, width: '100%' }}
                             onChange={(value) => handleFilterChange('status', value)}
                             allowClear
+                            placeholder="Semua Status"
                         >
                             <Option value="All">Semua</Option>
                             <Option value="Good">Good</Option>
                             <Option value="Bad">Bad</Option>
                         </Select>
                     </Col>
-                    <Col span={6}>
-                        Cari Produk
-                        <br />
+                    <Col span={10}>
+                        <Text strong style={{ color: '#1890ff' }}>
+                            🔍 Cari Produk
+                        </Text>
                         <Input
                             value={search}
                             suffix={<SearchOutlined />}
                             allowClear
-                            placeholder="Cari Nama Produk..."
+                            placeholder="Nama produk atau kode..."
+                            style={{ marginTop: 4, borderRadius: 8 }}
                             onChange={(e) => {
                                 setSearch(e.target.value);
                                 debounce(e.target.value);
                             }}
                         />
                     </Col>
-                    <Col span={8}>
-                        <Row gutter={8}>
-                            <Col span={12}>
-                                <Button
-                                    type="primary"
-                                    onClick={() => refetch()}
-                                    style={{ width: '100%' }}
-                                >
-                                    Terapkan Filter
-                                </Button>
-                            </Col>
-                            <Col span={12}>
-                                <Button
-                                    danger
-                                    type="default"
-                                    onClick={() => setVisible(true)}
-                                    style={{ width: '100%' }}
-                                    icon={<QrcodeOutlined />}
-                                >
-                                    Reject Label
-                                </Button>
-                            </Col>
-                        </Row>
+                    <Col span={4}>
+                        <Button
+                            danger
+                            type="primary"
+                            onClick={() => setVisible(true)}
+                            style={{
+                                width: '100%',
+                                marginTop: 24,
+                                fontWeight: 'bold',
+                                boxShadow: '0 2px 8px #ff4d4f22',
+                            }}
+                            icon={<QrcodeOutlined />}
+                        >
+                            Reject Label
+                        </Button>
                     </Col>
                 </Row>
             </Card>
-
-            <CustomTable<InboundQC>
+            <Card
                 size="small"
-                style={{ marginTop: '24px' }}
-                columns={columns}
-                dataSource={data?.data}
-                loading={isLoading}
-                onPaginationChange={(page) => handleFilterChange('page', page)}
-                page={data?.pagination.current_page || 1}
-                bordered
-                rowKey="rfid"
-            />
+                style={{
+                    background: '#f5faff',
+                    boxShadow: '0 2px 8px #1890ff11',
+                }}
+            >
+                <CustomTable<InboundQC>
+                    size="small"
+                    style={{ marginTop: '24px' }}
+                    columns={columns}
+                    dataSource={data?.data}
+                    loading={isLoading}
+                    onPaginationChange={(page) => handleFilterChange('page', page)}
+                    page={data?.pagination.current_page || 1}
+                    bordered
+                    rowKey="rfid"
+                />
+            </Card>
 
             <RejectLabelingModal
                 visible={visible}

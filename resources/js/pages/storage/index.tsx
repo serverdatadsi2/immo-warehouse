@@ -5,7 +5,7 @@ import { SimplePagination } from '@/types/laravel-pagination.type';
 import { Storage } from '@/types/storage.type';
 import { SearchOutlined } from '@ant-design/icons';
 import { Head, router } from '@inertiajs/react';
-import { Card, Input, Select, Space } from 'antd';
+import { Card, Col, Input, Row, Select, Space, Typography } from 'antd';
 import { useCallback, useState } from 'react';
 import TableData from './components/table';
 
@@ -20,6 +20,8 @@ interface PageProps {
     pagination: SimplePagination<Storage> | null;
 }
 
+const { Text } = Typography;
+
 export default function StoragePage({ params, pagination }: PageProps) {
     const [filters, setFilters] = useState({
         search: params.search || '',
@@ -30,16 +32,8 @@ export default function StoragePage({ params, pagination }: PageProps) {
     const applyInertiaFilter = useCallback(
         (key: keyof StorageFilters, value: string | undefined) => {
             const currentInertiaFilters = { ...params };
-
-            const newFilters = {
-                ...currentInertiaFilters,
-                [key]: value,
-            };
-
-            if (!value) {
-                delete newFilters[key];
-            }
-
+            const newFilters = { ...currentInertiaFilters, [key]: value };
+            if (!value) delete newFilters[key];
             router.get(route(route().current() ?? 'storage.index'), newFilters, {
                 preserveState: true,
                 preserveScroll: true,
@@ -56,12 +50,11 @@ export default function StoragePage({ params, pagination }: PageProps) {
     const handleFilterChange = useCallback(
         (key, value) => {
             setFilters((prev) => ({
-                status: key === 'status' ? value : (prev?.status ?? ''),
-                search: key === 'search' ? value : (prev?.search ?? ''),
-                location: key === 'location' ? value : (prev?.location ?? ''),
+                ...prev,
+                [key]: value,
             }));
             if (key === 'search') debounce(value);
-            applyInertiaFilter(key, value);
+            else applyInertiaFilter(key, value);
         },
         [applyInertiaFilter, debounce],
     );
@@ -73,53 +66,66 @@ export default function StoragePage({ params, pagination }: PageProps) {
     return (
         <AppLayout navBarTitle="Penyimpanan Barang">
             <Head title="Penyimpanan Barang" />
-            <Card>
-                <div className="flex justify-between">
-                    <Space size={20}>
-                        <div>
-                            Cari Barang <br />
-                            <Input
-                                suffix={<SearchOutlined />}
-                                placeholder="Cari Nama Barang ..."
-                                style={{ width: 500 }}
-                                value={filters.search}
-                                onChange={(e) => {
-                                    handleFilterChange('search', e.target.value);
-                                }}
-                                allowClear
-                            />
-                        </div>
-                        {/* <div>
-                            Lokasi Barang <br />
-                            <Select
-                                placeholder="Filter Lokasi"
-                                style={{ width: 150 }}
-                                value={filters.location}
-                                onChange={(v) => handleFilterChange('location', v)}
-                                options={[
-                                    { value: 'A1', label: 'Zona A1' },
-                                    { value: 'B2', label: 'Zona B2' },
-                                ]}
-                                allowClear
-                            />
-                        </div> */}
-
-                        <div>
-                            Status
-                            <br />
-                            <Select
-                                value={filters?.status || 'All'}
-                                onChange={(value) => handleFilterChange('status', value)}
-                                style={{ width: 90 }}
-                            >
-                                <Select.Option value="All">Semua</Select.Option>
-                                <Select.Option value="Good">Good</Select.Option>
-                                <Select.Option value="Bad">Bad</Select.Option>
-                            </Select>
-                        </div>
-                    </Space>
-                    <AddButton onClick={handleAdd}>Assignment Item</AddButton>
-                </div>
+            <Card
+                style={{
+                    background: '#f5faff',
+                    borderRadius: 12,
+                    boxShadow: '0 2px 8px #1890ff11',
+                    marginBottom: 24,
+                }}
+            >
+                <Row gutter={24} align="middle" justify="space-between">
+                    <Col>
+                        <Space size={20}>
+                            <div>
+                                <Text strong style={{ color: '#1890ff' }}>
+                                    🔍 Cari Barang
+                                </Text>
+                                <br />
+                                <Input
+                                    suffix={<SearchOutlined />}
+                                    placeholder="Nama barang atau kode..."
+                                    style={{ width: 500, marginTop: 4, borderRadius: 8 }}
+                                    value={filters.search}
+                                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                                    allowClear
+                                />
+                            </div>
+                            {/* <div>
+                                <Text strong style={{ color: '#1890ff' }}>📍 Lokasi Barang</Text>
+                                <Select
+                                    placeholder="Filter Lokasi"
+                                    style={{ width: 150, marginTop: 4, borderRadius: 8 }}
+                                    value={filters.location}
+                                    onChange={(v) => handleFilterChange('location', v)}
+                                    options={[
+                                        { value: 'A1', label: 'Zona A1' },
+                                        { value: 'B2', label: 'Zona B2' },
+                                    ]}
+                                    allowClear
+                                />
+                            </div> */}
+                            <div>
+                                <Text strong style={{ color: '#1890ff' }}>
+                                    🗂 Status
+                                </Text>
+                                <br />
+                                <Select
+                                    value={filters.status}
+                                    onChange={(value) => handleFilterChange('status', value)}
+                                    style={{ width: 120, marginTop: 4, borderRadius: 8 }}
+                                >
+                                    <Select.Option value="All">Semua</Select.Option>
+                                    <Select.Option value="Good">Good</Select.Option>
+                                    <Select.Option value="Bad">Bad</Select.Option>
+                                </Select>
+                            </div>
+                        </Space>
+                    </Col>
+                    <Col>
+                        <AddButton onClick={handleAdd}>Assignment Item</AddButton>
+                    </Col>
+                </Row>
             </Card>
             <TableData pagination={pagination} />
         </AppLayout>

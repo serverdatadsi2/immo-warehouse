@@ -27,6 +27,7 @@ import {
     LassoSelect,
     Map,
     NotebookText,
+    Package,
     QrCode,
     Search,
     Warehouse,
@@ -128,6 +129,12 @@ const menuItems = [
         icon: <Lasso size={17} />,
         label: 'Outbound QC',
         url: '/outbound-qc',
+    }),
+    getMenuItem({
+        key: 'packing',
+        icon: <Package size={17} />,
+        label: 'Packing',
+        url: '/packing',
     }),
     getMenuItem({
         key: 'outbound',
@@ -244,15 +251,13 @@ export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Pr
                                 </Col>
                             </Row>
                         </Header>
-                        <Content style={{ margin: '0 16px' }}>
+                        <Content>
                             <div
                                 style={{
-                                    marginTop: '1rem',
                                     padding: 24,
                                     minHeight: 360,
                                     background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
                                     borderRadius: borderRadiusLG,
-                                    boxShadow: '0 4px 12px rgba(24, 144, 255, 0.08)',
                                     border: '1px solid #e6f7ff',
                                 }}
                             >
