@@ -13,6 +13,7 @@
         "search-product",
         "inbound-qc",
         "select-user",
-        "packing"
+        "packing",
+        "app"
     ]
 }
