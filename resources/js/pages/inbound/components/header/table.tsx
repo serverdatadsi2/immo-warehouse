@@ -32,7 +32,7 @@ export function HeaderTable({ pagination }: Props) {
                 align: 'center',
             },
             {
-                title: 'Gudang',
+                title: 'Warehouse',
                 dataIndex: 'warehouse_name',
                 key: 'warehouse_name',
                 align: 'center',

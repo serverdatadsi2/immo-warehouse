@@ -2,7 +2,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Params } from '@/types/receiving-order.type';
 import { CalendarOutlined, SearchOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
-import { Card, Col, DatePicker, Input, Row, Typography } from 'antd';
+import { Card, Col, DatePicker, Input, Row, Select, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useCallback, useState } from 'react';
 
@@ -16,6 +16,7 @@ const { Text } = Typography;
 export function Filters({ params }: Props) {
     const [filters, setFilters] = useState({
         search: params.search || '',
+        status: params.status || '',
         dateRange: params.dateRange || undefined,
     });
 
@@ -102,6 +103,23 @@ export function Filters({ params }: Props) {
                         onChange={handleDateRange}
                         placeholder={['Mulai', 'Selesai']}
                     />
+                </Col>
+                <Col span={4}>
+                    <Text strong style={{ color: '#1890ff' }}>
+                        📝 Status
+                    </Text>
+                    <Select
+                        value={filters?.status || ''}
+                        style={{ marginTop: 4, borderRadius: 8, width: '100%' }}
+                        onChange={(value) => handleFilterChange('status', value)}
+                        allowClear
+                        placeholder="Semua Status"
+                    >
+                        <Select.Option value="">Semua</Select.Option>
+                        <Select.Option value="received">Received</Select.Option>
+                        <Select.Option value="processing">Processing</Select.Option>
+                        <Select.Option value="packing">Packing</Select.Option>
+                    </Select>
                 </Col>
             </Row>
         </Card>

@@ -13,6 +13,7 @@ use App\Http\Controllers\{
     WarehouseQcController,
     WarehouseStorageController,
     PackingController,
+    StagingController,
     UserController,
 };
 
@@ -141,6 +142,17 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Staging Area
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('staging')->name('staging.')->group(function () {
+        Route::get('/', [StagingController::class, 'index'])->name('index');
+        // Route::patch('/{order_id}/update-status', [StagingController::class, 'updateStatus'])->name('updateStatus');
+        // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Outbound
     |--------------------------------------------------------------------------
     */
@@ -153,7 +165,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/detail', [OutboundController::class, 'detail'])->name('detail');
         Route::post('/detail', [OutboundController::class, 'saveDetail']);
         Route::delete('/detail/{detail_id}', [OutboundController::class, 'deleteDetail']);
+
     });
+
+    // packing orders
+    Route::get('/get-all/packing-orders', [OutboundController::class, 'getAllOrderPacking'])->name('getAllOrderPacking');
 
     /*
     |--------------------------------------------------------------------------

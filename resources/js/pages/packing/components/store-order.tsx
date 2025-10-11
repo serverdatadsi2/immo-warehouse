@@ -15,7 +15,7 @@ import {
     Tooltip,
     Typography,
 } from 'antd';
-import { PackagePlus } from 'lucide-react';
+import { CheckCheck, PackageCheck } from 'lucide-react';
 import { useCallback } from 'react';
 import { Filters } from './filters';
 
@@ -66,8 +66,15 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                         </Text>
                         <Divider type="vertical" className="border border-gray-500" />
                         <Tag
-                            color={order.status === 'processing' ? 'blue' : 'green'}
-                            // icon={statusIcon(order.status)}
+                            color={
+                                order.status === 'processing'
+                                    ? 'blue'
+                                    : order.status === 'received'
+                                      ? 'orange'
+                                      : order.status === 'packing'
+                                        ? 'green'
+                                        : 'yellow'
+                            }
                         >
                             {order.status.toUpperCase()}
                         </Tag>
@@ -77,16 +84,27 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                     <Space>
                         <Tooltip title="Packing Order">
                             <Button
-                                icon={<PackagePlus size={18} />}
+                                icon={
+                                    order.status === 'packing' ? (
+                                        <CheckCheck size={20} />
+                                    ) : (
+                                        <PackageCheck size={18} />
+                                    )
+                                }
                                 type="primary"
                                 size="middle"
-                                style={{ fontWeight: 'bold', boxShadow: '0 2px 8px #1890ff33' }}
+                                style={{
+                                    fontWeight: 'bold',
+                                    boxShadow: '0 2px 8px #1890ff33',
+                                    // backgroundColor: 'green',
+                                }}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleUpdateStatus(order?.id);
                                 }}
+                                disabled={order.status === 'packing'}
                             >
-                                Packing
+                                {order.status === 'packing' ? 'Packing Done' : 'Packing'}
                             </Button>
                         </Tooltip>
                     </Space>

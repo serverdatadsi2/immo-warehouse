@@ -206,7 +206,7 @@ class ReceivingOrderController extends Controller
         }
 
         $order->warehouse_id = $userWarehouseId;
-        $order->status = 'received';
+        $order->status = 'processing';
         $order->save();
 
         // return to_route('outbound-dc.index');

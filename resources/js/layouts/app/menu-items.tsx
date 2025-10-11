@@ -1,8 +1,9 @@
 import { router } from '@inertiajs/react';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import {
-    BookMarked,
-    Database,
+    Blinds,
+    Blocks,
+    DatabaseZap,
     Delete,
     HardDriveDownload,
     HardDriveUpload,
@@ -41,7 +42,7 @@ function getMenuItem({ key, icon, label, url, children }: MenuItemParam): ItemTy
 export const menuItems = [
     getMenuItem({
         key: 'master',
-        icon: <Database size={20} />,
+        icon: <Blinds size={20} />,
         label: 'Master',
         children: [
             getMenuItem({
@@ -84,7 +85,7 @@ export const menuItems = [
     }),
     getMenuItem({
         key: 'storage-warehouse',
-        icon: <BookMarked size={17} />,
+        icon: <DatabaseZap size={17} />,
         label: 'Penyimpanan',
         url: '/storage-warehouse',
     }),
@@ -105,6 +106,12 @@ export const menuItems = [
         icon: <Package size={17} />,
         label: 'Packing',
         url: '/packing',
+    }),
+    getMenuItem({
+        key: 'staging',
+        icon: <Blocks size={17} />,
+        label: 'Staging',
+        url: '/staging',
     }),
     getMenuItem({
         key: 'outbound',

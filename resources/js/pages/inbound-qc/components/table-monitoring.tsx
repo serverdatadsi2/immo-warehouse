@@ -70,7 +70,7 @@ const TableMonitoring = () => {
                 render: (text) => <code>{text}</code>,
                 align: 'center',
             },
-            { title: 'Gudang', dataIndex: 'warehouse_name', align: 'center' },
+            { title: 'Warehouse', dataIndex: 'warehouse_name', align: 'center' },
             {
                 title: 'Waktu Scan',
                 dataIndex: 'scan_time',

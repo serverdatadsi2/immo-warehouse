@@ -13,7 +13,8 @@ class PackingController extends Controller
      */
     public function index(Request $request)
     {
-        $filters = $request->only(['search', 'dateRange']);
+        $filters = $request->only(['search', 'dateRange', 'status']);
+        $status = $filters['status'] ?? '';
         $search = $filters['search'] ?? '';
         $dates = $filters['dateRange'] ?? '';
 
@@ -34,8 +35,16 @@ class PackingController extends Controller
                     $query->select('id', 'name');
                 },
             ])
-            ->where('status', 'received')
-            ->orWhere('status', 'processing')
+            ->when($status, function ($query, $status) {
+                $query->where('status', $status);
+            })
+            ->unless($status, function ($query) {
+                $query->where(function ($subQuery) {
+                    $subQuery->orWhere('status', 'received')
+                            ->orWhere('status', 'processing')
+                            ->orWhere('status', 'packing');
+                });
+            })
             ->orderBy('approved_at', 'asc');
 
         if (!empty($dates) && count($dates) === 2) {
@@ -55,7 +64,7 @@ class PackingController extends Controller
         try {
             $storeOrder = StoreOrder::findOrFail($id);
 
-            $storeOrder->status = 'processing';
+            $storeOrder->status = 'packing';
             $storeOrder->updated_at = now();
             $storeOrder->save();
 

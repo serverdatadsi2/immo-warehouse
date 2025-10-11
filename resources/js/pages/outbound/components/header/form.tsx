@@ -2,12 +2,13 @@ import { DeleteButton, SaveButton } from '@/components/buttons/common-buttons';
 import { LocaleDatePicker } from '@/components/date-picker/locale-date-picker';
 import { FormItem } from '@/components/forms/form-item';
 import { CourierAsyncSelect } from '@/components/selects/courier';
+import { OrderAsyncSelect } from '@/components/selects/order';
 import { UserAsyncSelect } from '@/components/selects/user';
 import { WarehouseAsyncSelect } from '@/components/selects/warehouse';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
 import { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
-import { Col, Form, Input, Row, Select, Space } from 'antd';
+import { Card, Col, Form, Input, Row, Select, Space } from 'antd';
 import { useCallback, useContext, useEffect } from 'react';
 import { HeaderItem } from '../..';
 import { DetailContext } from '../../detail';
@@ -37,7 +38,12 @@ export function HeaderForm() {
     }, [form, props]);
 
     return (
-        <>
+        <Card
+            style={{
+                background: '#f5faff',
+                boxShadow: '0 2px 8px #1890ff11',
+            }}
+        >
             <Form form={form} layout="vertical" initialValues={header ?? undefined}>
                 <Row gutter={[16, 8]}>
                     <Col span={8}>
@@ -55,7 +61,7 @@ export function HeaderForm() {
                             name="user_id"
                             errorMessage={errors?.user_id}
                             required
-                            label="User Gudang"
+                            label="User Warehouse"
                         >
                             <UserAsyncSelect disabled />
                         </FormItem>
@@ -114,20 +120,18 @@ export function HeaderForm() {
                         <FormItem
                             errorMessage={errors?.order_id}
                             name="order_id"
-                            label="Pengiriman"
+                            label="Nomor Order"
                         >
-                            <Input placeholder="Input Nomor Order" />
+                            <OrderAsyncSelect />
                         </FormItem>
                     </Col>
                 </Row>
             </Form>
             <Space>
                 <DeleteButton onClick={handleDelete} disabled={!header || processing} />
-                {/* <PrintModal /> */}
                 <SaveButton onClick={handleSave} disabled={processing} />
-                {/* <PostJurnalButton onClick={handlePostJournal} disabled={processing || !header} /> */}
             </Space>
-        </>
+        </Card>
     );
 }
 

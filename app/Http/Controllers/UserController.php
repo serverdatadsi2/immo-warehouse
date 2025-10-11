@@ -17,7 +17,6 @@ class UserController extends Controller
 
         $user = auth()->user();
         $warehouseUserIds = $user->warehouses()->pluck('warehouses.id');
-        $user = $request->user();
 
         $data = User::query()
             ->join('warehouse_users as wu', 'wu.user_id', '=', 'users.id')

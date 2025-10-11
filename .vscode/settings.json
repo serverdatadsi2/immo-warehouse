@@ -14,6 +14,7 @@
         "inbound-qc",
         "select-user",
         "packing",
-        "app"
+        "app",
+        "staging"
     ]
 }

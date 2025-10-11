@@ -1,25 +1,25 @@
 import { useDebounce } from '@/hooks/use-debounce';
 import axiosIns from '@/lib/axios';
 import { OptionSelect } from '@/types/option.type';
-import { Warehouse } from '@/types/warehouse.type';
+import { ReceivingOrder } from '@/types/receiving-order.type';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Divider, Select, SelectProps, Space } from 'antd';
 import { useEffect, useState } from 'react';
 
-export function WarehouseAsyncSelect(props: Props) {
+export function OrderAsyncSelect(props: Props) {
     const [search, setSearch] = useState<string>();
     const [options, setOptions] = useState<OptionSelect[]>([]);
     const [page, setPage] = useState<number>(1);
 
     const { data = [], isLoading } = useQuery({
-        queryKey: ['warehouses', search, page],
+        queryKey: ['all-order-packing', search, page],
         queryFn: async () => {
-            const res = await axiosIns.get<Array<Warehouse>>('/api/warehouses', {
+            const res = await axiosIns.get<Array<ReceivingOrder>>('/get-all/packing-orders', {
                 params: { search, page },
             });
             return res.data.map((d) => ({
                 value: d.id,
-                label: d.name,
+                label: d.order_number,
             }));
         },
     });
@@ -49,7 +49,7 @@ export function WarehouseAsyncSelect(props: Props) {
             // suffixIcon={null}
             onSearch={debouncedSearch}
             options={options}
-            placeholder="Search Warehouse"
+            placeholder="Search Number Order"
             loading={isLoading}
             style={{ width: '100%' }}
             popupRender={(menu) => (
@@ -60,7 +60,7 @@ export function WarehouseAsyncSelect(props: Props) {
                             <Divider style={{ margin: '8px 0' }} />
                             <Space style={{ padding: '0 8px 4px' }}>
                                 <Button type="link" onClick={() => setPage((prev) => prev + 1)}>
-                                    Load more
+                                    Load more +
                                 </Button>
                             </Space>
                         </>

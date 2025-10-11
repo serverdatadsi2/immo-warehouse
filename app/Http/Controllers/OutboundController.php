@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\StoreOrder;
 use App\Models\WarehouseOutbound;
 use App\Models\WarehouseOutboundDetail;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Log;
 
@@ -168,6 +170,23 @@ class OutboundController extends Controller
         });
 
         return to_route('outbound.index');
+    }
+
+    public function getAllOrderPacking(Request $request)
+    {
+        $search = $request->input('search');
+        $page = $request->input('page');
+        $offset = ($page - 1) * 30;
+
+
+        $data = StoreOrder::where('status','packing')
+            ->when($search, function ($query, $search) {
+                return $query->where('order_number', 'ILIKE', "{$search}%");
+            })
+            ->offset($offset)
+            ->limit(30)->get();
+
+        return Response::json($data);
     }
 
 }

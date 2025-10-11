@@ -23,7 +23,7 @@ export function AuthLayout({ children }: Props) {
             <Card
                 style={{
                     width: '100%',
-                    maxWidth: 400,
+                    maxWidth: 430,
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
                     borderRadius: '12px',
                     border: 'none',
@@ -39,7 +39,7 @@ export function AuthLayout({ children }: Props) {
                             Immo Warehouse
                         </Title>
                         <Text type="secondary" style={{ fontSize: '16px' }}>
-                            Sistem Manajemen Gudang dengan RFID
+                            Sistem Manajemen Warehouse dengan RFID
                         </Text>
                     </div>
 
