@@ -45,7 +45,12 @@ export function AddButton({ onClick, children, ...props }: Props) {
     useHotkeys('alt+a', () => onClick(), { scopes: ['global'], enableOnFormTags: true });
     return (
         <Tooltip title="(alt+a)">
-            <Button {...props} onClick={onClick} icon={<PlusOutlined />} type="primary">
+            <Button
+                {...props}
+                onClick={onClick}
+                icon={props.icon ?? <PlusOutlined />}
+                type="primary"
+            >
                 {children ?? 'Add'}
             </Button>
         </Tooltip>

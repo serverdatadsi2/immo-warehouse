@@ -1,11 +1,19 @@
 import { AppLayout } from '@/layouts/app-layout';
+import { SimplePagination } from '@/types/laravel-pagination.type';
+import { Params } from '@/types/receiving-order.type';
+import { StagingWithDetailRelations } from '@/types/warehouse-staging.type';
 import { Head } from '@inertiajs/react';
 import { Activity, Boxes, CheckCircle, Package } from 'lucide-react';
-import { RFIDScanner } from './components/rfid-scanner';
+import { Filters } from './components/filters';
 import StagingTable from './components/stage-table';
 import { StatCard } from './components/state-card';
 
-export default function StagingPage() {
+interface Props {
+    pagination: SimplePagination<StagingWithDetailRelations>;
+    params: Params;
+}
+
+export default function StagingPage({ pagination, params }: Props) {
     return (
         <AppLayout navBarTitle="RFID Staging Area">
             <Head title="Staging" />
@@ -39,7 +47,7 @@ export default function StagingPage() {
                 </div>
 
                 {/* RFID Readers */}
-                <div className="mb-8">
+                {/* <div className="mb-8">
                     <h2 className="text-xl font-semibold text-foreground mb-4">
                         RFID Readers Status
                     </h2>
@@ -47,11 +55,12 @@ export default function StagingPage() {
                         <RFIDScanner readerId="RDR-001" status="active" />
                         <RFIDScanner readerId="RDR-002" status="inactive" />
                     </div>
-                </div>
+                </div> */}
+                <Filters params={params} />
 
                 {/* Staging Table */}
                 <div className="mb-8">
-                    <StagingTable />
+                    <StagingTable pagination={pagination} />
                 </div>
             </main>
         </AppLayout>

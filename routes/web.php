@@ -147,9 +147,12 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::prefix('staging')->name('staging.')->group(function () {
         Route::get('/', [StagingController::class, 'index'])->name('index');
-        // Route::patch('/{order_id}/update-status', [StagingController::class, 'updateStatus'])->name('updateStatus');
+        Route::get('/manual-input', [StagingController::class, 'detail'])->name('detail');
         // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
     });
+
+       // packing orders
+    Route::get('/get-all/packing-orders', [OutboundController::class, 'getAllOrderPacking'])->name('getAllOrderPacking');
 
     /*
     |--------------------------------------------------------------------------
@@ -167,9 +170,6 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/detail/{detail_id}', [OutboundController::class, 'deleteDetail']);
 
     });
-
-    // packing orders
-    Route::get('/get-all/packing-orders', [OutboundController::class, 'getAllOrderPacking'])->name('getAllOrderPacking');
 
     /*
     |--------------------------------------------------------------------------
