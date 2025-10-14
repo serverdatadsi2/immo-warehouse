@@ -31,7 +31,7 @@ export function LocationSelect({
     const [options, setOptions] = useState<OptionSelect[]>([]);
     const [page, setPage] = useState<number>(1);
 
-    const { data = [], isLoading } = useQuery({
+    const { data, isLoading } = useQuery({
         queryKey: ['Location', type, parentId, search, page],
         queryFn: async () => {
             const res = await axiosIns.get<Array<Location>>('/api/locations', {

@@ -150,20 +150,24 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/manual-input', [StagingController::class, 'detail'])->name('detail');
         Route::post('/manual-input', [StagingController::class, 'saveHeader']);
         Route::delete('/manual-input/{header_id}', [StagingController::class, 'deleteHeader']);
-        // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
+
+        // detail
         Route::post('/manual-input/detail', [StagingController::class, 'saveDetail']);
         Route::delete('/manual-input/detail/{detail_id}', [StagingController::class, 'deleteDetail']);
     });
 
-       // packing orders
-    Route::get('/get-all/packing-orders', [OutboundController::class, 'getAllOrderPacking'])->name('getAllOrderPacking');
+    // packing orders
+    Route::prefix('get-all')->name('get-all.')->group(function () {
+        Route::get('/store-packing-orders', [OutboundController::class, 'getStoreOrderPacking'])->name('getStoreOrderPacking');
+        Route::get('/ecomerce-packing-orders', [OutboundController::class, 'getEcommerceOrderPacking'])->name('getEcommerceOrderPacking');
+    });
 
     /*
     |--------------------------------------------------------------------------
     | Outbound
     |--------------------------------------------------------------------------
     */
-    Route::prefix('outbound')->name('outbound')->group(function () {
+    Route::prefix('outbound')->name('outbound.')->group(function () {
         Route::get('/', [OutboundController::class, 'index'])->name('index');
         Route::post('/', [OutboundController::class, 'saveHeader']);
         Route::delete('/{header_id}', [OutboundController::class, 'deleteHeader']);

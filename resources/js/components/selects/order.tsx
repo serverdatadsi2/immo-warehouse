@@ -3,25 +3,31 @@ import axiosIns from '@/lib/axios';
 import { OptionSelect } from '@/types/option.type';
 import { ReceivingOrder } from '@/types/receiving-order.type';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Divider, Select, SelectProps, Space } from 'antd';
-import { useEffect, useState } from 'react';
+import { Button, Divider, Form, FormInstance, Select, SelectProps, Space } from 'antd';
+import React, { useEffect, useState } from 'react';
 
-export function OrderAsyncSelect(props: Props) {
+export const OrderAsyncSelect = React.memo(function OrderAsyncSelect(props: Props) {
+    const orderRf = Form.useWatch('order_ref', props.form);
+
     const [search, setSearch] = useState<string>();
     const [options, setOptions] = useState<OptionSelect[]>([]);
     const [page, setPage] = useState<number>(1);
 
-    const { data = [], isLoading } = useQuery({
-        queryKey: ['all-order-packing', search, page],
+    const { data, isLoading } = useQuery({
+        queryKey: ['all-order-packing', search, page, orderRf || 'none'],
         queryFn: async () => {
-            const res = await axiosIns.get<Array<ReceivingOrder>>('/get-all/packing-orders', {
-                params: { search, page },
-            });
+            const res = await axiosIns.get<Array<ReceivingOrder>>(
+                `/get-all/${orderRf}-packing-orders`,
+                {
+                    params: { search, page },
+                },
+            );
             return res.data.map((d) => ({
                 value: d.id,
                 label: d.order_number,
             }));
         },
+        enabled: Boolean(orderRf),
     });
 
     useEffect(() => {
@@ -32,7 +38,7 @@ export function OrderAsyncSelect(props: Props) {
                 setOptions((prev) => [...prev, ...data]);
             }
         }
-    }, [page, data]);
+    }, [data, page]);
 
     const debouncedSearch = useDebounce((val: string) => {
         setSearch(val);
@@ -69,9 +75,11 @@ export function OrderAsyncSelect(props: Props) {
             )}
         />
     );
-}
+});
 
 type Props = Omit<
     SelectProps,
     'showSearch' | 'loading' | 'filterOption' | 'onSearch' | 'options' | 'style' | 'popupRender'
->;
+> & {
+    form: FormInstance;
+};

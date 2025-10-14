@@ -1,23 +1,24 @@
+import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
-import { LaravelPagination } from '@/types/laravel-pagination.type';
+import { SimplePagination } from '@/types/laravel-pagination.type';
+import { OutboundWithRelations } from '@/types/warehouse-outbound.type';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
-import { Button, Pagination, Space, Table } from 'antd';
+import { Button, Space } from 'antd';
 import { Edit } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { HeaderItem } from '../..';
 
 export function HeaderTable({ pagination }: Props) {
-    const handleAction = useCallback((val: HeaderItem) => {
-        router.get(`/outbound/detail?header_id=${val.id}`);
+    const handleAction = useCallback((val: OutboundWithRelations) => {
+        router.get(`/outbound/detail?header=${val.id}`);
     }, []);
 
     const columns = useMemo(
-        (): TableProps<HeaderItem>['columns'] => [
+        (): TableProps<OutboundWithRelations>['columns'] => [
             {
                 title: 'No.',
                 key: 'serial',
-                render: (_: any, __: HeaderItem, index: number) => {
+                render: (_: any, __: OutboundWithRelations, index: number) => {
                     const currentPage = pagination?.current_page ?? 1;
                     const perPage = pagination?.per_page ?? 10;
                     return (currentPage - 1) * perPage + index + 1;
@@ -25,12 +26,12 @@ export function HeaderTable({ pagination }: Props) {
             },
             {
                 title: 'Warehouse',
-                dataIndex: 'warehouse_name',
+                dataIndex: ['warehouse', 'name'],
                 key: 'warehouse_name',
             },
             {
                 title: 'User',
-                dataIndex: 'user_fullname',
+                dataIndex: ['user', 'name'],
                 key: 'user_fullname',
             },
             {
@@ -44,14 +45,14 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'delivery_order_number',
             },
             {
+                title: 'Pengiriman',
+                dataIndex: ['courier', 'name'],
+                key: 'pengiriman',
+            },
+            {
                 title: 'Quantity',
                 dataIndex: 'quantity_item',
                 key: 'quantity_item',
-            },
-            {
-                title: 'Grand Total',
-                dataIndex: 'grand_total',
-                key: 'grand_total',
             },
             {
                 title: 'Order',
@@ -73,7 +74,11 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'action',
                 fixed: 'right',
                 render: (_, d) => (
-                    <Button onClick={() => handleAction(d)} icon={<Edit size={17} />} />
+                    <Button
+                        type="primary"
+                        onClick={() => handleAction(d)}
+                        icon={<Edit size={17} />}
+                    />
                 ),
             },
         ],
@@ -86,29 +91,17 @@ export function HeaderTable({ pagination }: Props) {
 
     return (
         <Space direction="vertical" className="w-full">
-            <Table<HeaderItem>
-                size="small"
+            <CustomTable<OutboundWithRelations>
                 rowKey="id"
                 columns={columns}
-                bordered
                 dataSource={pagination?.data}
-                pagination={false}
-                className="max-w-full"
-                scroll={{ x: 'max-content' }}
+                onPaginationChange={handlePageChange}
+                page={pagination?.current_page || 1}
             />
-            {pagination && (
-                <Pagination
-                    align="end"
-                    current={pagination.current_page}
-                    pageSize={pagination.per_page}
-                    total={pagination.total}
-                    onChange={handlePageChange}
-                />
-            )}
         </Space>
     );
 }
 
 type Props = {
-    pagination: LaravelPagination<HeaderItem> | undefined;
+    pagination: SimplePagination<OutboundWithRelations> | undefined;
 };

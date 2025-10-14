@@ -3,29 +3,28 @@ import { LocaleDatePicker } from '@/components/date-picker/locale-date-picker';
 import { FormItem } from '@/components/forms/form-item';
 import { CourierAsyncSelect } from '@/components/selects/courier';
 import { OrderAsyncSelect } from '@/components/selects/order';
-import { UserAsyncSelect } from '@/components/selects/user';
-import { WarehouseAsyncSelect } from '@/components/selects/warehouse';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
 import { SharedData } from '@/types';
+import { Outbound } from '@/types/warehouse-outbound.type';
 import { usePage } from '@inertiajs/react';
 import { Card, Col, Form, Input, Row, Select, Space } from 'antd';
 import { useCallback, useContext, useEffect } from 'react';
-import { HeaderItem } from '../..';
 import { DetailContext } from '../../detail';
+import DescriptionHeader from './desctiption';
 
 export function HeaderForm() {
     const { form, errors, post, processing, destroy } = useAntdInertiaForm<HeaderForm>('Outbound');
-    const { header } = useContext(DetailContext);
+    const { headerData } = useContext(DetailContext);
     const { props } = usePage<SharedData>();
 
     const handleSave = useCallback(() => {
         const formValues = form.getFieldsValue();
-        post({ url: '/outbound', data: { ...header, ...formValues } });
-    }, [form, header, post]);
+        post({ url: '/outbound', data: { ...headerData, ...formValues } });
+    }, [form, headerData, post]);
 
     const handleDelete = useCallback(() => {
-        destroy({ url: `/outbound/${header?.id}` });
-    }, [destroy, header?.id]);
+        destroy({ url: `/outbound/${headerData?.id}` });
+    }, [destroy, headerData?.id]);
 
     useEffect(() => {
         if (props.auth.warehouses?.[0]) {
@@ -44,56 +43,45 @@ export function HeaderForm() {
                 boxShadow: '0 2px 8px #1890ff11',
             }}
         >
-            <Form form={form} layout="vertical" initialValues={header ?? undefined}>
+            <Form form={form} layout="vertical" initialValues={headerData ?? undefined}>
+                <FormItem
+                    errorMessage={errors?.warehouse_id}
+                    name="warehouse_id"
+                    required
+                    label="Warehouse"
+                    hidden
+                >
+                    <Input />
+                    {/* <WarehouseAsyncSelect disabled /> */}
+                </FormItem>
+                <FormItem
+                    name="user_id"
+                    errorMessage={errors?.user_id}
+                    required
+                    label="User Warehouse"
+                    hidden
+                >
+                    <Input />
+                    {/* <UserAsyncSelect disabled /> */}
+                </FormItem>
+                <div className="mb-10">
+                    <DescriptionHeader />
+                </div>
+
                 <Row gutter={[16, 8]}>
-                    <Col span={8}>
-                        <FormItem
-                            errorMessage={errors?.warehouse_id}
-                            name="warehouse_id"
-                            required
-                            label="Warehouse"
-                        >
-                            <WarehouseAsyncSelect disabled />
-                        </FormItem>
-                    </Col>
-                    <Col span={8}>
-                        <FormItem
-                            name="user_id"
-                            errorMessage={errors?.user_id}
-                            required
-                            label="User Warehouse"
-                        >
-                            <UserAsyncSelect disabled />
-                        </FormItem>
-                    </Col>
-                    <Col span={8}>
+                    {/* <Col span={8}></Col>
+                    <Col span={8}></Col> */}
+                    <Col span={6}>
                         <FormItem
                             name="shipment_date"
                             errorMessage={errors?.shipment_date}
+                            required
                             label="Tanggal Pengiriman"
                         >
                             <LocaleDatePicker />
                         </FormItem>
                     </Col>
-                    <Col span={8}>
-                        <FormItem
-                            errorMessage={errors?.delivery_order_number}
-                            name="delivery_order_number"
-                            label="Nomor Surat Jalan"
-                        >
-                            <Input />
-                        </FormItem>
-                    </Col>
-                    <Col span={8}>
-                        <FormItem
-                            errorMessage={errors?.invoice_number}
-                            name="invoice_number"
-                            label="Nomor Faktur"
-                        >
-                            <Input />
-                        </FormItem>
-                    </Col>
-                    <Col span={8}>
+                    <Col span={6}>
                         <FormItem
                             errorMessage={errors?.courier_id}
                             name="courier_id"
@@ -102,10 +90,11 @@ export function HeaderForm() {
                             <CourierAsyncSelect />
                         </FormItem>
                     </Col>
-                    <Col span={8}>
+                    <Col span={6}>
                         <FormItem
                             errorMessage={errors?.order_ref}
                             name="order_ref"
+                            required
                             label="Tipe Order"
                         >
                             <Select
@@ -116,26 +105,27 @@ export function HeaderForm() {
                             />
                         </FormItem>
                     </Col>
-                    <Col span={8}>
+                    <Col span={6}>
                         <FormItem
                             errorMessage={errors?.order_id}
                             name="order_id"
+                            required
                             label="Nomor Order"
                         >
-                            <OrderAsyncSelect />
+                            <OrderAsyncSelect form={form} />
                         </FormItem>
                     </Col>
                 </Row>
             </Form>
             <Space>
-                <DeleteButton onClick={handleDelete} disabled={!header || processing} />
+                <DeleteButton onClick={handleDelete} disabled={!headerData || processing} />
                 <SaveButton onClick={handleSave} disabled={processing} />
             </Space>
         </Card>
     );
 }
 
-type HeaderForm = Partial<Omit<HeaderItem, 'quantity' | 'grand_total'>> & {
+type HeaderForm = Partial<Omit<Outbound, 'quantity' | 'grand_total'>> & {
     quantity: number;
     grand_total: number;
 };

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EcommerceOrder;
 use App\Models\Item;
 use App\Models\StoreOrder;
 use App\Models\WarehouseOutbound;
@@ -20,47 +21,54 @@ class OutboundController extends Controller
         // Gate::authorize('formula.read');
 
         $pagination = WarehouseOutbound::query()
-            ->leftJoin('warehouses as w', 'warehouse_outbounds.warehouse_id', '=', 'w.id')
-            ->leftJoin('users as u', 'warehouse_outbounds.user_id', '=', 'u.id')
-            ->leftJoin('couriers as c', 'warehouse_outbounds.courier_id', '=', 'c.id')
-            ->select('warehouse_outbounds.*', 'w.name as warehouse_name', 'u.name as user_fullname', 'c.name as courier_name')
-            ->groupBy('warehouse_outbounds.id', 'w.name', 'u.name', 'c.name')
-            ->paginate(10);
+        ->with(['warehouse:id,name,code', 'user:id,name', 'courier:id,name'])
+        ->simplePaginate(10);
+
 
         return Inertia::render('outbound/index', ['pagination' => $pagination]);
     }
 
     public function detail(Request $request)
     {
-        $headerId = $request->input('header_id');
+        $headerId = $request->input('header');
         $header = null;
         $detailsPagination = null;
 
         if ($headerId) {
-            $header = WarehouseOutbound::findOrFail($headerId);
+            $header = WarehouseOutbound::with([
+                            'warehouse:id,name,code',
+                            'user:id,name',
+                            'courier:id,name'
+                            ])
+                            ->findOrFail($headerId);
+
             $detailsPagination = WarehouseOutboundDetail::query()
-                ->leftJoin('items as i', 'i.id', '=', 'warehouse_outbound_details.item_id')
-                ->leftJoin('products as p', 'p.id', '=', 'i.product_id')
-                ->where('warehouse_inbound_id', $header->id)
-                ->select('warehouse_outbound_details.*', 'p.name as product_name','i.expired_date')
-                ->paginate(5);
+                ->with([
+                    'item:id,product_id,rfid_tag_id',
+                    'item.product:id,name',
+                    'item.rfidTag:id,value'
+                ])
+                ->simplePaginate(5);
         }
 
         return Inertia::render('outbound/detail', [
             'detailsPagination' => $detailsPagination,
-            'header' => $header
+            'headerData' => $header,
+            'header' => $headerId
         ]);
     }
 
     public function saveHeader(Request $request)
     {
         $rules = [
-            'supplier_id' => ['string', 'required', 'exists:suppliers,id'],
-            'received_by' => ['string', 'required', 'exists:users,id'],
             'warehouse_id' => ['string', 'required', 'exists:warehouses,id'],
+            'user_id' => ['string', 'required', 'exists:users,id'],
             'invoice_number' => ['string', 'nullable'],
             'delivery_order_number' => ['string', 'nullable'],
-            'received_date' => ['date', 'required'],
+            'courier_id' => ['string', 'nullable', 'exists:couriers,id'],
+            'shipment_date' => ['date', 'required'],
+            'order_ref' => ['string', 'required'],
+            'order_id' => ['string', 'required'],
         ];
 
         $validated = $request->validate($rules);
@@ -76,60 +84,67 @@ class OutboundController extends Controller
                 $header = WarehouseOutbound::create($validated);
             }
 
-            $result = WarehouseOutboundDetail::where('warehouse_inbound_id', $header->id)
-                ->selectRaw('COALESCE(SUM(quantity),0) as grand_total, COUNT(*) as quantity_item')
+            if (empty($header->delivery_order_number)) {
+                $kodeSuratJalan = $this->generateDeliveryOrderNumber();
+                $header->update(['delivery_order_number' => $kodeSuratJalan]);
+            }
+
+            if (empty($header->invoice_number) && $header->order_ref === 'store') {
+                $kodeInvoice = $this->generateInvoiceNumber();
+                $header->update(['invoice_number' => $kodeInvoice]);
+            }
+
+            $result = WarehouseOutboundDetail::where('warehouse_outbound_id', $header->id)
+                ->selectRaw('COUNT(*) as quantity')
                 ->first();
 
             $header->update([
-                'grand_total'   => $result->grand_total,
-                'quantity_item' => $result->quantity_item,
+                'quantity_item'   => $result->quantity,
             ]);
         });
 
-        return to_route('outbound.detail', ['header_id' => $header->id]);
+        return to_route('outbound.detail', ['header' => $header->id]);
     }
 
     public function saveDetail(Request $request)
     {
         $rules = [
-            'warehouse_inbound_id' => ['string', 'required', 'exists:warehouse_outbounds,id'],
-            'product_id' => ['string', 'required', 'exists:products,id'],
-            'expired_date' => ['date', 'nullable'],
-            'quantity' => ['numeric', 'required'],
-            'note' => ['string', 'nullable']
+            'warehouse_outbound_id' => ['string', 'required', 'exists:warehouse_outbounds,id'],
+            'rfid' => ['string', 'required', 'exists:rfid_tags,value'],
         ];
 
         $validated = $request->validate($rules);
 
-        DB::transaction(function () use ($validated, $request) {
-            if ($request->id) {
-                $detail = WarehouseOutboundDetail::updateOrCreate(
-                    ['id' => $request->id],
-                    $validated
-                );
-            } else {
-                $detail = WarehouseOutboundDetail::create($validated);
-            }
+        $item = Item::with(['rfidTag:id,value'])
+                ->whereHas('rfidTag', function ($query) use ($validated) {
+                    $query->where('value', $validated['rfid']);
+                })->first();
 
-            $header = WarehouseOutbound::findOrFail($detail->warehouse_inbound_id);
+        DB::transaction(function () use ($validated, $item) {
+           $detail = WarehouseOutboundDetail::firstOrCreate(
+                [
+                    'warehouse_outbound_id' => $validated['warehouse_outbound_id'],
+                    'item_id' => $item->id,
+                ]);
 
-            $result = WarehouseOutboundDetail::where('warehouse_inbound_id', $header->id)
-                ->selectRaw('COALESCE(SUM(quantity),0) as grand_total, COUNT(*) as quantity_item')
+            $header = WarehouseOutbound::findOrFail($detail->warehouse_outbound_id);
+
+            $result = WarehouseOutboundDetail::where('warehouse_outbound_id', $header->id)
+                ->selectRaw('COUNT(*) as quantity_item')
                 ->first();
 
             $header->update([
-                'grand_total'   => $result->grand_total,
                 'quantity_item' => $result->quantity_item,
             ]);
         });
 
-        return to_route('outbound.detail', ['header_id' => $validated['warehouse_inbound_id']]);
+        return to_route('outbound.detail', ['header' => $validated['warehouse_outbound_id']]);
     }
 
     public function deleteDetail(string $detailId)
     {
         $headerId = null;
-        $item = Item::where('warehouse_inbound_detail_id', $detailId)->first();
+        $item = Item::where('warehouse_outbound_detail_id', $detailId)->first();
         if ($item) {
             return redirect()->back()->withErrors(['error'=> 'Detail tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
         }
@@ -172,7 +187,7 @@ class OutboundController extends Controller
         return to_route('outbound.index');
     }
 
-    public function getAllOrderPacking(Request $request)
+    public function getStoreOrderPacking(Request $request)
     {
         $search = $request->input('search');
         $page = $request->input('page');
@@ -189,4 +204,67 @@ class OutboundController extends Controller
         return Response::json($data);
     }
 
+    public function getEcommerceOrderPacking(Request $request)
+    {
+        $search = $request->input('search');
+        $page = $request->input('page');
+        $offset = ($page - 1) * 30;
+
+
+        $data = EcommerceOrder::where('status','packing')
+            ->when($search, function ($query, $search) {
+                return $query->where('order_number', 'ILIKE', "{$search}%");
+            })
+            ->offset($offset)
+            ->limit(30)->get();
+
+        return Response::json($data);
+    }
+
+    private function generateDeliveryOrderNumber()
+    {
+        $date = now(); // pakai Carbon
+        $dateCode = $date->format('ymd'); // contoh: 251014
+
+        // Ambil surat jalan terakhir yang dibuat pada hari ini
+        $lastRecord = WarehouseOutbound::whereDate('created_at', $date->toDateString())
+            // ->where('delivery_order_number', 'ILIKE', "SJ-{$dateCode}-%")
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // Tentukan nomor urut berikutnya
+        $nextNumber = 1;
+        if ($lastRecord) {
+            $parts = explode('-', $lastRecord->delivery_order_number);
+            $lastNumber = isset($parts[2]) ? (int) $parts[2] : 0;
+            $nextNumber = $lastNumber + 1;
+        }
+
+        $runningNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        $kodeSuratJalan = "SJ-{$dateCode}-{$runningNumber}";
+
+        return $kodeSuratJalan;
+    }
+
+    private function generateInvoiceNumber()
+    {
+        $date = now();
+        $dateCode = $date->format('ymd');
+
+        $lastRecord = WarehouseOutbound::whereDate('created_at', $date->toDateString())
+            // ->where('invoice_number', 'ILIKE', "INV-SO-{$dateCode}-%")
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $nextNumber = 1;
+        if ($lastRecord && !empty($lastRecord->invoice_number)) {
+            $parts = explode('-', $lastRecord->invoice_number);
+            $lastNumber = isset($parts[2]) ? (int) $parts[2] : 0;
+            $nextNumber = $lastNumber + 1;
+        }
+
+        $runningNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        return "INV-SO-{$dateCode}-{$runningNumber}";
+        // return "INV-SO{$kodeStore}-{$dateCode}-{$runningNumber}"; //nantinya akan di rubah berdsarkan kode store
+    }
 }

@@ -17,6 +17,11 @@ class WarehouseOutboundDetail extends Model
         return $this->belongsTo(WarehouseOutbound::class, 'warehouse_outbound_id');
     }
 
+    public function item()
+    {
+        return $this->belongsTo(Item::class, 'item_id');
+    }
+
         public function newUniqueId(): string
     {
         return (string) Uuid::uuid4();

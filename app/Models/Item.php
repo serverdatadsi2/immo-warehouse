@@ -21,16 +21,21 @@ class Item extends Model
 
     public function rfidTag(): BelongsTo
     {
-        return $this->belongsTo(RFIDTag::class, 'rfid_tag_id', 'id');
+        return $this->belongsTo(RFIDTag::class, 'rfid_tag_id');
     }
 
     public function currentCondition(): BelongsTo
     {
-        return $this->belongsTo(ItemCondition::class, 'current_condition_id', 'id');
+        return $this->belongsTo(ItemCondition::class, 'current_condition_id');
     }
 
     public function warehouse()
     {
         return $this->hasOne(WarehouseStock::class, 'item_id', 'id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

@@ -1,110 +1,119 @@
-import { DeleteButton, SaveButton } from '@/components/buttons/common-buttons';
-import { LocaleDatePicker } from '@/components/date-picker/locale-date-picker';
 import { FormItem } from '@/components/forms/form-item';
-import { ProductAsyncSelect } from '@/components/selects/product';
+import QRCodeScanner from '@/components/scanner/qr-scanner';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
-import { CloseOutlined } from '@ant-design/icons';
-import { Col, Form, Input, InputNumber, Modal, Row, Space, Tooltip } from 'antd';
-import { useCallback, useContext, useEffect, useMemo } from 'react';
-import { DetailContext, DetailItem } from '../../detail';
+import { ScanOutlined, SendOutlined, StopOutlined } from '@ant-design/icons';
+import { Button, Col, Form, Input, Row, Typography, notification } from 'antd';
+import { useCallback, useContext, useState } from 'react';
+import { DetailContext } from '../../detail';
 
-export function DetailForm({ onClose, existingData, open }: Props) {
-    const { form, errors, processing, post, destroy } =
-        useAntdInertiaForm<DetailForm>('Inbound Detail');
-    const modalTitle = useMemo(() => `${existingData ? 'Edit' : 'Add'} Detail`, [existingData]);
+const { Text } = Typography;
+
+export function DetailForm() {
     const { header } = useContext(DetailContext);
 
-    const _onClose = useCallback(() => {
-        form.resetFields();
-        onClose();
-    }, [form, onClose]);
+    const { form, post, processing, errors } = useAntdInertiaForm<{
+        rfid: string;
+        warehouse_outbound_id: string;
+    }>('Outbound Detail');
+    const [isScanningLocation, setIsScanningLocation] = useState<boolean>(false);
+    const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
 
-    const handleSave = useCallback(() => {
-        const formValues = form.getFieldsValue();
+    const handleSwitchCamera = useCallback(() => {
+        setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
+    }, []);
+
+    const handleScanItem = useCallback(
+        (value: string) => {
+            setIsScanningLocation(false);
+            form.setFieldsValue({ rfid: value });
+            notification.success({ message: 'RFID berhasil discan!', duration: 1 });
+        },
+        [form],
+    );
+
+    const handleSubmit = useCallback(async () => {
+        const formValues = await form.validateFields();
         post({
             url: '/outbound/detail',
-            data: { ...existingData, ...formValues, warehouse_inbound_id: header?.id },
-            onSuccess: _onClose,
+            data: { ...formValues, warehouse_outbound_id: header },
+            onSuccess: () => {
+                form.resetFields();
+            },
         });
-    }, [_onClose, existingData, form, header?.id, post]);
-
-    const handleDelete = useCallback(() => {
-        destroy({ url: `/outbound/detail/${existingData?.id}`, onSuccess: _onClose });
-    }, [destroy, existingData?.id, _onClose]);
-
-    useEffect(() => {
-        if (existingData)
-            form.setFieldsValue({
-                ...existingData,
-                quantity: Number(existingData.quantity),
-            });
-    }, [existingData, form]);
+    }, [form, post, header]);
 
     return (
-        <Modal
-            title={modalTitle}
-            footer={
-                <Space>
-                    <DeleteButton onClick={handleDelete} disabled={!existingData || processing} />
-                    <SaveButton onClick={handleSave} disabled={processing} />
-                </Space>
-            }
-            open={open}
-            onCancel={_onClose}
-            closeIcon={
-                <Tooltip title="(esc)">
-                    <CloseOutlined />
-                </Tooltip>
-            }
-        >
-            <Form form={form} layout="vertical">
-                <Row gutter={16}>
-                    <Col span={24}>
+        <Form form={form} layout="vertical" className="mt-4">
+            {isScanningLocation ? (
+                <div className="space-y-2 text-center mb-5 border p-2 rounded">
+                    <Button
+                        danger
+                        icon={<StopOutlined />}
+                        onClick={() => setIsScanningLocation(false)}
+                    >
+                        Stop Scan
+                    </Button>
+                    <QRCodeScanner
+                        onSwitchCamera={handleSwitchCamera}
+                        facingMode={facingMode}
+                        onScan={handleScanItem}
+                        isActive={isScanningLocation}
+                    />
+                </div>
+            ) : (
+                <Row gutter={5} align="middle">
+                    <Col span={17}>
                         <FormItem
-                            errorMessage={errors?.product_id}
-                            name="product_id"
-                            label="Product"
-                            required
+                            label={
+                                <Text
+                                    strong
+                                    style={{
+                                        color: '#1890ff',
+                                        marginTop: 16,
+                                        display: 'block',
+                                    }}
+                                >
+                                    RFID Tag
+                                </Text>
+                            }
+                            name="rfid"
+                            rules={[{ required: true, message: 'Harap masukkan RFID Tag!' }]}
+                            errorMessage={errors?.rfid}
                         >
-                            <ProductAsyncSelect />
+                            <Input
+                                placeholder="Klik Tombol disamping untuk scan..."
+                                onPressEnter={handleSubmit}
+                                autoComplete="off"
+                                allowClear
+                            />
                         </FormItem>
                     </Col>
-                    <Col span={12}>
-                        <FormItem
-                            errorMessage={errors?.quantity}
-                            name="quantity"
-                            label="Quantity"
-                            required
+                    <Col span={5}>
+                        <Button
+                            icon={<ScanOutlined />}
+                            type="primary"
+                            onClick={() => setIsScanningLocation(true)}
+                            className="!bg-emerald-600 mt-5"
                         >
-                            <InputNumber className="!w-full" type="number" />
-                        </FormItem>
+                            Scan
+                        </Button>
                     </Col>
-                    <Col span={12}>
-                        <FormItem
-                            errorMessage={errors?.expired_date}
-                            name="expired_date"
-                            label="Expired Date"
+                    <Col span={2}>
+                        <Button
+                            iconPosition="end"
+                            key="save"
+                            type="primary"
+                            icon={<SendOutlined />}
+                            onClick={handleSubmit}
+                            loading={processing}
+                            disabled={isScanningLocation}
+                            className=" mt-5"
                         >
-                            <LocaleDatePicker />
-                        </FormItem>
-                    </Col>
-                    <Col span={24}>
-                        <FormItem errorMessage={errors?.note} name="note" label="Note">
-                            <Input.TextArea />
-                        </FormItem>
+                            Save
+                        </Button>
                     </Col>
                 </Row>
-            </Form>
-        </Modal>
+            )}
+        </Form>
     );
 }
-
-type Props = {
-    open: boolean;
-    onClose: () => void;
-    existingData: DetailItem | undefined;
-};
-
-type DetailForm = Partial<Omit<DetailItem, 'quantity'>> & {
-    quantity: number;
-};

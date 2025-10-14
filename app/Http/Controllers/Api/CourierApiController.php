@@ -19,6 +19,8 @@ class CourierApiController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'ILIKE', "%{$search}%");
             })
+            ->whereNull('deleted_at')
+            ->where('status', 'active')
             ->offset($offset)
             ->limit(30)
             ->get();

@@ -11,7 +11,7 @@ export function SupplierAsyncSelect(props: Props) {
     const [options, setOptions] = useState<OptionSelect[]>([]);
     const [page, setPage] = useState<number>(1);
 
-    const { data = [], isLoading } = useQuery({
+    const { data, isLoading } = useQuery({
         queryKey: ['supplier', search, page],
         queryFn: async () => {
             const res = await axiosIns.get<Array<Supplier>>('/api/suppliers', {

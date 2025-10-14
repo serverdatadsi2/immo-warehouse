@@ -1,9 +1,10 @@
 import { AddButton } from '@/components/buttons/crud-buttons';
 import { AppLayout } from '@/layouts/app-layout';
-import { LaravelPagination } from '@/types/laravel-pagination.type';
-import { Outbound } from '@/types/outbound.type';
+import { SimplePagination } from '@/types/laravel-pagination.type';
+import { OutboundWithRelations } from '@/types/warehouse-outbound.type';
 import { Head, router } from '@inertiajs/react';
 import { Card, Col, Row, Typography } from 'antd';
+import { TextCursorInput } from 'lucide-react';
 import { useCallback } from 'react';
 import { HeaderTable } from './components/header/table';
 
@@ -32,10 +33,11 @@ export default function Page({ pagination }: PageProps) {
                     </Col>
                     <Col>
                         <AddButton
+                            icon={<TextCursorInput />}
                             onClick={handleAdd}
                             style={{ fontWeight: 'bold', borderRadius: 8 }}
                         >
-                            Add Outbound
+                            Manual Outbound
                         </AddButton>
                     </Col>
                 </Row>
@@ -53,8 +55,6 @@ export default function Page({ pagination }: PageProps) {
     );
 }
 
-export type HeaderItem = Outbound;
-
 type PageProps = {
-    pagination: LaravelPagination<HeaderItem>;
+    pagination: SimplePagination<OutboundWithRelations>;
 };
