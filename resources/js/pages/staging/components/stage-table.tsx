@@ -4,7 +4,20 @@ import { SimplePagination } from '@/types/laravel-pagination.type';
 import { StagingWithDetailRelations } from '@/types/warehouse-staging.type';
 import { DownOutlined, RightOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
-import { Button, Card, List, Popover, Space, Table, TableProps, Tag, Typography } from 'antd';
+import {
+    Button,
+    Card,
+    List,
+    message,
+    Popconfirm,
+    Popover,
+    Space,
+    Table,
+    TableProps,
+    Tag,
+    Tooltip,
+    Typography,
+} from 'antd';
 import { Edit, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
@@ -89,6 +102,20 @@ export default function StagingTable({ pagination }: Props) {
     const handleEdit = useCallback((id: string) => {
         router.get('/staging/manual-input?header=' + id);
     }, []);
+
+    const handleDelete = useCallback((id: string) => {
+        router.delete(`/staging/manual-input/${id}`, {
+            onError: () => {
+                message.error('Delete Staging Area Gagal');
+            },
+            onSuccess: () => {
+                message.success('Delete Staging Area Success');
+            },
+            // onStart: () => {
+            //     setProcessing(true);
+            // },
+        });
+    }, []);
     const columns = useMemo(
         (): TableProps<StagingWithDetailRelations>['columns'] => [
             { title: 'Warehouse', dataIndex: ['warehouse', 'name'], key: 'warehouse_id' },
@@ -120,17 +147,27 @@ export default function StagingTable({ pagination }: Props) {
                 key: 'id',
                 render: (val) => (
                     <Space size={20} align="end" className="w-full">
-                        <Button
-                            type="primary"
-                            onClick={() => handleEdit(val)}
-                            icon={<Edit size={18} />}
-                        />
-                        <Button type="dashed" danger icon={<Trash2 size={18} />} />
+                        <Tooltip title="Edit detail staging area">
+                            <Button
+                                type="primary"
+                                onClick={() => handleEdit(val)}
+                                icon={<Edit size={18} />}
+                            />
+                        </Tooltip>
+                        <Tooltip title="delete staging area">
+                            <Popconfirm
+                                title="Delete"
+                                description="Are you sure to delete this Data?"
+                                onConfirm={() => handleDelete(val)}
+                            >
+                                <Button type="dashed" danger icon={<Trash2 size={18} />} />
+                            </Popconfirm>
+                        </Tooltip>
                     </Space>
                 ),
             },
         ],
-        [handleEdit],
+        [handleDelete, handleEdit],
     );
 
     const handlePageChange = useCallback((page: number) => {

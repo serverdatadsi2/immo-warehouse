@@ -7,10 +7,14 @@ import { useCallback, useState } from 'react';
 
 const { Text } = Typography;
 
-export function DetailForm() {
+interface Props {
+    header: string;
+}
+
+export function DetailForm({ header }: Props) {
     const { form, post, processing, errors } = useAntdInertiaForm<{
         rfid: string;
-        location: string;
+        warehouse_staging_outbound_id: string;
     }>('Detail Staging Area');
     const [isScanningLocation, setIsScanningLocation] = useState<boolean>(false);
     const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
@@ -22,7 +26,7 @@ export function DetailForm() {
     const handleScanItem = useCallback(
         (value: string) => {
             setIsScanningLocation(false);
-            form.setFieldsValue({ location: value });
+            form.setFieldsValue({ rfid: value });
             notification.success({ message: 'RFID berhasil discan!', duration: 1 });
         },
         [form],
@@ -32,22 +36,14 @@ export function DetailForm() {
         const formValues = await form.validateFields();
         post({
             url: '/staging/manual-input/detail',
-            data: formValues,
+            data: { ...formValues, warehouse_staging_outbound_id: header },
             onSuccess: () => {
                 form.resetFields();
             },
         });
-    }, [form, post]);
+    }, [form, post, header]);
 
     return (
-        // <Card
-        //     size="small"
-        //     style={{
-        //         background: '#f5faff',
-        //         boxShadow: '0 2px 8px #1890ff11',
-        //         paddingLeft: 20,
-        //     }}
-        // >
         <Form form={form} layout="vertical" className="mt-4">
             {isScanningLocation ? (
                 <div className="space-y-2 text-center mb-5 border p-2 rounded">
@@ -78,14 +74,12 @@ export function DetailForm() {
                                         display: 'block',
                                     }}
                                 >
-                                    RFID Staging Tag
+                                    RFID Tag
                                 </Text>
                             }
-                            name="location"
-                            rules={[
-                                { required: true, message: 'Harap masukkan RFID Staging Tag!' },
-                            ]}
-                            errorMessage={errors?.location}
+                            name="rfid"
+                            rules={[{ required: true, message: 'Harap masukkan RFID Tag!' }]}
+                            errorMessage={errors?.rfid}
                         >
                             <Input
                                 placeholder="Klik Tombol disamping untuk scan..."
@@ -122,6 +116,5 @@ export function DetailForm() {
                 </Row>
             )}
         </Form>
-        // </Card>
     );
 }

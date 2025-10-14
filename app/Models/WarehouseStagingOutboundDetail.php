@@ -9,6 +9,8 @@ use Ramsey\Uuid\Uuid;
 class WarehouseStagingOutboundDetail extends Model
 {
     use HasUlids;
+    const UPDATED_AT = null;
+    const CREATED_AT = null;
 
     protected $guarded = [];
 

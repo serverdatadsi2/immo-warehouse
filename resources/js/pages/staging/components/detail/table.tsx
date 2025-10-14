@@ -13,7 +13,7 @@ interface Props {
 
 export function DetailTable({ pagination }: Props) {
     const handleDelete = useCallback((id: string) => {
-        router.delete(`/staging/manual-input/${id}`, {
+        router.delete(`/staging/manual-input/detail/${id}`, {
             onError: () => {
                 message.error('Delete Detail Gagal');
             },

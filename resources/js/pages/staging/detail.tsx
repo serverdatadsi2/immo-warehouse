@@ -12,7 +12,7 @@ import { HeaderForm } from './components/header/form';
 interface Props {
     headerData: StagingWithRelations;
     detailPagination: SimplePagination<StagingDetailWithRelation>;
-    header;
+    header: string;
 }
 const DetailComponent = ({ headerData, header, detailPagination }: Props) => {
     return (
@@ -30,7 +30,7 @@ const DetailComponent = ({ headerData, header, detailPagination }: Props) => {
                                 paddingLeft: 20,
                             }}
                         >
-                            <DetailForm />
+                            <DetailForm header={header} />
                             <DetailTable pagination={detailPagination} />
                         </Card>
                     </Space>

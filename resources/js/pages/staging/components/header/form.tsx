@@ -9,8 +9,7 @@ const { Text } = Typography;
 
 export function HeaderForm() {
     const { form, post, processing, errors } = useAntdInertiaForm<{
-        rfid: string;
-        location: string;
+        location_rfid_tag_id: string;
     }>('Staging Area');
     const [isScanningLocation, setIsScanningLocation] = useState<boolean>(false);
     const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
@@ -22,7 +21,7 @@ export function HeaderForm() {
     const handleScanLocation = useCallback(
         (value: string) => {
             setIsScanningLocation(false);
-            form.setFieldsValue({ location: value });
+            form.setFieldsValue({ location_rfid_tag_id: value });
             notification.success({ message: 'Staging Area berhasil discan!', duration: 1 });
         },
         [form],
@@ -81,11 +80,11 @@ export function HeaderForm() {
                                         RFID Staging Tag
                                     </Text>
                                 }
-                                name="location"
+                                name="location_rfid_tag_id"
                                 rules={[
                                     { required: true, message: 'Harap masukkan RFID Staging Tag!' },
                                 ]}
-                                errorMessage={errors?.location}
+                                errorMessage={errors?.location_rfid_tag_id}
                             >
                                 <Input
                                     placeholder="Klik Tombol disamping untuk scan..."

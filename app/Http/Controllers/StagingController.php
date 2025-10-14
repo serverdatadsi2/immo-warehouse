@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
 use App\Models\Location;
 use App\Models\WarehouseStagingOutbound;
 use App\Models\WarehouseStagingOutboundDetail;
@@ -48,7 +49,7 @@ class StagingController extends Controller
         $headerId = null;
         $detailStaging = WarehouseStagingOutbound::where('id', $detailId)->whereNotNull('released_at')->first();
         if ($detailStaging) {
-            return redirect()->back()->withErrors(['error'=> 'Detail tidak bisa dihapus karena detail staging sudah released']);
+            return redirect()->back()->withErrors(['error'=> 'Detail tidak bisa dihapus karena data staging sudah released']);
         }
         \DB::transaction(function () use (&$headerId, $detailId) {
             $detail = WarehouseStagingOutboundDetail::findOrFail($detailId);
@@ -65,7 +66,7 @@ class StagingController extends Controller
             ]);
         });
 
-        return to_route('staging.index', ['header_id' => $headerId]);
+        return to_route('staging.detail', ['header' => $headerId]);
     }
 
     public function detail (Request $request) {
@@ -100,31 +101,26 @@ class StagingController extends Controller
 
     public function saveHeader(Request $request)
     {
-        $validated = $request->validate(['location_rfid_tag_id' => ['string', 'required', 'exists:location_rfid_tags,id']]);
+        $validated = $request->validate(['location_rfid_tag_id' => ['string', 'required', 'exists:location_rfid_tags,value']]);
 
         $location = Location::query()
-                    ->join('location_rfid_tag as lrg','lrg.location_id', '=', 'locations.id')
-                    ->join('warehouse_locatins as wl','wl.location_id', '=', 'locations.id')
+                    ->join('location_rfid_tags as lrg', function ($join) {
+                        $join->on('lrg.location_id', '=', 'locations.id')
+                            ->whereNull('lrg.deleted_at');
+                    })
+                    ->join('warehouse_locations as wl','wl.location_id', '=', 'locations.id')
                     ->where('lrg.value',$validated)
-                    ->select('location.*', 'wl.warehouse_id')
+                    ->select('locations.*', 'wl.warehouse_id', 'lrg.id as location_staging_id')
                     ->first();
 
         $header = WarehouseStagingOutbound::newModelInstance();
-        \DB::transaction(function () use ($request, $location, &$header) {
-            if ($request->id) {
-                $header = WarehouseStagingOutbound::updateOrCreate(
-                    ['id' => $request->id],
-                    [
-                        'name' => $location->name,
-                        'warehouse' => $location->warehouse_id
-                    ]
-                );
-            } else {
-                $header = WarehouseStagingOutbound::create([
-                        'name' => $location->name,
-                        'warehouse' => $location->warehouse_id
-                    ]);
-            }
+        \DB::transaction(function () use ( $location, &$header) {
+
+            $header = WarehouseStagingOutbound::create([
+                'name' => $location->name,
+                'warehouse_id' => $location->warehouse_id,
+                'location_rfid_tag_id' =>$location->location_staging_id
+            ]);
 
             $result = WarehouseStagingOutboundDetail::where('warehouse_staging_outbound_id', $header->id)
                 ->selectRaw('COUNT(*) as grand_total')
@@ -135,6 +131,67 @@ class StagingController extends Controller
             ]);
         });
 
-        return to_route('staging.detail', ['header_id' => $header->id]);
+        return to_route('staging.detail', ['header' => $header->id]);
+    }
+
+    public function saveDetail(Request $request)
+    {
+        $validated = $request->validate([
+            'rfid' => ['string', 'required', 'exists:rfid_tags,value'],
+            'warehouse_staging_outbound_id' => ['string', 'required', 'exists:warehouse_staging_outbounds,id']
+        ]);
+
+        $item = Item::with([
+            'rfidTag' => function ($query) use ($validated) {
+                $query->select('id', 'value');
+            }
+        ])
+        ->whereHas('rfidTag', function ($query) use ($validated) {
+            $query->where('value', $validated['rfid']);
+        })->first();
+
+        $header = WarehouseStagingOutboundDetail::newModelInstance();
+        \DB::transaction(function () use ($validated, $item, &$header) {
+
+            $detail = WarehouseStagingOutboundDetail::firstOrCreate(
+                [
+                    'rfid_tag_id' => $item->rfidTag->id,
+                    'warehouse_staging_outbound_id' => $validated['warehouse_staging_outbound_id'],
+                ],
+                [
+                    'item_id' => $item->id,
+                    'product_id' => $item->product_id,
+                ]);
+
+            $header = WarehouseStagingOutbound::findOrFail($detail->warehouse_staging_outbound_id);
+
+
+            $result = WarehouseStagingOutboundDetail::where('warehouse_staging_outbound_id', $header->id)
+                ->selectRaw('COUNT(*) as grand_total')
+                ->first();
+
+            $header->update([
+                'quantity'   => $result->grand_total,
+            ]);
+        });
+
+        return to_route('staging.detail', ['header' => $header->id]);
+    }
+
+     public function deleteHeader(string $headerId)
+    {
+        $detailStaging = WarehouseStagingOutbound::where('id', $headerId)->whereNotNull('released_at')->first();
+        if ($detailStaging) {
+            return redirect()->back()->withErrors(['error'=> 'Detail tidak bisa dihapus karena data staging sudah released']);
+        }
+        \DB::transaction(function () use ($headerId) {
+            $header = WarehouseStagingOutbound::findOrFail($headerId);
+            WarehouseStagingOutboundDetail::where('warehouse_staging_outbound_id', $header->id)->delete();
+            $header->delete();
+
+
+        });
+
+        return to_route('staging.index');
     }
 }

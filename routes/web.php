@@ -148,7 +148,11 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('staging')->name('staging.')->group(function () {
         Route::get('/', [StagingController::class, 'index'])->name('index');
         Route::get('/manual-input', [StagingController::class, 'detail'])->name('detail');
+        Route::post('/manual-input', [StagingController::class, 'saveHeader']);
+        Route::delete('/manual-input/{header_id}', [StagingController::class, 'deleteHeader']);
         // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
+        Route::post('/manual-input/detail', [StagingController::class, 'saveDetail']);
+        Route::delete('/manual-input/detail/{detail_id}', [StagingController::class, 'deleteDetail']);
     });
 
        // packing orders
