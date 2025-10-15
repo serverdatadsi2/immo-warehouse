@@ -1,25 +1,27 @@
 import { DateDisplay } from '@/components/displays/date-display';
+import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
-import { LaravelPagination } from '@/types/laravel-pagination.type';
-import { EditOutlined } from '@ant-design/icons';
+import { HistoryInboundWithRelation, InboundDetailWithProduct } from '@/types/inbound.type';
+import { SimplePagination } from '@/types/laravel-pagination.type';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
-import { Button, Pagination, Space, Table, Tag } from 'antd';
+import { Space, Table, Tag, Typography } from 'antd';
 import { useCallback, useMemo } from 'react';
-import { HeaderItem } from '../..';
 
-export function HeaderTable({ pagination }: Props) {
-    const handleAction = useCallback((val: HeaderItem) => {
-        router.get(`/inbounds/supplier/detail?header_id=${val.id}`);
-    }, []);
+type Props = {
+    pagination: SimplePagination<HistoryInboundWithRelation> | null;
+};
+const { Title, Text } = Typography;
 
+export function HistoryTable({ pagination }: Props) {
+    // 🧱 Column untuk Tabel Header (Utama)
     const columns = useMemo(
-        (): TableProps<HeaderItem>['columns'] => [
+        (): TableProps<HistoryInboundWithRelation>['columns'] => [
             {
                 title: 'No.',
                 key: 'serial',
                 align: 'center',
-                render: (_: any, __: HeaderItem, index: number) => {
+                render: (_: any, __: HistoryInboundWithRelation, index: number) => {
                     const currentPage = pagination?.current_page ?? 1;
                     const perPage = pagination?.per_page ?? 10;
                     return (currentPage - 1) * perPage + index + 1;
@@ -89,22 +91,8 @@ export function HeaderTable({ pagination }: Props) {
                     },
                 ],
             },
-            {
-                title: 'Aksi',
-                key: 'action',
-                fixed: 'right',
-                align: 'center',
-                render: (_, d) => (
-                    <Button
-                        onClick={() => handleAction(d)}
-                        icon={<EditOutlined />}
-                        type="primary"
-                        style={{ borderRadius: 8 }}
-                    />
-                ),
-            },
         ],
-        [handleAction, pagination?.current_page, pagination?.per_page],
+        [pagination?.current_page, pagination?.per_page],
     );
 
     const handlePageChange = useCallback((page: number) => {
@@ -113,30 +101,84 @@ export function HeaderTable({ pagination }: Props) {
 
     return (
         <Space direction="vertical" className="w-full">
-            <Table<HeaderItem>
+            <div className="text-center">
+                <Title level={4} style={{ color: '#1890ff', marginBottom: 0 }}>
+                    History Retur Barang dari Store
+                </Title>
+                <Text type="secondary">
+                    Menampilkan riwayat pengembalian barang dari store yang telah diproses sebagai
+                    inbound ke gudang.
+                </Text>
+
+                {/* <Divider style={{ margin: '12px 0' }} /> */}
+            </div>
+            <CustomTable<HistoryInboundWithRelation>
                 size="small"
                 rowKey="id"
                 columns={columns}
                 bordered
+                expandable={{ expandedRowRender }}
                 dataSource={pagination?.data}
+                onPaginationChange={handlePageChange}
+                page={pagination?.current_page || 1}
                 pagination={false}
                 className="max-w-full"
                 scroll={{ x: 'max-content' }}
             />
-            {pagination && (
-                <Pagination
-                    align="end"
-                    current={pagination.current_page}
-                    pageSize={pagination.per_page}
-                    total={pagination.total}
-                    onChange={handlePageChange}
-                    style={{ marginTop: 16 }}
-                />
-            )}
         </Space>
     );
 }
 
-type Props = {
-    pagination: LaravelPagination<HeaderItem> | undefined;
+// 🧩 Column untuk Tabel Detail (Expandable)
+const detailColumns: TableProps<InboundDetailWithProduct>['columns'] = [
+    {
+        title: 'No.',
+        key: 'serial',
+        align: 'center',
+        render: (_: any, __: InboundDetailWithProduct, index: number) => index + 1,
+    },
+    {
+        title: 'Nama Produk',
+        dataIndex: ['product', 'name'],
+        key: 'product_name',
+        align: 'left',
+    },
+    {
+        title: 'Jumlah',
+        dataIndex: 'quantity',
+        key: 'quantity',
+        align: 'center',
+        render: (qty) => (
+            <Tag color="blue" style={{ fontWeight: 'bold' }}>
+                {qty}
+            </Tag>
+        ),
+    },
+    {
+        title: 'Expired Date',
+        dataIndex: 'expired_date',
+        key: 'expired_date',
+        align: 'center',
+        render: (v) => <DateDisplay val={v} />,
+    },
+    {
+        title: 'Catatan',
+        dataIndex: 'note',
+        key: 'note',
+        align: 'left',
+    },
+];
+
+// 🔄 Fungsi render tabel detail
+const expandedRowRender = (record: HistoryInboundWithRelation) => {
+    return (
+        <Table<InboundDetailWithProduct>
+            title={() => <Text strong>Detail History Inbound</Text>}
+            size="small"
+            rowKey="id"
+            columns={detailColumns}
+            dataSource={record.inbound_detail || []}
+            pagination={false}
+        />
+    );
 };

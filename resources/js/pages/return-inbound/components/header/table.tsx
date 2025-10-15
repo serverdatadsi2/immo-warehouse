@@ -1,16 +1,17 @@
 import { DateDisplay } from '@/components/displays/date-display';
+import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
-import { LaravelPagination } from '@/types/laravel-pagination.type';
-import { EditOutlined } from '@ant-design/icons';
+import { SimplePagination } from '@/types/laravel-pagination.type';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
-import { Button, Pagination, Space, Table, Tag } from 'antd';
+import { Button, Space, Tag, Tooltip } from 'antd';
+import { HandCoins } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { HeaderItem } from '../..';
 
 export function HeaderTable({ pagination }: Props) {
     const handleAction = useCallback((val: HeaderItem) => {
-        router.get(`/inbounds/supplier/detail?header_id=${val.id}`);
+        router.get(`/inbounds/return-store/detail?storeReturnId=${val.id}`);
     }, []);
 
     const columns = useMemo(
@@ -26,33 +27,22 @@ export function HeaderTable({ pagination }: Props) {
                 },
             },
             {
-                title: 'Supplier',
-                dataIndex: 'supplier_name',
+                title: 'Store',
+                dataIndex: ['store', 'name'],
                 key: 'supplier_name',
                 align: 'center',
             },
+
             {
-                title: 'Warehouse',
-                dataIndex: 'warehouse_name',
-                key: 'warehouse_name',
+                title: 'Nomor Retur',
+                dataIndex: 'return_number',
+                key: 'return_number',
                 align: 'center',
             },
             {
-                title: 'Faktur',
-                dataIndex: 'invoice_number',
-                key: 'invoice_number',
-                align: 'center',
-            },
-            {
-                title: 'Surat Jalan',
-                dataIndex: 'delivery_order_number',
-                key: 'delivery_order_number',
-                align: 'center',
-            },
-            {
-                title: 'Quantity',
-                dataIndex: 'quantity_item',
-                key: 'quantity_item',
+                title: 'Status',
+                dataIndex: 'status',
+                key: 'status',
                 align: 'center',
                 render: (qty) => (
                     <Tag color="blue" style={{ fontWeight: 'bold' }}>
@@ -61,29 +51,32 @@ export function HeaderTable({ pagination }: Props) {
                 ),
             },
             {
-                title: 'Grand Total',
-                dataIndex: 'grand_total',
-                key: 'grand_total',
+                title: 'Store Note',
+                dataIndex: 'note_store',
+                key: 'note_store',
                 align: 'center',
-                render: (total) => (
-                    <Tag color="gold" style={{ fontWeight: 'bold' }}>
-                        {total}
-                    </Tag>
-                ),
             },
+
             {
-                title: 'Diterima',
+                title: 'Return Approved',
                 children: [
                     {
+                        title: 'Tanggal',
+                        dataIndex: 'approved_at',
+                        key: 'approved_at',
+                        align: 'center',
+                        render: (v) => <DateDisplay val={v} />,
+                    },
+                    {
                         title: 'Nama',
-                        dataIndex: 'received_name',
-                        key: 'received_name',
+                        dataIndex: ['approved', 'name'],
+                        key: 'approved_name',
                         align: 'center',
                     },
                     {
-                        title: 'Tanggal',
-                        dataIndex: 'received_date',
-                        key: 'received_date',
+                        title: 'Tanggal Dikirm',
+                        dataIndex: 'shipped_at',
+                        key: 'shipped_at',
                         align: 'center',
                         render: (v) => <DateDisplay val={v} />,
                     },
@@ -95,12 +88,14 @@ export function HeaderTable({ pagination }: Props) {
                 fixed: 'right',
                 align: 'center',
                 render: (_, d) => (
-                    <Button
-                        onClick={() => handleAction(d)}
-                        icon={<EditOutlined />}
-                        type="primary"
-                        style={{ borderRadius: 8 }}
-                    />
+                    <Tooltip title="Terima">
+                        <Button
+                            onClick={() => handleAction(d)}
+                            icon={<HandCoins />}
+                            type="primary"
+                            style={{ borderRadius: 8, backgroundColor: '#73d13d' }}
+                        />
+                    </Tooltip>
                 ),
             },
         ],
@@ -113,30 +108,22 @@ export function HeaderTable({ pagination }: Props) {
 
     return (
         <Space direction="vertical" className="w-full">
-            <Table<HeaderItem>
+            <CustomTable<HeaderItem>
                 size="small"
                 rowKey="id"
                 columns={columns}
                 bordered
                 dataSource={pagination?.data}
+                onPaginationChange={handlePageChange}
+                page={pagination?.current_page || 1}
                 pagination={false}
                 className="max-w-full"
                 scroll={{ x: 'max-content' }}
             />
-            {pagination && (
-                <Pagination
-                    align="end"
-                    current={pagination.current_page}
-                    pageSize={pagination.per_page}
-                    total={pagination.total}
-                    onChange={handlePageChange}
-                    style={{ marginTop: 16 }}
-                />
-            )}
         </Space>
     );
 }
 
 type Props = {
-    pagination: LaravelPagination<HeaderItem> | undefined;
+    pagination: SimplePagination<HeaderItem> | undefined;
 };

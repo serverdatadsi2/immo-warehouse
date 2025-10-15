@@ -1,3 +1,5 @@
+import { Product } from './product.type';
+
 export interface Inbound {
     id: string;
     supplier_id: string;
@@ -25,6 +27,14 @@ export interface InboundDetail {
 
     created_at: string;
     updated_at: string;
+}
+
+export interface InboundDetailWithProduct extends InboundDetail {
+    product: Product;
+}
+
+export interface HistoryInboundWithRelation extends Inbound {
+    inbound_detail: InboundDetailWithProduct[];
 }
 
 export interface InboundDetailWithRelation extends InboundDetail {

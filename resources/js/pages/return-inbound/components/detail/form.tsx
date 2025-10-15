@@ -22,14 +22,14 @@ export function DetailForm({ onClose, existingData, open }: Props) {
     const handleSave = useCallback(() => {
         const formValues = form.getFieldsValue();
         post({
-            url: '/inbounds/supplier/detail',
+            url: '/inbounds/return-store/detail',
             data: { ...existingData, ...formValues, warehouse_inbound_id: header?.id },
             onSuccess: _onClose,
         });
     }, [_onClose, existingData, form, header?.id, post]);
 
     const handleDelete = useCallback(() => {
-        destroy({ url: `/inbounds/supplier/detail/${existingData?.id}`, onSuccess: _onClose });
+        destroy({ url: `/inbounds/return-store/detail/${existingData?.id}`, onSuccess: _onClose });
     }, [destroy, existingData?.id, _onClose]);
 
     useEffect(() => {

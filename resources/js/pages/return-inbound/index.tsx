@@ -1,7 +1,7 @@
 import { AppLayout } from '@/layouts/app-layout';
-import { Inbound } from '@/types/inbound.type';
-import { LaravelPagination } from '@/types/laravel-pagination.type';
-import { PlusOutlined } from '@ant-design/icons';
+import { SimplePagination } from '@/types/laravel-pagination.type';
+import { ReturnStoreWithRelation } from '@/types/return-store.type';
+import { HistoryOutlined } from '@ant-design/icons';
 import { Head, router } from '@inertiajs/react';
 import { Button, Card, Col, Row, Typography } from 'antd';
 import { useCallback } from 'react';
@@ -10,12 +10,11 @@ import { HeaderTable } from './components/header/table';
 const { Title, Text } = Typography;
 
 export default function Page({ pagination }: PageProps) {
-    const handleAdd = useCallback(() => {
-        router.get('/inbounds/supplier/detail');
+    const handleHistory = useCallback(() => {
+        router.get('/inbounds/return-store/history');
     }, []);
-
     return (
-        <AppLayout navBarTitle="Inbound Supplier">
+        <AppLayout navBarTitle="Return Inbound">
             <Head title="Inbound" />
             <Card
                 style={{
@@ -26,20 +25,15 @@ export default function Page({ pagination }: PageProps) {
                 <Row align="middle" justify="space-between">
                     <Col>
                         <Title level={4} style={{ color: '#1890ff', marginBottom: 0 }}>
-                            Daftar Inbound Supplier
+                            Daftar Retur Store
                         </Title>
                         <Text type="secondary">
-                            Monitoring dan penambahan data supplier inbound barang ke gudang.
+                            Monitoring data daftar tunggu retur inbound barang ke gudang.
                         </Text>
                     </Col>
                     <Col>
-                        <Button
-                            onClick={handleAdd}
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            style={{ fontWeight: 'bold', borderRadius: 8 }}
-                        >
-                            Add Inbound
+                        <Button icon={<HistoryOutlined />} type="primary" onClick={handleHistory}>
+                            History Return Inbound
                         </Button>
                     </Col>
                 </Row>
@@ -57,8 +51,8 @@ export default function Page({ pagination }: PageProps) {
     );
 }
 
-export type HeaderItem = Inbound;
+export type HeaderItem = ReturnStoreWithRelation;
 
 type PageProps = {
-    pagination: LaravelPagination<HeaderItem>;
+    pagination: SimplePagination<HeaderItem>;
 };

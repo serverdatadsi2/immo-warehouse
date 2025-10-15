@@ -12,6 +12,7 @@ use App\Http\Controllers\{
     SearchProductController,
     WarehouseQcController,
     WarehouseStorageController,
+    ReturnInboundController,
     PackingController,
     StagingController,
     UserController,
@@ -20,7 +21,7 @@ use App\Http\Controllers\{
 // HOME
 Route::get('/', function () {
     return auth()->check()
-        ? redirect()->route('inbound.index')
+        ? redirect()->route('inbound.supplier.index')
         : redirect('/login');
 })->name('home');
 
@@ -47,14 +48,30 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('inbounds')->name('inbound.')->group(function () {
-        Route::get('/', [InboundController::class, 'index'])->name('index');
-        Route::post('/', [InboundController::class, 'saveHeader']);
-        Route::delete('/{header_id}', [InboundController::class, 'deleteHeader']);
+        // Supprier Inbound
+        Route::prefix('supplier')->name('supplier.')->group(function () {
+            Route::get('/', [InboundController::class, 'index'])->name('index');
+            Route::post('/', [InboundController::class, 'saveHeader']);
+            Route::delete('/{header_id}', [InboundController::class, 'deleteHeader']);
 
-        // Details
-        Route::get('/detail', [InboundController::class, 'detail'])->name('detail');
-        Route::post('/detail', [InboundController::class, 'saveDetail']);
-        Route::delete('/detail/{detail_id}', [InboundController::class, 'deleteDetail']);
+            // Details
+            Route::get('/detail', [InboundController::class, 'detail'])->name('detail');
+            Route::post('/detail', [InboundController::class, 'saveDetail']);
+            Route::delete('/detail/{detail_id}', [InboundController::class, 'deleteDetail']);
+        });
+
+        // Return Store Inbound
+        Route::prefix('return-store')->name('return-store.')->group(function () {
+            Route::get('/history', [ReturnInboundController::class, 'history'])->name('history');
+            Route::get('/', [ReturnInboundController::class, 'index'])->name('index');
+            Route::post('/', [ReturnInboundController::class, 'saveHeader']);
+            Route::delete('/{header_id}', [ReturnInboundController::class, 'deleteHeader']);
+
+            // // Details
+            Route::get('/detail', [ReturnInboundController::class, 'detail'])->name('detail');
+            Route::post('/detail', [ReturnInboundController::class, 'saveDetail']);
+            Route::delete('/detail/{detail_id}', [ReturnInboundController::class, 'deleteDetail']);
+        });
     });
 
     /*

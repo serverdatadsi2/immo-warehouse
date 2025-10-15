@@ -5,6 +5,8 @@ import {
     Blocks,
     DatabaseZap,
     Delete,
+    Download,
+    FolderSync,
     HardDriveDownload,
     HardDriveUpload,
     Lasso,
@@ -61,9 +63,22 @@ export const menuItems = [
     }),
     getMenuItem({
         key: 'inbounds',
-        icon: <HardDriveDownload size={17} />,
-        label: 'Inbound',
-        url: '/inbounds',
+        icon: <HardDriveDownload size={20} />,
+        label: 'Inbounds',
+        children: [
+            getMenuItem({
+                key: 'supplier',
+                icon: <Download size={17} />,
+                label: 'on Supplier',
+                url: '/inbounds/supplier',
+            }),
+            getMenuItem({
+                key: 'return-store',
+                icon: <FolderSync size={17} />,
+                label: 'Store Return',
+                url: '/inbounds/return-store',
+            }),
+        ],
     }),
     getMenuItem({
         key: 'rfid-tagging',
