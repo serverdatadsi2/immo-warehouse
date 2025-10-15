@@ -36,6 +36,7 @@
         "dayjs": "^1.11.18",
         "globals": "^15.14.0",
         "jspdf": "^3.0.3",
+        "jspdf-autotable": "^5.0.2",
         "jsqr": "^1.4.0",
         "laravel-vite-plugin": "^2.0",
         "lucide-react": "^0.475.0",

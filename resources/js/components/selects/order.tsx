@@ -58,6 +58,7 @@ export const OrderAsyncSelect = React.memo(function OrderAsyncSelect(props: Prop
             placeholder="Search Number Order"
             loading={isLoading}
             style={{ width: '100%' }}
+            onSelect={(_, options) => props.form.setFieldValue('order_number', options.label)}
             popupRender={(menu) => (
                 <>
                     {menu}

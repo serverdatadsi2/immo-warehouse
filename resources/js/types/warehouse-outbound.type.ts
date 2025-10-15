@@ -1,6 +1,8 @@
 import { Courier } from './courier.type';
 import { Product } from './product.type';
 import { RFIDTag } from './rfid-tag.types';
+import { StoreOrder } from './store-order.type';
+import { Store } from './store.type';
 import { User } from './user.type';
 import { Warehouse } from './warehouse.type';
 
@@ -15,6 +17,7 @@ export interface Outbound {
 
     shipment_date: string; // ISO date string
     order_id: string; //join to ecommerce_orders if order_ref ecommerce || join to store_orders if order_ref store
+    order_number: string; //get data to order_id
     order_ref: 'store' | 'ecommerce';
 
     created_at: string;
@@ -38,4 +41,23 @@ export interface OutboundWithRelations extends Outbound {
 }
 export interface OutboundWithDetailRelations extends OutboundWithRelations {
     details: OutboundDetailWithRelation;
+}
+
+interface StoreOrderWithRelation extends StoreOrder {
+    store: Store;
+}
+
+export interface HeaderOutboundPrint extends OutboundWithRelations {
+    store_order: StoreOrderWithRelation;
+}
+
+export interface OutboundDetailPrint {
+    header: HeaderOutboundPrint;
+    details: {
+        product_code: string;
+        product_name: string;
+        product_id: string;
+        quantity: number;
+        unit_name: string;
+    }[];
 }

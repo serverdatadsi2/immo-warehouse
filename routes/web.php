@@ -173,6 +173,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{header_id}', [OutboundController::class, 'deleteHeader']);
 
         // Details
+        Route::get('/detail-outbound/{header_id}', [OutboundController::class, 'detailOutbound'])->name('detailOutbound');
         Route::get('/detail', [OutboundController::class, 'detail'])->name('detail');
         Route::post('/detail', [OutboundController::class, 'saveDetail']);
         Route::delete('/detail/{detail_id}', [OutboundController::class, 'deleteDetail']);

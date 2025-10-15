@@ -15,4 +15,9 @@ class Product extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
+    }
+
 }

@@ -48,6 +48,7 @@ class OutboundController extends Controller
                     'item.product:id,name',
                     'item.rfidTag:id,value'
                 ])
+                ->where('warehouse_outbound_id', $header->id)
                 ->simplePaginate(5);
         }
 
@@ -55,6 +56,43 @@ class OutboundController extends Controller
             'detailsPagination' => $detailsPagination,
             'headerData' => $header,
             'header' => $headerId
+        ]);
+    }
+
+    public function detailOutbound(Request $request, $headerId)
+    {
+        // $headerId = $request->input('header');
+        $header = null;
+        $details = null;
+
+        if ($headerId) {
+            $header = WarehouseOutbound::with([
+                            'warehouse:id,name,code,address',
+                            'user:id,name',
+                            'courier:id,name',
+                            'storeOrder:id,store_id',
+                            'storeOrder.store:id,name,address'
+                            ])
+                            ->findOrFail($headerId);
+
+            $details = WarehouseOutboundDetail::query()
+                            ->join('items as i', 'i.id', '=', 'warehouse_outbound_details.item_id')
+                            ->join('products as p', 'p.id', '=', 'i.product_id')
+                            ->join('units as u', 'u.id', '=', 'p.unit_id')
+                            ->select(columns: [
+                                'i.product_id',
+                                'p.name as product_name',
+                                'p.code as product_code',
+                                'u.name as unit_name',
+                                DB::raw('COUNT(warehouse_outbound_details.id) as quantity')
+                            ])
+                            ->groupBy('i.product_id', 'p.name', 'u.name', 'p.code')
+                            ->get();
+        }
+
+        return response()->json([
+            'details' => $details,
+            'header' => $header,
         ]);
     }
 
@@ -69,6 +107,7 @@ class OutboundController extends Controller
             'shipment_date' => ['date', 'required'],
             'order_ref' => ['string', 'required'],
             'order_id' => ['string', 'required'],
+            'order_number' => ['string', 'required'],
         ];
 
         $validated = $request->validate($rules);
@@ -144,43 +183,42 @@ class OutboundController extends Controller
     public function deleteDetail(string $detailId)
     {
         $headerId = null;
-        $item = Item::where('warehouse_outbound_detail_id', $detailId)->first();
-        if ($item) {
-            return redirect()->back()->withErrors(['error'=> 'Detail tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
-        }
+        // $item = Item::where('warehouse_outbound_detail_id', $detailId)->first();
+        // if ($item) {
+        //     return redirect()->back()->withErrors(['error'=> 'Detail tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
+        // }
         DB::transaction(function () use (&$headerId, $detailId) {
             $detail = WarehouseOutboundDetail::findOrFail($detailId);
-            $headerId = $detail->warehouse_inbound_id;
+            $headerId = $detail->warehouse_outbound_id;
             $detail->delete();
-            $header = WarehouseOutbound::findOrFail($detail->warehouse_inbound_id);
+            $header = WarehouseOutbound::findOrFail($detail->warehouse_outbound_id);
 
-            $result = WarehouseOutboundDetail::where('warehouse_inbound_id', $header->id)
-                ->selectRaw('COALESCE(SUM(quantity),0) as grand_total, COUNT(*) as quantity_item')
+            $result = WarehouseOutboundDetail::where('warehouse_outbound_id', $header->id)
+                ->selectRaw('COUNT(*) as quantity_item')
                 ->first();
 
             $header->update([
-                'grand_total'   => $result->grand_total,
                 'quantity_item' => $result->quantity_item,
             ]);
         });
 
-        return to_route('outbound.detail', ['header_id' => $headerId]);
+        return to_route('outbound.detail', ['header' => $headerId]);
     }
 
     public function deleteHeader(string $headerId)
     {
-        $item = WarehouseOutbound::join('warehouse_outbound_details', 'warehouse_outbound_details.warehouse_inbound_id', '=', 'warehouse_outbounds.id')
-            ->join('items', 'items.warehouse_inbound_detail_id', '=', 'warehouse_outbound_details.id')
-            ->where('warehouse_outbounds.id', $headerId)
-            ->first();
+        // $item = WarehouseOutbound::join('warehouse_outbound_details', 'warehouse_outbound_details.warehouse_outbound_id', '=', 'warehouse_outbounds.id')
+        //     ->join('items', 'items.warehouse_outbound_detail_id', '=', 'warehouse_outbound_details.id')
+        //     ->where('warehouse_outbounds.id', $headerId)
+        //     ->first();
 
-        if ($item) {
-            return redirect()->back()->withErrors(['error' => 'outbound tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
-        }
+        // if ($item) {
+        //     return redirect()->back()->withErrors(['error' => 'outbound tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
+        // }
 
         DB::transaction(function () use ($headerId) {
             $header = WarehouseOutbound::findOrFail($headerId);
-            WarehouseOutboundDetail::where('warehouse_inbound_id', $header->id)->delete();
+            WarehouseOutboundDetail::where('warehouse_outbound_id', $header->id)->delete();
             $header->delete();
         });
 

@@ -64,13 +64,15 @@ export function HeaderForm() {
                     <Input />
                     {/* <UserAsyncSelect disabled /> */}
                 </FormItem>
+                <FormItem name="order_number" errorMessage={errors?.order_number} hidden>
+                    <Input />
+                    {/* <UserAsyncSelect disabled /> */}
+                </FormItem>
                 <div className="mb-10">
                     <DescriptionHeader />
                 </div>
 
                 <Row gutter={[16, 8]}>
-                    {/* <Col span={8}></Col>
-                    <Col span={8}></Col> */}
                     <Col span={6}>
                         <FormItem
                             name="shipment_date"

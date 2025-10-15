@@ -7,6 +7,7 @@ import type { TableProps } from 'antd';
 import { Button, Space } from 'antd';
 import { Edit } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
+import SuratJalanPrinter from './surat-jalan-print';
 
 export function HeaderTable({ pagination }: Props) {
     const handleAction = useCallback((val: OutboundWithRelations) => {
@@ -74,11 +75,14 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'action',
                 fixed: 'right',
                 render: (_, d) => (
-                    <Button
-                        type="primary"
-                        onClick={() => handleAction(d)}
-                        icon={<Edit size={17} />}
-                    />
+                    <Space>
+                        <Button
+                            type="primary"
+                            onClick={() => handleAction(d)}
+                            icon={<Edit size={17} />}
+                        />
+                        {!!d.quantity_item && <SuratJalanPrinter headerId={d.id} />}
+                    </Space>
                 ),
             },
         ],
