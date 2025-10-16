@@ -28,9 +28,9 @@ export function HistoryTable({ pagination }: Props) {
                 },
             },
             {
-                title: 'Supplier',
-                dataIndex: 'supplier_name',
-                key: 'supplier_name',
+                title: 'Store Asal',
+                dataIndex: 'store_name',
+                key: 'store_name',
                 align: 'center',
             },
             {

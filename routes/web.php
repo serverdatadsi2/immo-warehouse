@@ -47,7 +47,7 @@ Route::middleware(['auth'])->group(function () {
     | Inbounds
     |--------------------------------------------------------------------------
     */
-    Route::prefix('inbounds')->name('inbound.')->group(function () {
+    Route::prefix('inbounds')->name('inbounds.')->group(function () {
         // Supprier Inbound
         Route::prefix('supplier')->name('supplier.')->group(function () {
             Route::get('/', [InboundController::class, 'index'])->name('index');

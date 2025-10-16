@@ -352,7 +352,7 @@ class WarehouseQcController extends Controller
                     'item_id' => $item->id,
                     'item_condition_id' => $itemCondition->id,
                     'changed_by' => $user->id,
-                    'reference_type' => 'inbound_qc',
+                    'reference_type' => 'outbound_qc',
                     'reference_id' => $qc->id,
                 ],
                 ['changed_at' => now(),]);

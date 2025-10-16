@@ -38,9 +38,8 @@ export function HeaderForm() {
     return (
         <Card
             style={{
-                background: '#f5faff',
-                borderRadius: 12,
-                boxShadow: '0 2px 8px #1890ff11',
+                background: '#fff7e6',
+                boxShadow: '0 2px 8px #fffbe6',
                 marginBottom: 24,
             }}
         >

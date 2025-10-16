@@ -23,12 +23,15 @@ class ReturnInboundController extends Controller
 
         $pagination = WarehouseInbound::query()
             ->with(['inboundDetail', 'inboundDetail.product:id,name'])
-            ->leftJoin('suppliers as s', 'warehouse_inbounds.supplier_id', '=', 's.id')
+            ->join('store_returns as sr', 'sr.id', '=', 'warehouse_inbounds.store_return_id')
+            ->join('stores as s', 's.id', '=', 'sr.store_id')
             ->leftJoin('warehouses as w', 'warehouse_inbounds.warehouse_id', '=', 'w.id')
             ->leftJoin('users as u', 'warehouse_inbounds.received_by', '=', 'u.id')
             ->whereIn('w.id', $userWarehouseIds)
-            ->select('warehouse_inbounds.*', 's.name as supplier_name', 'w.name as warehouse_name', 'u.name as received_name')
-            ->groupBy('warehouse_inbounds.id', 's.name', 'w.name', 'u.name')
+            // ->whereNotNull('warehouse_inbounds.store_return_id')
+            ->where('warehouse_inbounds.inbound_type', 'store_return')
+            ->select('warehouse_inbounds.*', 'w.name as warehouse_name', 'u.name as received_name', 's.name as store_name')
+            ->groupBy('warehouse_inbounds.id', 'w.name', 'u.name', 's.name')
             ->simplePaginate(10);
 
         return Inertia::render('return-inbound/history', ['pagination' => $pagination]);
@@ -41,7 +44,7 @@ class ReturnInboundController extends Controller
 
         $pagination = StoreReturn::query()
             ->with(['details', 'store:id,name','approved:id,name'])
-            // ->where('warehouse_id',$userWarehouseId)
+            ->where('warehouse_id',$userWarehouseId)
             ->whereNotNull('approved_at')
             ->whereNotNull('approved_by')
             ->whereNotNull('shipped_at')
@@ -67,8 +70,8 @@ class ReturnInboundController extends Controller
             ->findOrFail($storeReturnId);
         }
 
-        if ($headerId) {
-            $header = WarehouseInbound::findOrFail($storeReturnId);
+        if ($storeReturnId) {
+            $header = WarehouseInbound::where('store_return_id', $storeReturnId)->first();
             $detailsPagination = WarehouseInboundDetail::query()
                 ->leftJoin('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
                 ->where('warehouse_inbound_id', $header->id)
@@ -120,7 +123,7 @@ class ReturnInboundController extends Controller
             ]);
         });
 
-        return to_route('return-inbound.detail', ['header_id' => $header->id]);
+        return to_route('inbounds.return-store.detail', ['headerId' => $header->id]);
     }
 
     public function saveDetail(Request $request)
@@ -134,8 +137,9 @@ class ReturnInboundController extends Controller
         ];
 
         $validated = $request->validate($rules);
+        $header = null;
 
-        DB::transaction(function () use ($validated, $request) {
+        DB::transaction(function () use (&$header, $validated, $request) {
             if ($request->id) {
                 $detail = WarehouseInboundDetail::updateOrCreate(
                     ['id' => $request->id],
@@ -157,21 +161,20 @@ class ReturnInboundController extends Controller
             ]);
         });
 
-        return to_route('return-inbound.detail', ['header_id' => $validated['warehouse_inbound_id']]);
+        return to_route('inbounds.return-store.detail', ['storeReturnId' => $header->store_return_id]);
     }
 
     public function deleteDetail(string $detailId)
     {
-        $headerId = null;
+        $header = null;
         $item = Item::where('warehouse_inbound_detail_id', $detailId)->first();
         if ($item) {
             return redirect()->back()->withErrors(['error'=> 'Detail tidak bisa dihapus karena sudah terhubung dengan RFID Tag']);
         }
-        DB::transaction(function () use (&$headerId, $detailId) {
+        DB::transaction(function () use (&$header, $detailId) {
             $detail = WarehouseInboundDetail::findOrFail($detailId);
-            $headerId = $detail->warehouse_inbound_id;
-            $detail->delete();
             $header = WarehouseInbound::findOrFail($detail->warehouse_inbound_id);
+            $detail->delete();
 
             $result = WarehouseInboundDetail::where('warehouse_inbound_id', $header->id)
                 ->selectRaw('COALESCE(SUM(quantity),0) as grand_total, COUNT(*) as quantity_item')
@@ -183,7 +186,7 @@ class ReturnInboundController extends Controller
             ]);
         });
 
-        return to_route('return-inbound.detail', ['header_id' => $headerId]);
+        return to_route('inbounds.return-store.detail', ['storeReturnId' => $header->store_return_id]);
     }
 
     public function deleteHeader(string $headerId)
@@ -203,6 +206,6 @@ class ReturnInboundController extends Controller
             $header->delete();
         });
 
-        return to_route('return-inbound.index');
+        return to_route('inbounds.return-store.index');
     }
 }

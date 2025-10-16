@@ -1,12 +1,11 @@
 import { BackButton } from '@/components/buttons/crud-buttons';
 import { AppLayout } from '@/layouts/app-layout';
-import { InboundDetail } from '@/types/inbound.type';
+import { Inbound, InboundDetail } from '@/types/inbound.type';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
 import { ReturnStoreWithDetailRelation } from '@/types/return-store.type';
 import { Head } from '@inertiajs/react';
 import { Space } from 'antd';
 import { createContext } from 'react';
-import { HeaderItem } from '.';
 import { DetailTable } from './components/detail/table';
 import { HeaderForm } from './components/header/form';
 
@@ -39,7 +38,7 @@ export default function Page({ detailsPagination, header, storeReturn, storeRetu
 export type DetailItem = InboundDetail;
 
 type PageProps = {
-    header: Partial<HeaderItem> | null;
+    header: Partial<Inbound> | null;
     detailsPagination: LaravelPagination<DetailItem> | null;
     storeReturn: ReturnStoreWithDetailRelation | null;
     storeReturnId: string | null;

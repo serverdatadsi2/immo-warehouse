@@ -2,25 +2,25 @@ import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
+import { ReturnStoreWithRelation } from '@/types/return-store.type';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
 import { Button, Space, Tag, Tooltip } from 'antd';
 import { HandCoins } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { HeaderItem } from '../..';
 
 export function HeaderTable({ pagination }: Props) {
-    const handleAction = useCallback((val: HeaderItem) => {
+    const handleAction = useCallback((val: ReturnStoreWithRelation) => {
         router.get(`/inbounds/return-store/detail?storeReturnId=${val.id}`);
     }, []);
 
     const columns = useMemo(
-        (): TableProps<HeaderItem>['columns'] => [
+        (): TableProps<ReturnStoreWithRelation>['columns'] => [
             {
                 title: 'No.',
                 key: 'serial',
                 align: 'center',
-                render: (_: any, __: HeaderItem, index: number) => {
+                render: (_: any, __: ReturnStoreWithRelation, index: number) => {
                     const currentPage = pagination?.current_page ?? 1;
                     const perPage = pagination?.per_page ?? 10;
                     return (currentPage - 1) * perPage + index + 1;
@@ -108,7 +108,7 @@ export function HeaderTable({ pagination }: Props) {
 
     return (
         <Space direction="vertical" className="w-full">
-            <CustomTable<HeaderItem>
+            <CustomTable<ReturnStoreWithRelation>
                 size="small"
                 rowKey="id"
                 columns={columns}
@@ -125,5 +125,5 @@ export function HeaderTable({ pagination }: Props) {
 }
 
 type Props = {
-    pagination: SimplePagination<HeaderItem> | undefined;
+    pagination: SimplePagination<ReturnStoreWithRelation> | undefined;
 };

@@ -100,10 +100,8 @@ export function DetailTable() {
         <>
             <Card
                 style={{
-                    background: '#f5faff',
-                    borderRadius: 12,
-                    boxShadow: '0 2px 8px #1890ff11',
-                    marginBottom: 24,
+                    background: '#fff7e6',
+                    boxShadow: '0 2px 8px #fffbe6',
                 }}
             >
                 <div className="flex justify-between">

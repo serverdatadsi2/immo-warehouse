@@ -18,8 +18,8 @@ export default function Page({ pagination }: PageProps) {
             <Head title="Inbound" />
             <Card
                 style={{
-                    background: '#f5faff',
-                    boxShadow: '0 2px 8px #1890ff11',
+                    background: '#fff7e6',
+                    boxShadow: '0 2px 8px #fffbe6',
                 }}
             >
                 <Row align="middle" justify="space-between">
@@ -40,9 +40,9 @@ export default function Page({ pagination }: PageProps) {
             </Card>
             <Card
                 style={{
-                    background: '#f5faff',
+                    background: '#fff7e6',
+                    boxShadow: '0 2px 8px #fffbe6',
                     marginTop: 24,
-                    boxShadow: '0 2px 8px #1890ff11',
                 }}
             >
                 <HeaderTable pagination={pagination} />
@@ -51,8 +51,6 @@ export default function Page({ pagination }: PageProps) {
     );
 }
 
-export type HeaderItem = ReturnStoreWithRelation;
-
 type PageProps = {
-    pagination: SimplePagination<HeaderItem>;
+    pagination: SimplePagination<ReturnStoreWithRelation>;
 };

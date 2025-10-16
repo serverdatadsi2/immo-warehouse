@@ -25,6 +25,8 @@ class InboundController extends Controller
             ->leftJoin('warehouses as w', 'warehouse_inbounds.warehouse_id', '=', 'w.id')
             ->leftJoin('users as u', 'warehouse_inbounds.received_by', '=', 'u.id')
             ->whereIn('w.id', $userWarehouseIds)
+            ->whereNotNull('warehouse_inbounds.supplier_id')
+            ->where('warehouse_inbounds.inbound_type', 'supplier')
             ->select('warehouse_inbounds.*', 's.name as supplier_name', 'w.name as warehouse_name', 'u.name as received_name')
             ->groupBy('warehouse_inbounds.id', 's.name', 'w.name', 'u.name')
             ->paginate(10);
@@ -64,7 +66,9 @@ class InboundController extends Controller
             'received_date' => ['date', 'required'],
         ];
 
-        $validated = $request->validate($rules);
+        $validated = array_merge($request->validate($rules), [
+                        'inbound_type' => 'supplier',
+                    ]) ;
 
         $header = WarehouseInbound::newModelInstance();
         DB::transaction(function () use ($validated, $request, &$header) {
@@ -87,7 +91,7 @@ class InboundController extends Controller
             ]);
         });
 
-        return to_route('inbound.detail', ['header_id' => $header->id]);
+        return to_route('inbounds.supplier.detail', ['header_id' => $header->id]);
     }
 
     public function saveDetail(Request $request)
@@ -124,7 +128,7 @@ class InboundController extends Controller
             ]);
         });
 
-        return to_route('inbound.detail', ['header_id' => $validated['warehouse_inbound_id']]);
+        return to_route('inbounds.supplier.detail', ['header_id' => $validated['warehouse_inbound_id']]);
     }
 
     public function deleteDetail(string $detailId)
@@ -150,7 +154,7 @@ class InboundController extends Controller
             ]);
         });
 
-        return to_route('inbound.detail', ['header_id' => $headerId]);
+        return to_route('inbounds.supplier.detail', ['header_id' => $headerId]);
     }
 
     public function deleteHeader(string $headerId)
@@ -170,7 +174,7 @@ class InboundController extends Controller
             $header->delete();
         });
 
-        return to_route('inbound.index');
+        return to_route('inbounds.supplier.index');
     }
 
 }
