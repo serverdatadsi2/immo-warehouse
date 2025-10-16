@@ -6,6 +6,7 @@ import {
     DatabaseZap,
     Delete,
     Download,
+    FileChartColumn,
     FolderSync,
     HardDriveDownload,
     HardDriveUpload,
@@ -133,5 +134,11 @@ export const menuItems = [
         icon: <HardDriveUpload size={17} />,
         label: 'Outbound',
         url: '/outbound',
+    }),
+    getMenuItem({
+        key: 'stock-opname',
+        icon: <FileChartColumn size={17} />,
+        label: 'Stock Opname',
+        url: '/stock-opname',
     }),
 ];

@@ -16,6 +16,7 @@
         "packing",
         "app",
         "staging",
-        "return-inbound"
+        "return-inbound",
+        "stock-opname"
     ]
 }

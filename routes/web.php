@@ -13,6 +13,7 @@ use App\Http\Controllers\{
     WarehouseQcController,
     WarehouseStorageController,
     ReturnInboundController,
+    StockOpnameController,
     PackingController,
     StagingController,
     UserController,
@@ -208,6 +209,18 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', [LocationSuggestionController::class, 'save']);
             Route::delete('/{id}', [LocationSuggestionController::class, 'delete']);
         });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stock Opname
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('stock-opname')->name('stock-opname.')->group(function () {
+        Route::get('/', [StockOpnameController::class, 'index'])->name('index');
+        Route::put('/{header_id}/process', [StockOpnameController::class, 'updateHeader'])->name('updateHeader');
+        Route::get('/monitoring', [StockOpnameController::class, 'monitoring'])->name('monitoring');
+        Route::post('/manual-stock-opname', [StockOpnameController::class, 'manualStockOpname'])->name('manualStockOpname');
     });
 });
 
