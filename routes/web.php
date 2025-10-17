@@ -82,7 +82,8 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::prefix('rfid-tagging')->name('rfid-tagging.')->group(function () {
         Route::get('/', [RFIDTaggingController::class, 'index'])->name('index');
-        Route::get('/inbound-detail-list', [RFIDTaggingController::class, 'listDetails'])->name('inbound.listDetails');
+        Route::get('/supplier-inbound-detail-list', [RFIDTaggingController::class, 'supplierInboundDetails'])->name('supplierInboundDetails');
+        Route::get('/return-inbound-detail-list', [RFIDTaggingController::class, 'returnInboundDetails'])->name('returnInboundDetails');
         Route::post('/', [RFIDTaggingController::class, 'insertItemStock']);
         Route::post('/create-rfid', [RFIDTaggingController::class, 'createRFIDTag']);
         Route::post('/generate-rfid-tag', [RFIDTaggingController::class, 'generateRFIDTagItems']);

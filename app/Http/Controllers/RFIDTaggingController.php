@@ -21,7 +21,7 @@ class RFIDTaggingController extends Controller
         return Inertia::render('rfid-tagging/index');
     }
 
-    public function listDetails(Request $request)
+    public function supplierInboundDetails(Request $request)
     {
         $user = auth()->user();
         // ambil warehouse pertama milik user
@@ -33,6 +33,76 @@ class RFIDTaggingController extends Controller
                 ->join('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_inbound_details.warehouse_inbound_id')
                 ->leftJoin('items as i', 'i.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
                 ->whereIn('wi.warehouse_id', $userWarehouseIds)
+                ->where('inbound_type', 'supplier')
+                ->select(
+                    'warehouse_inbound_details.id',
+                    'warehouse_inbound_details.product_id',
+                    'warehouse_inbound_details.warehouse_inbound_id',
+                    'warehouse_inbound_details.quantity as quantity_inbound',
+                    'p.name as product_name',
+                    'p.code as product_code',
+                    'wi.received_date',
+                    'wi.warehouse_id',
+                    'warehouse_inbound_details.expired_date',
+
+                    // 1. Hitung jumlah item yang sudah QC (current_condition_id TIDAK NULL)
+                    // 2. Kurangi quantity inbound detail dengan quantity qc 'quantity'
+                    DB::raw('
+                        warehouse_inbound_details.quantity - COUNT(
+                            CASE
+                                WHEN i.current_condition_id IS NOT NULL THEN i.id
+                                ELSE NULL
+                            END
+                        ) AS quantity'
+                    )
+                )
+                ->orderBy('received_date', 'asc')
+                ->groupBy(
+                    'warehouse_inbound_details.id',
+                    'warehouse_inbound_details.product_id',
+                    'warehouse_inbound_details.warehouse_inbound_id',
+                    'warehouse_inbound_details.quantity',
+                    'p.name',
+                    'p.code',
+                    'wi.received_date',
+                    'wi.warehouse_id',
+                    'warehouse_inbound_details.expired_date'
+                )
+
+                // Memastikan quantity sisa (hasil perhitungan) lebih besar dari 0
+                ->havingRaw('
+                    warehouse_inbound_details.quantity - COUNT(
+                        CASE
+                            WHEN i.current_condition_id IS NOT NULL THEN i.id
+                            ELSE NULL
+                        END
+                    ) > 0'
+                );
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('p.name', 'ILIKE', "%{$search}%")
+                  ->orWhere('p.code', 'ILIKE', "%{$search}%");
+            });
+        }
+        $data = $query->paginate(4);
+
+        return Response::json($data);
+    }
+
+    public function returnInboundDetails(Request $request)
+    {
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+        $search = $request->input('search');
+
+        $query = WarehouseInboundDetail::query()
+                ->join('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
+                ->join('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_inbound_details.warehouse_inbound_id')
+                ->leftJoin('items as i', 'i.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
+                ->whereIn('wi.warehouse_id', $userWarehouseIds)
+                ->where('inbound_type', 'store_return')
                 ->select(
                     'warehouse_inbound_details.id',
                     'warehouse_inbound_details.product_id',

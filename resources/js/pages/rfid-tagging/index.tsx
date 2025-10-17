@@ -1,8 +1,8 @@
 import { AppLayout } from '@/layouts/app-layout';
 import { Pannel } from '@/layouts/pannel';
 import { Head } from '@inertiajs/react';
-import { LeftPannel } from './components/left-pannel';
-import { RightPannel } from './components/right-pannel';
+import { ReturnInboundDetail } from './components/return-inbound-detail';
+import { SupplierInbound } from './components/supplier-inbound';
 import { RfidTaggingProvider } from './context';
 
 export default function Page() {
@@ -10,10 +10,7 @@ export default function Page() {
         <AppLayout navBarTitle="RFID Tagging">
             <Head title="RFID Tagging" />
             <RfidTaggingProvider>
-                <Pannel
-                    leftPanel={<LeftPannel />}
-                    rightPannel={<RightPannel />}
-                />
+                <Pannel leftPanel={<SupplierInbound />} rightPannel={<ReturnInboundDetail />} />
             </RfidTaggingProvider>
         </AppLayout>
     );
