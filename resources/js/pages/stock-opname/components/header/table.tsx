@@ -5,7 +5,7 @@ import { SimplePagination } from '@/types/laravel-pagination.type';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
 import { Button, Card, Space, Tag, Tooltip, Typography } from 'antd';
-import { CheckCheck, MonitorCog } from 'lucide-react';
+import { MonitorCog } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { HeaderItem } from '../..';
 
@@ -41,13 +41,6 @@ export function HeaderTable({ pagination }: Props) {
                 align: 'center',
             },
             {
-                title: 'Stock Opname',
-                dataIndex: 'complated_at',
-                key: 'complated_at',
-                render: (v) => <DateDisplay val={v} />,
-                align: 'center',
-            },
-            {
                 title: 'Status',
                 dataIndex: 'status',
                 key: 'status',
@@ -63,10 +56,10 @@ export function HeaderTable({ pagination }: Props) {
             },
             {
                 title: 'Complated',
-                dataIndex: 'complated_at',
-                key: 'complated_at',
+                dataIndex: 'completed_at',
+                key: 'completed_at',
                 align: 'center',
-                render: (v) => (v ? <CheckCheck className="text-emerald-600" /> : '-'),
+                render: (v) => <DateDisplay val={v} />,
             },
             {
                 title: 'Aksi',
@@ -135,9 +128,9 @@ export const renderStatusStockOpname = (status) => {
             color = 'green';
             text = 'IN GROGRESS';
             break;
-        case 'complated':
+        case 'completed':
             color = 'gold';
-            text = 'COMPLATED';
+            text = 'COMPLETED';
             break;
         case 'draft':
             color = 'purple';

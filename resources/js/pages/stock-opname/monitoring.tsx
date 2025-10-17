@@ -2,10 +2,12 @@ import { BackButton } from '@/components/buttons/crud-buttons';
 import { AppLayout } from '@/layouts/app-layout';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
 import { StockOpnameDetailWithRelation } from '@/types/stock-opname.type';
+import { QrcodeOutlined } from '@ant-design/icons';
 import { Head } from '@inertiajs/react';
-import { Card, Space } from 'antd';
-import { createContext } from 'react';
+import { Button, Card, Space, Typography } from 'antd';
+import { createContext, useState } from 'react';
 import { HeaderItem } from '.';
+import BadLabelingModal from './components/detail/bad-labeling';
 import { DetailTable } from './components/detail/table';
 import DescriptionHeader from './components/header/desctiption';
 
@@ -15,6 +17,8 @@ export const DetailContext = createContext<PageProps>({
 });
 
 export default function Page({ detailsPagination, header }: PageProps) {
+    const [visible, setVisible] = useState(false);
+
     return (
         <AppLayout
             navBarLeft={<BackButton backUrl="/stock-opname" />}
@@ -33,14 +37,45 @@ export default function Page({ detailsPagination, header }: PageProps) {
                         <DescriptionHeader />
                     </Card>
                     <Card
+                        size="small"
                         style={{
                             background: '#f5faff',
                             boxShadow: '0 2px 8px #1890ff11',
                         }}
                     >
+                        <div className="flex justify-between">
+                            <Typography.Title
+                                level={5}
+                                style={{
+                                    color: '#1890ff',
+                                    marginLeft: 20,
+                                    marginTop: 5,
+                                    marginBottom: -10,
+                                }}
+                            >
+                                Detail Stock Opname
+                            </Typography.Title>
+                            {header?.status !== 'completed' && (
+                                <Button
+                                    danger
+                                    type="primary"
+                                    onClick={() => setVisible(true)}
+                                    style={{
+                                        // width: '100%',
+                                        fontWeight: 'bold',
+                                        boxShadow: '0 2px 8px #ff4d4f22',
+                                    }}
+                                    icon={<QrcodeOutlined />}
+                                >
+                                    Bad Label Item
+                                </Button>
+                            )}
+                        </div>
                         <DetailTable />
                     </Card>
                 </Space>
+
+                <BadLabelingModal visible={visible} onClose={() => setVisible(false)} />
             </DetailContext.Provider>
         </AppLayout>
     );

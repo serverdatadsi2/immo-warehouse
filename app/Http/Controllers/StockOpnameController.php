@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
+use App\Models\ItemCondition;
+use App\Models\ItemConditionHistory;
 use App\Models\Location;
 use App\Models\WarehouseStock;
 use App\Models\WarehouseStockOpname;
 use App\Models\WarehouseStockOpnameDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Log;
 
@@ -52,12 +56,14 @@ class StockOpnameController extends Controller
                 ->join('items as i', 'i.rfid_tag_id', '=', 'rt.id')
                 ->join('products as p', 'p.id', '=', 'i.product_id')
                 ->where('wsod.warehouse_stock_opname_id', $header->id)
-                ->groupBy('i.product_id', 'p.name')
+                ->groupBy('i.product_id', 'p.name', 'p.code')
                 ->select([
                     'i.product_id',
                     'p.name as product_name',
+                    'p.code as product_code',
 
                     // ✅ QTY berdasarkan status
+                    DB::raw("COUNT(CASE WHEN wsod.status = 'pending' THEN 1 END) as pending_qty"),
                     DB::raw("COUNT(CASE WHEN wsod.status IN ('match','missing') THEN 1 END) as system_qty"),
                     DB::raw("COUNT(CASE WHEN wsod.status = 'match' THEN 1 END) as match_qty"),
                     DB::raw("COUNT(CASE WHEN wsod.status = 'missing' THEN 1 END) as missing_qty"),
@@ -102,8 +108,7 @@ class StockOpnameController extends Controller
         $headerId = $request->input('headerId');
         $productId = $request->input('productId');
 
-        $details = WarehouseStockOpnameDetail::query()
-                    ->from('warehouse_stock_opname_details as wsod')
+        $details = DB::table('warehouse_stock_opname_details as wsod')
                     ->join('rfid_tags as rt', 'rt.id', '=', 'wsod.rfid_tag_id')
                     ->join('items as i', 'i.rfid_tag_id', '=', 'rt.id')
                     ->select([
@@ -117,7 +122,24 @@ class StockOpnameController extends Controller
                     ->orderBy('wsod.status')
                     ->get();
 
-        return response()->json( $details);
+            // Pisahkan data berdasarkan status
+        $missing = $details->where('status', 'missing')->pluck('rfid')->values()->toArray();
+        $extra   = $details->where('status', 'extra')->pluck('rfid')->values()->toArray();
+
+        // Hitung jumlah baris maksimum (biar bisa dipasangkan satu-satu)
+        $maxRows = max(count($missing), count($extra));
+
+        // Gabungkan ke format yang diinginkan frontend
+        $result = [];
+        for ($i = 0; $i < $maxRows; $i++) {
+            $result[] = [
+                'no' => $i + 1,
+                'rfid_missing' => $missing[$i] ?? null,
+                'rfid_extra' => $extra[$i] ?? null,
+            ];
+        }
+
+        return response()->json( $result);
     }
 
     public function manualStockOpname(Request $request)
@@ -138,11 +160,11 @@ class StockOpnameController extends Controller
                     'warehouse_id' => $userWarehouseId,
                     'user_id' => $user->id,
                     'status' => 'draft',
+                    'created_at' => now(),
+                    'code' => $code,
                 ],
                 [
-                    'code' => $code,
                     'location_id' => $locationId,
-                    'created_at' => now(),
                 ]
             );
 
@@ -169,6 +191,238 @@ class StockOpnameController extends Controller
         });
 
         return to_route('stock-opname.index');
+    }
+
+    public function updateStockOpnameStatus(Request $request, $opnameId)
+    {
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+
+        \DB::transaction(function () use ($opnameId, $userWarehouseId) {
+            // 1️⃣ Ambil semua RFID yang ada di detail opname
+            $detailRfids = WarehouseStockOpnameDetail::where('warehouse_stock_opname_id', $opnameId)
+                ->pluck('rfid_tag_id')
+                ->toArray();
+
+            // 2️⃣ Ambil semua RFID yang ada di stok gudang
+            $stockRfids = \DB::table('warehouse_items')
+                ->join('items as i', 'i.id', '=', 'warehouse_items.item_id')
+                ->where('i.status', 'warehouse_stock')
+                ->where('warehouse_items.warehouse_id', $userWarehouseId)
+                ->pluck('i.rfid_tag_id')
+                ->toArray();
+
+            // 3️⃣ Update status = match jika ada di stock
+            WarehouseStockOpnameDetail::where('warehouse_stock_opname_id', $opnameId)
+                ->whereIn('rfid_tag_id', $stockRfids)
+                ->update([
+                    'status' => 'match',
+                    'updated_at' => now(),
+                ]);
+
+            // 4️⃣ Update status = extra jika tidak ada di stock
+            WarehouseStockOpnameDetail::where('warehouse_stock_opname_id', $opnameId)
+                ->whereNotIn('rfid_tag_id', $stockRfids)
+                ->update([
+                    'status' => 'extra',
+                    'updated_at' => now(),
+                ]);
+
+            // 5️⃣ Tambahkan detail baru jika RFID ada di stock tapi belum ada di detail → missing
+            $missingRfids = array_diff($stockRfids, $detailRfids);
+
+            if (!empty($missingRfids)) {
+                $newDetails = array_map(function ($rfid) use ($opnameId) {
+                    return [
+                        'warehouse_stock_opname_id' => $opnameId,
+                        'rfid_tag_id' => $rfid,
+                        'status' => 'missing',
+                        'scanned_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }, $missingRfids);
+
+                WarehouseStockOpnameDetail::insert($newDetails);
+            }
+
+            WarehouseStockOpname::where('id', $opnameId)
+            ->update([
+                'status' => 'in_progress',
+                'updated_at' => now(),
+            ]);
+        });
+
+        return to_route('stock-opname.monitoring', ['headerId' => $opnameId]);
+    }
+
+    public function updateItemCondition(Request $request)
+    {
+        $rules = [
+            'stock_opname_id' => ['string', 'required', 'exists:warehouse_stock_opnames,id'],
+            'rfid' => ['string', 'required', 'exists:rfid_tags,value'],
+            'condition' => ['string', 'required', 'max:255'],
+        ];
+
+        $user = auth()->user();
+
+        $validated = $request->validate($rules);
+
+        try {
+            \DB::beginTransaction();
+
+            // A. Cek/Buat ItemCondition
+            $itemCondition = ItemCondition::firstOrCreate(
+                ['name' => $validated['condition']]
+            );
+
+            // B. Temukan Item berdasarkan RFID dan pastikan bisa di-update
+            $item = Item::whereHas('rfidTag', function ($query) use ($validated) {
+                $query->where('value', $validated['rfid']);
+            })->first();
+
+            // Cek jika Item tidak ditemukan
+            if (!$item) {
+                \DB::rollback();
+                // Throw exception agar frontend menerima error yang jelas
+                throw ValidationException::withMessages([
+                    'rfid' => 'RFID ini tidak terdaftar atau sudah tidak aktif.'
+                ]);
+            }
+
+            // C. Update Item (Mengganti kondisi dan status)
+            $item->update([
+                'current_condition_id' => $itemCondition->id,
+            ]);
+
+            // E. Create History Condition
+            ItemConditionHistory::firstOrCreate([
+                'item_id' => $item->id,
+                'item_condition_id' => $itemCondition->id,
+                'changed_by' => $user->id,
+                'reference_type' => 'warehouse_stock_opname',
+                'reference_id' => $validated['stock_opname_id'],
+                'changed_at' => now(),
+            ]);
+
+            \DB::commit();
+
+            return to_route('stock-opname.monitoring', ['headerId' => $validated['stock_opname_id']]);
+
+        } catch (\Exception $e) {
+            // Jika terjadi error (termasuk ValidationException dari atas), lakukan rollback
+            if (\DB::transactionLevel() > 0) {
+                \DB::rollback();
+            }
+            // Throw ulang exception
+            throw $e;
+        }
+    }
+
+    public function updateStock(Request $request)
+    {
+        $validated = $request->validate([
+            'warehouse_stock_opname_id' => ['required', 'string', 'exists:warehouse_stock_opnames,id']
+        ]);
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+
+        \DB::transaction(function () use ($validated, $userWarehouseId, $user) {
+            // Ambil semua item dari detail opname
+            $allItems = DB::table('warehouse_stock_opname_details as wsod')
+                ->join('rfid_tags as rt', 'rt.id', '=', 'wsod.rfid_tag_id')
+                ->join('items as i', 'i.rfid_tag_id', '=', 'rt.id')
+                ->where('wsod.warehouse_stock_opname_id', $validated['warehouse_stock_opname_id'])
+                ->pluck('i.id')
+                ->toArray();
+
+            if (!empty($allItems)) {
+                $itemConditionId = ItemCondition::where('name', 'Good')->value('id');
+
+                // Ambil item_id yang sudah punya history dengan reference_id di stock opname ini
+                $existingHistoryItems = ItemConditionHistory::where('reference_type', 'warehouse_stock_opname')
+                    ->where('reference_id', $validated['warehouse_stock_opname_id'])
+                    ->pluck('item_id')
+                    ->toArray();
+
+                // Filter item yang belum punya history di stcok opname ini
+                $newItems = array_diff($allItems, $existingHistoryItems);
+
+                if (!empty($newItems)) {
+
+                    $itemConditions = Item::whereIn('id', $newItems)
+                        ->pluck('current_condition_id', 'id') // key = item_id, value = condition_id
+                        ->toArray();
+
+                    $itemConditionHistories = collect($itemConditions)->map(function ($conditionId, $itemId) use ($user, $validated) {
+                        return [
+                            'item_id' => $itemId,
+                            'item_condition_id' => $conditionId, // pakai kondisi terakhir dari Item
+                            'changed_by' => $user->id,
+                            'reference_type' => 'warehouse_stock_opname',
+                            'reference_id' => $validated['warehouse_stock_opname_id'],
+                            'changed_at' => now(),
+                        ];
+                    })->values()->toArray();
+
+                    if (!empty($itemConditionHistories)) {
+                        ItemConditionHistory::insert($itemConditionHistories);
+                    }
+                }
+            }
+
+
+            // Ambil item extra (barang baru yang tidak ada di stok sistem)
+            $extraItems = WarehouseStockOpnameDetail::query()
+                ->from('warehouse_stock_opname_details as wsod')
+                ->join('rfid_tags as rt', 'rt.id', '=', 'wsod.rfid_tag_id')
+                ->join('items as i', 'i.rfid_tag_id', '=', 'rt.id')
+                ->where('wsod.warehouse_stock_opname_id', $validated['warehouse_stock_opname_id'])
+                ->where('wsod.status', 'extra')
+                ->pluck('i.id')
+                ->toArray();
+
+            // Ambil item missing (barang yang ada di sistem tapi tidak ada secara fisik)
+            $missingItems = WarehouseStockOpnameDetail::query()
+                ->from('warehouse_stock_opname_details as wsod')
+                ->join('rfid_tags as rt', 'rt.id', '=', 'wsod.rfid_tag_id')
+                ->join('items as i', 'i.rfid_tag_id', '=', 'rt.id')
+                ->where('wsod.warehouse_stock_opname_id', $validated['warehouse_stock_opname_id'])
+                ->where('wsod.status', 'missing')
+                ->pluck('i.id')
+                ->toArray();
+
+            // Proses EXTRA items
+            if (!empty($extraItems)) {
+                foreach ($extraItems as $itemId) {
+                    WarehouseStock::firstOrCreate([
+                        'warehouse_id' => $userWarehouseId,
+                        'item_id' => $itemId,
+                    ]);
+                }
+
+                Item::whereIn('id', $extraItems)
+                    ->update(['status' => 'warehouse_stock']);
+            }
+
+            // Proses MISSING items
+            if (!empty($missingItems)) {
+                Item::whereIn('id', $missingItems)
+                    ->where('status', 'warehouse_stock')
+                    ->update(['status' => 'missing']);
+
+                WarehouseStock::whereIn('item_id', $missingItems)
+                    ->delete();
+            }
+
+            WarehouseStockOpname::where('id', $validated['warehouse_stock_opname_id'])
+            ->update([
+                'status' => 'completed',
+                'completed_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        return to_route('stock-opname.monitoring', ['headerId' => $validated['warehouse_stock_opname_id']]);
     }
 
     private function generateCode()

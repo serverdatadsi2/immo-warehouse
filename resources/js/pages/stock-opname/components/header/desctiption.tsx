@@ -1,7 +1,9 @@
 import { formatDate } from '@/lib/utils';
+import { router } from '@inertiajs/react';
 import type { DescriptionsProps } from 'antd';
-import { Descriptions } from 'antd';
-import React, { useContext, useMemo } from 'react';
+import { Button, Descriptions, message } from 'antd';
+import { ClipboardCheck, LoaderPinwheel } from 'lucide-react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { DetailContext } from '../../monitoring';
 import { renderStatusStockOpname } from './table';
 
@@ -43,9 +45,62 @@ const DescriptionHeader: React.FC = () => {
         return baseItems;
     }, [header]);
 
+    const handleProcess = useCallback(() => {
+        router.put(
+            `/stock-opname/${header?.id}/process`,
+            {},
+            {
+                onSuccess: () => message.success('Stock Opname berhasil di process'),
+                onError: (e) => {
+                    message.success('Stock Opname gagal di process');
+                    // eslint-disable-next-line no-console
+                    console.error(e, 'error update monitoring stock opname');
+                },
+            },
+        );
+    }, [header]);
+
+    const handleUpdateStock = useCallback(() => {
+        router.post(
+            `/stock-opname/update-stock`,
+            { warehouse_stock_opname_id: header?.id },
+            {
+                onSuccess: () => message.success('Stock berhasil di update'),
+                onError: (e) => {
+                    message.success('Stock gagal di process');
+                    // eslint-disable-next-line no-console
+                    console.error(e, 'error update stock in stock opname');
+                },
+            },
+        );
+    }, [header]);
+
     return (
         <Descriptions
             title={`Kode : ${header?.code}`}
+            extra={
+                header?.status === 'draft' ? (
+                    <Button
+                        type="primary"
+                        style={{ backgroundColor: '#874d00' }}
+                        onClick={handleProcess}
+                        icon={<ClipboardCheck size={16} />}
+                    >
+                        Validasi Stok
+                    </Button>
+                ) : (
+                    header?.status === 'in_progress' && (
+                        <Button
+                            type="primary"
+                            style={{ backgroundColor: '#3f6600' }}
+                            onClick={handleUpdateStock}
+                            icon={<LoaderPinwheel size={16} />}
+                        >
+                            Ajukan Approval
+                        </Button>
+                    )
+                )
+            }
             layout="vertical"
             column={header?.completed_at ? 5 : 4}
             items={items}

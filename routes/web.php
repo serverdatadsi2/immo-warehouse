@@ -22,7 +22,7 @@ use App\Http\Controllers\{
 // HOME
 Route::get('/', function () {
     return auth()->check()
-        ? redirect()->route('inbound.supplier.index')
+        ? redirect()->route('inbounds.supplier.index')
         : redirect('/login');
 })->name('home');
 
@@ -218,9 +218,12 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::prefix('stock-opname')->name('stock-opname.')->group(function () {
         Route::get('/', [StockOpnameController::class, 'index'])->name('index');
-        Route::put('/{header_id}/process', [StockOpnameController::class, 'updateHeader'])->name('updateHeader');
+        Route::get('/detail', [StockOpnameController::class, 'detail'])->name('detail');
         Route::get('/monitoring', [StockOpnameController::class, 'monitoring'])->name('monitoring');
+        Route::put('/{stockOpnameId}/process', [StockOpnameController::class, 'updateStockOpnameStatus'])->name('updateStockOpnameStatus');
         Route::post('/manual-stock-opname', [StockOpnameController::class, 'manualStockOpname'])->name('manualStockOpname');
+        Route::post('/update-stock', [StockOpnameController::class, 'updateStock'])->name('updateStock');
+        Route::post('/bad-condition-item', [StockOpnameController::class, 'updateItemCondition'])->name('updateItemCondition');
     });
 });
 

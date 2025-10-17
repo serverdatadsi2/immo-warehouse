@@ -144,7 +144,7 @@ export function Filters({ params }: Props) {
                         placeholder="Semua Status"
                     >
                         <Select.Option value="draft">Draft</Select.Option>
-                        <Select.Option value="in_progres">Processing</Select.Option>
+                        <Select.Option value="in_progress">In Progress</Select.Option>
                         <Select.Option value="completed">Complated</Select.Option>
                         <Select.Option value="">All</Select.Option>
                     </Select>

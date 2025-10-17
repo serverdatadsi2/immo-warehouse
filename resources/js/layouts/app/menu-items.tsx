@@ -106,6 +106,12 @@ export const menuItems = [
         url: '/storage-warehouse',
     }),
     getMenuItem({
+        key: 'stock-opname',
+        icon: <FileChartColumn size={17} />,
+        label: 'Stock Opname',
+        url: '/stock-opname',
+    }),
+    getMenuItem({
         key: 'receiving-order',
         icon: <NotebookText size={17} />,
         label: 'Receiving Orders',
@@ -134,11 +140,5 @@ export const menuItems = [
         icon: <HardDriveUpload size={17} />,
         label: 'Outbound',
         url: '/outbound',
-    }),
-    getMenuItem({
-        key: 'stock-opname',
-        icon: <FileChartColumn size={17} />,
-        label: 'Stock Opname',
-        url: '/stock-opname',
     }),
 ];

@@ -1,13 +1,23 @@
 import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
+import { Product } from '@/types/product.type';
 import { router } from '@inertiajs/react';
-import type { TableProps } from 'antd';
-import { useCallback, useContext, useMemo } from 'react';
+import { Button, Tooltip, type TableProps } from 'antd';
+import { LayoutList } from 'lucide-react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { DetailContext, DetailItem } from '../../monitoring';
+import DetailModal from './modal-detail';
 
 export function DetailTable() {
     const { detailsPagination: pagination } = useContext(DetailContext);
-    console.log(pagination, 'pagination');
+    const [visible, setVisible] = useState<boolean>(false);
+    const [product, setProduct] = useState<Partial<Product>>();
+
+    const handleAction = useCallback((d) => {
+        setProduct({ id: d.product_id, name: d.product_name, code: d.product_code });
+        setVisible(true);
+    }, []);
+
     const columns = useMemo(
         (): TableProps<DetailItem>['columns'] => [
             {
@@ -23,6 +33,11 @@ export function DetailTable() {
                 title: 'Product',
                 dataIndex: 'product_name',
                 key: 'product_name',
+            },
+            {
+                title: 'Pending',
+                dataIndex: 'pending_qty',
+                key: 'pending_qty',
             },
             {
                 title: 'System',
@@ -54,8 +69,25 @@ export function DetailTable() {
                 dataIndex: 'status',
                 key: 'status',
             },
+            {
+                title: 'Action',
+                dataIndex: 'product_id',
+                key: 'product_id',
+                fixed: 'right',
+                align: 'center',
+                render: (_, d) => (
+                    <Tooltip title="Lihat Detail">
+                        <Button
+                            onClick={() => handleAction(d)}
+                            icon={<LayoutList size={18} />}
+                            type="primary"
+                            style={{ borderRadius: 8, fontWeight: 'bold' }}
+                        />
+                    </Tooltip>
+                ),
+            },
         ],
-        [pagination],
+        [handleAction, pagination],
     );
 
     const handlePageChange = useCallback((page: number) => {
@@ -75,6 +107,7 @@ export function DetailTable() {
                 className="max-w-full"
                 scroll={{ x: 'max-content' }}
             />
+            <DetailModal open={visible} onClose={() => setVisible(false)} product={product} />
         </>
     );
 }
