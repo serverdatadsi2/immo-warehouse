@@ -34,7 +34,8 @@ export function LocationSelect({
     const { data, isLoading } = useQuery({
         queryKey: ['Location', type, parentId, search, page],
         queryFn: async () => {
-            const res = await axiosIns.get<Array<Location>>('/api/locations', {
+            // const res = await axiosIns.get<Array<Location>>('/api/locations', {
+            const res = await axiosIns.get<Array<Location>>('/locations', {
                 params: {
                     type,
                     parent_id: parentId,

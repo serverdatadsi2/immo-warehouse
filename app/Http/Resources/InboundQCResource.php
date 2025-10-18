@@ -23,11 +23,14 @@ class InboundQCResource extends JsonResource
             'warehouse_name' => $this->warehouse_name,
             'performed_by' => $this->performed_by,
             // Mengubah ke ISO string untuk scan_time
-            'scan_time' => Carbon::parse($this->performed_at)->toISOString(),
+            'scan_time' => $this->performed_at,
             // Menggunakan condition_name sebagai status
             'status' => $this->condition_name === 'Good' ? 'Good' : 'Bad',
             // Menggunakan condition_name sebagai condition
             'condition' => $this->condition_name,
+            'layer_name' => $this->layer_name,
+            'rack_name' => $this->rack_name,
+            'room_name' => $this->room_name
         ];
     }
 }

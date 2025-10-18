@@ -37,7 +37,7 @@ class LocationSuggestionController extends Controller
                 'lr.id', 'lr.name', 'lr.code',
                 'lrr.id', 'lrr.name', 'lrr.code'
             )
-            ->paginate(10);
+            ->simplePaginate(10);
 
         return Inertia::render('location-suggestions/index', ['pagination' => $pagination]);
     }
@@ -73,5 +73,32 @@ class LocationSuggestionController extends Controller
         });
 
         return to_route('location-suggestions.index');
+    }
+
+    public function getLocationByUser(Request $request)
+    {
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+
+        $type = $request->input('type');
+        $parentId = $request->input('parent_id');
+        $page = $request->input('page');
+        $offset = ($page - 1) * 30;
+
+        $data = Location::query()
+            ->join('warehouse_locations as wl', 'wl.location_id', '=', 'locations.id')
+            ->when($type, function ($query, $type) {
+                return $query->where('type', $type);
+            })
+            ->when($parentId, function ($query, $parentId) {
+                return $query->where('location_parent_id', $parentId);
+            })
+            ->where('wl.warehouse_id', $userWarehouseId)
+
+            ->offset($offset)
+            ->limit(30)
+            ->get();
+
+        return response()->json($data);
     }
 }

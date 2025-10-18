@@ -211,6 +211,8 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', [LocationSuggestionController::class, 'delete']);
         });
     });
+    // get all location
+    Route::get('/locations', [LocationSuggestionController::class, 'getLocationByUser'])->name('get-all-location-by-user');
 
     /*
     |--------------------------------------------------------------------------
