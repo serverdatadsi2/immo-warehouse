@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Product;
 use App\Models\RFIDTag;
+use App\Models\StoreReturnDetail;
 use App\Models\WarehouseInboundDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -100,6 +101,7 @@ class RFIDTaggingController extends Controller
         $query = WarehouseInboundDetail::query()
                 ->join('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
                 ->join('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_inbound_details.warehouse_inbound_id')
+                ->join('store_returns as sr', 'sr.id', '=', 'wi.store_return_id')
                 ->leftJoin('items as i', 'i.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
                 ->whereIn('wi.warehouse_id', $userWarehouseIds)
                 ->where('inbound_type', 'store_return')
@@ -113,6 +115,7 @@ class RFIDTaggingController extends Controller
                     'wi.received_date',
                     'wi.warehouse_id',
                     'warehouse_inbound_details.expired_date',
+                    'wi.store_return_id',
 
                     // 1. Hitung jumlah item yang sudah QC (current_condition_id TIDAK NULL)
                     // 2. Kurangi quantity inbound detail dengan quantity qc 'quantity'
@@ -135,7 +138,8 @@ class RFIDTaggingController extends Controller
                     'p.code',
                     'wi.received_date',
                     'wi.warehouse_id',
-                    'warehouse_inbound_details.expired_date'
+                    'warehouse_inbound_details.expired_date',
+                    'wi.store_return_id',
                 )
 
                 // Memastikan quantity sisa (hasil perhitungan) lebih besar dari 0
@@ -288,6 +292,88 @@ class RFIDTaggingController extends Controller
         return response()->json($allAvailable);
     }
 
+    // generate new item but old rfid tag
+    public function generateNewItemReturn(Request $request)
+    {
+        $rules = [
+            'warehouse_inbound_detail_id' => ['string', 'required', 'exists:warehouse_inbound_details,id'],
+            'store_return_id' => ['string', 'required', 'exists:warehouse_inbound_details,id'],
+            'product_id' => ['string', 'required', 'exists:products,id'],
+            // 'expired_date' => ['date', 'nullable'],
+            // 'quantity' => ['numeric', 'required'],
+        ];
+
+        $validated = $request->validate($rules);
+
+        // $qty = (int) $validated['quantity'];
+
+        $returStore = StoreReturnDetail::join('item as i', 'i.id', '=', 'store_return_details.item_id' )
+                    ->where('store_return_details.store_return_id', $validated['store_return_id'])
+                    ->where('i.priduct_id', $validated['product_id'])
+                    ->select('i.id as item_id', 'i.rfid_tag_id', 'i.expired_date', 'i.product_id')
+                    ->get();
+
+        $createdItems = [];
+
+        foreach ($returStore as $rfid) {
+            $createdItems[] = Item::updateOrCreate(
+                [
+                    'old_item_id' => $rfid->item_id, // referensi item lama
+                ],
+                [
+                    'rfid_tag_id' => $rfid->rfid_tag_id,
+                    'warehouse_inbound_detail_id' => $validated['warehouse_inbound_detail_id'],
+                    'product_id' => $rfid->product_id,
+                    'expired_date' => $rfid->expired_date,
+                    'status' => 'warehouse_processing',
+                ]
+            );
+        }
+
+        // $items = Item::query()
+        //             ->where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])
+        //             ->where('product_id', $validated['product_id'])
+        //             ->whereNull('current_condition_id') // Hanya yang belum QC
+        //             ->whereNull('old_item_id') // Hanya item yang baru
+        //             ->where('items.status', 'warehouse_processing') // Hanya yang belum QC
+        //             ->where('expired_date', $validated['expired_date'])
+        //             ->get();
+
+        // $newItems = DB::transaction(function () use ($items, $validated, $qty) {
+        //     $createdItems = [];
+
+        //     $qtyToInsert = $qty - $items->count();
+
+        //     for ($i = 0; $i < $qtyToInsert; $i++) {
+        //         $rfidId = (string) Str::uuid();
+
+        //         // Simpan RFID Tag
+        //         $rfid = RfidTag::create([
+        //             'id' => $rfidId,
+        //             'value' => $rfidId,
+        //         ]);
+
+        //         // Simpan Item
+        //         $createdItems[] = Item::updateOrCreate(
+        //             [
+        //                 'warehouse_inbound_detail_id' => $validated['warehouse_inbound_detail_id'],
+        //                 'rfid_tag_id' => $rfid->id,
+        //             ],
+        //             [
+        //                 'product_id' => $validated['product_id'],
+        //                 'expired_date' => $validated['expired_date'],
+        //                 'status' => 'warehouse_processing',
+        //             ],
+        //         );
+        //     }
+        //     return $createdItems;
+        // });
+
+        // $allAvailable = $items->merge($newItems);
+
+        return response()->json($createdItems);
+    }
+
     public function getRFIDItems(Request $request)
     {
         $rules = [
@@ -306,90 +392,22 @@ class RFIDTaggingController extends Controller
         return response()->json($items);
     }
 
-    public function generatePdfWithRFID(Request $request)
+    public function generatePdfWithRFIDInboundSupplier(Request $request)
     {
         try {
             $items = $this->generateRFIDTagItems($request)->getData();
 
             $product = Product::findOrFail($request->product_id);
 
-            $pdf = new \FPDF('P','mm','A4');
-            $pdf->AddPage();
-            $pageWidth = $pdf->GetPageWidth();
-            $pageHeight = $pdf->GetPageHeight();
+            $pdfContent = $this->generatePdfWithRFID($items, $product);
 
-            $qrSize = 20;
-            $cols = 3;
-            $cellHeight = 25;
-            $cellWidth = $pageWidth / $cols;
-
-            $x = 6;
-            $y = 10;
-
-            foreach ($items as $i => $item) {
-                $rfid_tag_id = $item->rfid_tag_id;
-
-                // Generate QR ke binary string PNG
-                $options = new QROptions([
-                    'outputType' => QRCode::OUTPUT_IMAGE_PNG,
-                    'eccLevel'   => QRCode::ECC_L,
-                    'scale'      => 3,
-                    'imageBase64' => false,
-                ]);
-                $qrcode = (new QRCode($options))->render($rfid_tag_id);
-                if (!$qrcode) {
-                    throw new \Exception("Gagal generate QR untuk $rfid_tag_id");
-                }
-                // Simpan ke file sementara dengan ekstensi .png
-                $tempFile = storage_path("app/tmp/".md5($rfid_tag_id).".png");
-                if (!file_exists(dirname($tempFile))) {
-                    mkdir(dirname($tempFile), 0777, true);
-                }
-                file_put_contents($tempFile, $qrcode);
-
-                // Masukkan QR ke PDF
-                $pdf->Image($tempFile, $x, $y, $qrSize, $qrSize);
-
-                // Text di bawah
-                $pdf->SetFont('Arial','',7);
-                $pdf->Text($x+2, $y+$qrSize+1, $rfid_tag_id);
-
-                // Mulai tulis teks di kanan QR
-                $pdf->SetXY($x + $qrSize , $y+2);
-
-                // Wrap product name max 50mm
-                $pdf->MultiCell(50, 3, $product->name, 0, 'L');
-
-                //  product code
-                $pdf->SetX($x + $qrSize);
-                $pdf->MultiCell(40, 4, "Code: ".$product->code, 0, 'L');
-
-                // Posisi kolom
-                if ((($i+1) % $cols) == 0) {
-                    $x = 6;
-                    $y += $cellHeight;
-                } else {
-                    $x += $cellWidth;
-                }
-
-                // Page break
-                if ($y + $cellHeight > $pageHeight - 10) {
-                    $pdf->AddPage();
-                    $x = 6;
-                    $y = 10;
-                }
-
-                // Hapus file sementara
-                @unlink($tempFile);
-            }
-
-            return response($pdf->Output('S'))
+            // 3. Kirim Respon PDF
+            return response($pdfContent)
                 ->header('Content-Type', 'application/pdf')
                 ->header('Content-Disposition', 'inline; filename="'.$product->name.'-rfid-qrcodes.pdf"');
 
         } catch (\Throwable $e) {
             \Log::error($e);
-            // Kirim error ke frontend
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal generate PDF',
@@ -398,4 +416,101 @@ class RFIDTaggingController extends Controller
         }
     }
 
+    public function generatePdfWithRFIDInboundReturn(Request $request)
+    {
+        try {
+            $items = $this->generateNewItemReturn($request)->getData();
+
+            $product = Product::findOrFail($request->product_id);
+
+            $pdfContent = $this->generatePdfWithRFID($items, $product);
+
+            // 3. Kirim Respon PDF
+            return response($pdfContent)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="'.$product->name.'-rfid-qrcodes.pdf"');
+
+        } catch (\Throwable $e) {
+            \Log::error($e);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate PDF',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    protected function generatePdfWithRFID(array $items, Product $product)
+    {
+        $pdf = new \FPDF('P','mm','A4');
+        $pdf->AddPage();
+        $pageWidth = $pdf->GetPageWidth();
+        $pageHeight = $pdf->GetPageHeight();
+
+        $qrSize = 20;
+        $cols = 3;
+        $cellHeight = 25;
+        $cellWidth = $pageWidth / $cols;
+
+        $x = 6;
+        $y = 10;
+
+        foreach ($items as $i => $item) {
+            $rfid_tag_id = $item->rfid_tag_id;
+
+            // Generate QR ke binary string PNG
+            $options = new QROptions([
+                'outputType' => QRCode::OUTPUT_IMAGE_PNG,
+                'eccLevel'   => QRCode::ECC_L,
+                'scale'      => 3,
+                'imageBase64' => false,
+            ]);
+            $qrcode = (new QRCode($options))->render($rfid_tag_id);
+            if (!$qrcode) {
+                throw new \Exception("Gagal generate QR untuk $rfid_tag_id");
+            }
+            // Simpan ke file sementara dengan ekstensi .png
+            $tempFile = storage_path("app/tmp/".md5($rfid_tag_id).".png");
+            if (!file_exists(dirname($tempFile))) {
+                mkdir(dirname($tempFile), 0777, true);
+            }
+            file_put_contents($tempFile, $qrcode);
+
+            // Masukkan QR ke PDF
+            $pdf->Image($tempFile, $x, $y, $qrSize, $qrSize);
+
+            // Text di bawah
+            $pdf->SetFont('Arial','',7);
+            $pdf->Text($x+2, $y+$qrSize+1, $rfid_tag_id);
+
+            // Mulai tulis teks di kanan QR
+            $pdf->SetXY($x + $qrSize , $y+2);
+
+            // Wrap product name max 50mm
+            $pdf->MultiCell(50, 3, $product->name, 0, 'L');
+
+            //  product code
+            $pdf->SetX($x + $qrSize);
+            $pdf->MultiCell(40, 4, "Code: ".$product->code, 0, 'L');
+
+            // Posisi kolom
+            if ((($i+1) % $cols) == 0) {
+                $x = 6;
+                $y += $cellHeight;
+            } else {
+                $x += $cellWidth;
+            }
+
+            // Page break
+            if ($y + $cellHeight > $pageHeight - 10) {
+                $pdf->AddPage();
+                $x = 6;
+                $y = 10;
+            }
+
+            // Hapus file sementara
+            @unlink($tempFile);
+        }
+        return $pdf->Output('S');
+    }
 }

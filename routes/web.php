@@ -87,7 +87,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [RFIDTaggingController::class, 'insertItemStock']);
         Route::post('/create-rfid', [RFIDTaggingController::class, 'createRFIDTag']);
         Route::post('/generate-rfid-tag', [RFIDTaggingController::class, 'generateRFIDTagItems']);
-        Route::post('/generate-rfid-tag-pdf', [RFIDTaggingController::class, 'generatePdfWithRFID']);
+        Route::post('/generate-rfid-tag-pdf', [RFIDTaggingController::class, 'generatePdfWithRFIDInboundSupplier']);
+        Route::post('/generate-return-rfid-tag-pdf', [RFIDTaggingController::class, 'generatePdfWithRFIDInboundReturn']);
     });
 
     // Items (by inbound details)

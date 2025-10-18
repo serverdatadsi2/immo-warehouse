@@ -261,8 +261,8 @@ class OutboundController extends Controller
 
     private function generateDeliveryOrderNumber()
     {
-        $date = now(); // pakai Carbon
-        $dateCode = $date->format('ymd'); // contoh: 251014
+        $date = now();
+        $dateCode = $date->format('Ymd'); // contoh: 20251014
 
         // Ambil surat jalan terakhir yang dibuat pada hari ini
         $lastRecord = WarehouseOutbound::whereDate('created_at', $date->toDateString())
@@ -287,7 +287,7 @@ class OutboundController extends Controller
     private function generateInvoiceNumber()
     {
         $date = now();
-        $dateCode = $date->format('ymd');
+        $dateCode = $date->format('Ymd');
 
         $lastRecord = WarehouseOutbound::whereDate('created_at', $date->toDateString())
             // ->where('invoice_number', 'ILIKE', "INV-SO-{$dateCode}-%")

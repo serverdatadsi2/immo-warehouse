@@ -1,5 +1,11 @@
-import { DeleteOutlined, PlusOutlined, PrinterOutlined, SaveOutlined } from '@ant-design/icons';
-import { Button, ButtonProps, Popconfirm } from 'antd';
+import {
+    DeleteOutlined,
+    ExclamationCircleFilled,
+    PlusOutlined,
+    PrinterOutlined,
+    SaveOutlined,
+} from '@ant-design/icons';
+import { Button, ButtonProps, Modal } from 'antd';
 import { Upload } from 'lucide-react';
 
 export function SaveButton({ onClick, ...props }: Props) {
@@ -11,16 +17,33 @@ export function SaveButton({ onClick, ...props }: Props) {
 }
 
 export function DeleteButton({ onClick, ...props }: Props) {
+    const showDeleteConfirm = () => {
+        Modal.confirm({
+            title: 'Delete',
+            icon: <ExclamationCircleFilled />,
+            content: 'Are you sure to delete this Data?',
+            okText: 'Yes',
+            okType: 'danger',
+            cancelText: 'No',
+            centered: true,
+            onOk() {
+                onClick();
+            },
+            // onCancel() {
+            //       console.log('Cancel');
+            // },
+        });
+    };
     return (
-        <Popconfirm
-            title="Delete"
-            description="Are you sure to delete this Data?"
-            onConfirm={onClick}
-        >
-            <Button {...props} icon={<DeleteOutlined />} danger>
-                Delete
-            </Button>
-        </Popconfirm>
+        // <Popconfirm
+        //     title="Delete"
+        //     description="Are you sure to delete this Data?"
+        //     onConfirm={onClick}
+        // >
+        <Button onClick={showDeleteConfirm} {...props} icon={<DeleteOutlined />} danger>
+            Delete
+        </Button>
+        // </Popconfirm>
     );
 }
 

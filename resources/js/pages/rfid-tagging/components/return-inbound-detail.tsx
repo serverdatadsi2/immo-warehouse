@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, Input, List, Space } from 'antd';
 import { useCallback, useState } from 'react';
 import { useRfidTagging } from '../context';
-import QRCodePrinter from './print-qrcode-backend';
+import ConfirmPrint from './confirm-print';
 const { Meta } = Card;
 
 export function ReturnInboundDetail() {
@@ -21,12 +21,15 @@ export function ReturnInboundDetail() {
     const { data: pagination, isLoading } = useQuery({
         queryKey: ['return-inbound-detail-list', search, page],
         queryFn: async () => {
-            const res = await axiosIns.get<LaravelPagination<InboundDetailWithRelation>>(
-                '/rfid-tagging/return-inbound-detail-list',
-                {
-                    params: { search, page },
-                },
-            );
+            const res = await axiosIns.get<
+                LaravelPagination<
+                    InboundDetailWithRelation & {
+                        store_return_id: string;
+                    }
+                >
+            >('/rfid-tagging/return-inbound-detail-list', {
+                params: { search, page },
+            });
             return res.data;
         },
     });
@@ -141,7 +144,9 @@ export function ReturnInboundDetail() {
                                         title={`${item.product_code} — ${item.product_name}`}
                                         description={`Quantity: ${item.quantity}  | inbound: ${formatDate(item.received_date)}`}
                                     />
-                                    <QRCodePrinter selectInbound={item} />
+                                    <ConfirmPrint selectInbound={item} />
+
+                                    {/* <QRCodePrinter selectInbound={item} /> */}
                                     {/* <PrintButton onClick={() => console.log('test')} /> */}
                                 </List.Item>
                             );
