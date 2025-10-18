@@ -17,6 +17,9 @@ export interface InboundQC {
     scan_time: string; // ISO date string
     status: string;
     condition: string;
+    room_name: string;
+    layer_name: string;
+    rack_name: string;
 }
 
 interface HeightBadProduct {

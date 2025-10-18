@@ -70,7 +70,19 @@ const TableMonitoring = () => {
                 render: (text) => <code>{text}</code>,
                 align: 'center',
             },
-            { title: 'Warehouse', dataIndex: 'warehouse_name', align: 'center' },
+            {
+                title: 'Location Sugestion',
+                // dataIndex: 'warehouse_name',
+                align: 'center',
+                render: (_, record) => {
+                    const parts: string[] = [];
+                    if (record?.warehouse_name) parts.push(record?.warehouse_name);
+                    if (record?.room_name) parts.push(record?.room_name);
+                    if (record?.rack_name) parts.push(record?.rack_name);
+                    if (record?.layer_name) parts.push(record?.layer_name);
+                    return parts.join(' > ');
+                },
+            },
             {
                 title: 'Waktu Scan',
                 dataIndex: 'scan_time',

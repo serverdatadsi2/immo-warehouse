@@ -1,16 +1,18 @@
 import { AddButton } from '@/components/buttons/crud-buttons';
-import { LaravelTable } from '@/components/tables/laravel-table';
+import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
-import { LaravelPagination } from '@/types/laravel-pagination.type';
+import { SimplePagination } from '@/types/laravel-pagination.type';
 import { LocationSuggestion } from '@/types/location-suggestion.type';
 import { router } from '@inertiajs/react';
-import { Button, TableProps } from 'antd';
+import { Button, Card, Col, Row, TableProps, Typography } from 'antd';
 import { Edit } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { LocationSuggestionForm } from './form';
 
+const { Title, Text } = Typography;
+
 interface Props {
-    pagination: LaravelPagination<LocationSuggestion> | null;
+    pagination: SimplePagination<LocationSuggestion> | null;
 }
 
 export default function TableData({ pagination }: Props) {
@@ -39,6 +41,16 @@ export default function TableData({ pagination }: Props) {
     const columns = useMemo(
         (): TableProps<LocationSuggestion>['columns'] => [
             {
+                title: 'No.',
+                key: 'serial',
+                align: 'center',
+                render: (_: any, __: LocationSuggestion, index: number) => {
+                    const currentPage = pagination?.current_page ?? 1;
+                    const perPage = 10;
+                    return (currentPage - 1) * perPage + index + 1;
+                },
+            },
+            {
                 title: 'Product',
                 dataIndex: 'product_name',
                 key: 'product',
@@ -64,33 +76,65 @@ export default function TableData({ pagination }: Props) {
                 title: 'Actions',
                 key: 'actions',
                 render: (record: LocationSuggestion) => (
-                    <Button icon={<Edit size={17} />} onClick={() => handleEdit(record)} />
+                    <Button
+                        type="primary"
+                        icon={<Edit size={17} />}
+                        onClick={() => handleEdit(record)}
+                    />
                 ),
             },
         ],
-        [],
+        [pagination],
     );
 
     return (
-        <div>
-            <div style={{ marginBottom: 16 }}>
-                <AddButton onClick={handleAdd} />
-            </div>
-
-            <LaravelTable<LocationSuggestion>
-                columns={columns}
-                dataSource={pagination?.data}
-                rowKey="id"
-                pagination={pagination}
-                onPageChange={handlePageChange}
-            />
-            {/* </Card> */}
+        <>
+            <Card
+                style={{
+                    background: '#f5faff',
+                    boxShadow: '0 2px 8px #1890ff11',
+                    marginBottom: 16,
+                }}
+            >
+                <Row align="middle" justify="space-between">
+                    <Col>
+                        <Title level={4} style={{ color: '#1890ff', marginBottom: 0 }}>
+                            Daftar Location Sugestion
+                        </Title>
+                        <Text type="secondary">
+                            Lengkapi Data terlebih dahulu untuk mendapatkan rekomendasi lengkap
+                            lokasi penyimpanan barang.
+                        </Text>
+                    </Col>
+                    <Col>
+                        <AddButton onClick={handleAdd} />
+                    </Col>
+                </Row>
+            </Card>
+            <Card
+                size="small"
+                style={{
+                    background: '#f5faff',
+                    boxShadow: '0 2px 8px #1890ff11',
+                }}
+            >
+                <CustomTable<LocationSuggestion>
+                    size="small"
+                    style={{ marginTop: '24px' }}
+                    columns={columns}
+                    dataSource={pagination?.data}
+                    onPaginationChange={handlePageChange}
+                    page={pagination?.current_page || 1}
+                    bordered
+                    rowKey="id"
+                />
+            </Card>
 
             <LocationSuggestionForm
                 open={formOpen}
                 onClose={handleFormClose}
                 existingData={selectedItem}
             />
-        </div>
+        </>
     );
 }

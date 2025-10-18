@@ -122,6 +122,12 @@ class WarehouseQcController extends Controller
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
             ->join('rfid_tags as rt', 'rt.id', '=', 'i.rfid_tag_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->leftJoin('warehouse_item_location_suggestions as wils', 'wils.product_id', '=', 'i.product_id')
+            // location detail
+            ->leftJoin('locations as lr', 'lr.id', '=', 'wils.location_id')
+            ->leftJoin('locations as rk', 'rk.id', '=', 'lr.location_parent_id')
+            ->leftJoin('locations as rm', 'rm.id', '=', 'rk.location_parent_id')
+
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
             ->join('users as u', 'u.id', '=', 'warehouse_qc.performed_by')
             ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
@@ -140,7 +146,10 @@ class WarehouseQcController extends Controller
                 'p.id as product_id', 'p.name as product_name',
                 'w.id as warehouse_id', 'w.name as warehouse_name',
                 'ic.name as condition_name', 'u.name as performed_by',
-                'rt.value as rfid'
+                'rt.value as rfid',
+                'lr.name as layer_name', 'lr.code as layer_code',
+                'rk.name as rack_name', 'rk.code as rack_code',
+                'rm.name as room_name', 'rm.code as room_code',
             );
 
         if ($search) { $dataQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
