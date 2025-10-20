@@ -34,7 +34,7 @@ class ReturnInboundController extends Controller
             ->groupBy('warehouse_inbounds.id', 'w.name', 'u.name', 's.name')
             ->simplePaginate(10);
 
-        return Inertia::render('return-inbound/history', ['pagination' => $pagination]);
+        return Inertia::render('inbounds/return-inbound/history', ['pagination' => $pagination]);
     }
 
     public function index(Request $request)
@@ -50,7 +50,7 @@ class ReturnInboundController extends Controller
             ->whereNotNull('shipped_at')
             ->simplePaginate(10);
 
-        return Inertia::render('return-inbound/index', ['pagination' => $pagination]);
+        return Inertia::render('inbounds/return-inbound/index', ['pagination' => $pagination]);
    }
 
     public function detail(Request $request)
@@ -79,7 +79,7 @@ class ReturnInboundController extends Controller
                 ->simplePaginate(5);
         }
 
-        return Inertia::render('return-inbound/detail', [
+        return Inertia::render('inbounds/return-inbound/detail', [
             'detailsPagination' => $detailsPagination,
             'header' => $header,
             'storeReturn' => $storeReturn,

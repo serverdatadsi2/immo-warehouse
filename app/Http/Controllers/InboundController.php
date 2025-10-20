@@ -31,7 +31,7 @@ class InboundController extends Controller
             ->groupBy('warehouse_inbounds.id', 's.name', 'w.name', 'u.name')
             ->paginate(10);
 
-        return Inertia::render('inbound/index', ['pagination' => $pagination]);
+        return Inertia::render('inbounds/supplier/index', ['pagination' => $pagination]);
     }
 
     public function detail(Request $request)
@@ -49,7 +49,7 @@ class InboundController extends Controller
                 ->paginate(5);
         }
 
-        return Inertia::render('inbound/detail', [
+        return Inertia::render('inbounds/supplier/detail', [
             'detailsPagination' => $detailsPagination,
             'header' => $header
         ]);
