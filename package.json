@@ -22,6 +22,7 @@
         "typescript-eslint": "^8.23.0"
     },
     "dependencies": {
+        "@ant-design/charts": "^2.6.5",
         "@ant-design/v5-patch-for-react-19": "^1.0.3",
         "@inertiajs/react": "^2.1.0",
         "@tailwindcss/vite": "^4.1.13",

@@ -17,6 +17,7 @@
         "app",
         "staging",
         "return-inbound",
-        "stock-opname"
+        "stock-opname",
+        "dashboard"
     ]
 }

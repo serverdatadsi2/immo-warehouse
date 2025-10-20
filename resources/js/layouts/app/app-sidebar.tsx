@@ -1,7 +1,7 @@
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Button, Layout, Menu } from 'antd';
 import { Warehouse } from 'lucide-react';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { menuItems } from './menu-items';
 
 const { Sider } = Layout;
@@ -13,6 +13,10 @@ export function AppSidebar() {
         const basePath = url.split('?')[0];
         return basePath.split('/').filter((d) => d);
     }, [url]);
+
+    const handleClick = useCallback(() => {
+        router.get('/');
+    }, []);
 
     return (
         <Sider
@@ -31,6 +35,7 @@ export function AppSidebar() {
             <div className="demo-logo-vertical" />
             <div className="pt-3 mb-5 text-center">
                 <Button
+                    onClick={handleClick}
                     type="text"
                     icon={<Warehouse />}
                     style={{

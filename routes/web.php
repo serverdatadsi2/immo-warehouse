@@ -16,22 +16,17 @@ use App\Http\Controllers\{
     StockOpnameController,
     PackingController,
     StagingController,
+    DashboardController,
     UserController,
 };
-
-// HOME
-Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('inbounds.supplier.index')
-        : redirect('/login');
-})->name('home');
 
 // MAIN AUTH ROUTES
 Route::middleware(['auth'])->group(function () {
 
+    Route::get('/', [DashboardController::class, "index"])->name('dashboard');
+
     // get user for asyncSelectUser component
     Route::get('/users', [UserController::class, "index"])->name('user.index');
-
 
     /*
     |--------------------------------------------------------------------------

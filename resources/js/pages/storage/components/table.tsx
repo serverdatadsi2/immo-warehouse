@@ -29,23 +29,17 @@ export default function TableData({ pagination }: Props) {
                 },
             },
             {
-                title: 'Barang',
-                key: 'product',
-                children: [
-                    {
-                        title: 'Nama',
-                        dataIndex: 'product_name',
-                        key: 'product_name',
-                        align: 'left',
-                    },
-                    {
-                        title: 'Kode',
-                        dataIndex: 'product_code',
-                        key: 'product_code',
-                        align: 'center',
-                        render: (code) => <Tag color="blue">{code}</Tag>,
-                    },
-                ],
+                title: 'Nama Barang',
+                dataIndex: 'product_name',
+                key: 'product_name',
+                align: 'left',
+            },
+            {
+                title: 'Kode Barang',
+                dataIndex: 'product_code',
+                key: 'product_code',
+                align: 'center',
+                render: (code) => <Tag color="blue">{code}</Tag>,
             },
             {
                 title: 'Expired Date',
