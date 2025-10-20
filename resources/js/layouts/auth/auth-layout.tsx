@@ -1,4 +1,4 @@
-import { Card, Space, Typography } from 'antd';
+import { App, Card, Space, Typography } from 'antd';
 import { ReactNode } from 'react';
 
 const { Title, Text } = Typography;
@@ -42,8 +42,7 @@ export function AuthLayout({ children }: Props) {
                             Sistem Manajemen Warehouse dengan RFID
                         </Text>
                     </div>
-
-                    {children}
+                    <App>{children}</App>
                 </Space>
             </Card>
         </div>

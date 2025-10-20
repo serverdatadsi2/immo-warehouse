@@ -10,6 +10,9 @@ class EcommerceOrder extends Model
 {
     use HasUlids;
     protected $guarded = [];
+
+    const UPDATED_AT = null;
+
     public function newUniqueId(): string
     {
         return (string) Uuid::uuid4();

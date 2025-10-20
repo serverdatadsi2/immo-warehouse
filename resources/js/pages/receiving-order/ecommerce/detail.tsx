@@ -1,7 +1,7 @@
 import { BackButton } from '@/components/buttons/crud-buttons';
 import { AppLayout } from '@/layouts/app-layout';
-import { InboundDetail } from '@/types/inbound.type';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
+import { ReceivingEcommerceOrderDetail } from '@/types/receiving-order.type';
 import { Storage } from '@/types/storage.type';
 import { Head } from '@inertiajs/react';
 import { Card, Space, Typography } from 'antd';
@@ -22,7 +22,7 @@ const { Title } = Typography;
 export default function Page({ detailsPagination, header, availableStocks }: PageProps) {
     return (
         <AppLayout
-            navBarLeft={<BackButton backUrl="/receiving-order" />}
+            navBarLeft={<BackButton backUrl="/receiving-order/ecommerce" />}
             navBarTitle="Detail Store Order"
         >
             <Head title="Detail Store Order" />
@@ -68,7 +68,7 @@ export default function Page({ detailsPagination, header, availableStocks }: Pag
     );
 }
 
-export type DetailItem = InboundDetail;
+export type DetailItem = ReceivingEcommerceOrderDetail;
 
 type PageProps = {
     header: Partial<HeaderItem> | null;

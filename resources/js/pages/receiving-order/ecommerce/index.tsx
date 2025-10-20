@@ -1,13 +1,13 @@
 import { AppLayout } from '@/layouts/app-layout';
-import { LaravelPagination } from '@/types/laravel-pagination.type';
-import { Params, ReceivingOrder } from '@/types/receiving-order.type';
+import { SimplePagination } from '@/types/laravel-pagination.type';
+import { Params, ReceivingEcommerceOrder } from '@/types/receiving-order.type';
 import { Head } from '@inertiajs/react';
 import { Filters } from './components/filters';
 import { HeaderTable } from './components/header/table';
 
 export default function Page({ pagination, params }: PageProps) {
     return (
-        <AppLayout navBarTitle="Receiving Orders">
+        <AppLayout navBarTitle="Receiving Ecommerce Orders">
             <Head title="Receiving Orders" />
             <Filters params={params} />
             <HeaderTable pagination={pagination} />
@@ -15,9 +15,9 @@ export default function Page({ pagination, params }: PageProps) {
     );
 }
 
-export type HeaderItem = ReceivingOrder;
+export type HeaderItem = ReceivingEcommerceOrder;
 
 type PageProps = {
-    pagination: LaravelPagination<HeaderItem>;
+    pagination: SimplePagination<HeaderItem>;
     params: Params;
 };

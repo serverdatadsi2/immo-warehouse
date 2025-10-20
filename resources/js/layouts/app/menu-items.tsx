@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { Badge, Typography } from 'antd';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import {
     Blinds,
@@ -23,7 +24,7 @@ import { ReactNode } from 'react';
 type MenuItemParam = {
     key: string;
     icon: ReactNode;
-    label: string;
+    label: ReactNode;
     url?: string;
     children?: ItemType<MenuItemType>[];
 };
@@ -115,7 +116,29 @@ export const menuItems = [
         key: 'receiving-order',
         icon: <NotebookText size={17} />,
         label: 'Receiving Orders',
-        url: '/receiving-order',
+        children: [
+            getMenuItem({
+                key: 'store',
+                icon: <NotebookText size={17} />,
+                label: (
+                    <Badge count={2} size="small" offset={[15, 5]} color="volcano">
+                        <Typography.Text className="!text-gray-200">Store </Typography.Text>
+                    </Badge>
+                ),
+
+                url: '/receiving-order/store',
+            }),
+            getMenuItem({
+                key: 'ecommerce',
+                icon: <NotebookText size={17} />,
+                label: (
+                    <Badge count={0} size="small" offset={[7, 5]} color="volcano">
+                        <Typography.Text className="!text-gray-100">Ecommerce </Typography.Text>
+                    </Badge>
+                ),
+                url: '/receiving-order/ecommerce',
+            }),
+        ],
     }),
     getMenuItem({
         key: 'outbound-qc',

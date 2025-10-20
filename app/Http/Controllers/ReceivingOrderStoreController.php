@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Log;
 
-class ReceivingOrderController extends Controller
+class ReceivingOrderStoreController extends Controller
 {
 
     public function index(Request $request)
@@ -50,12 +50,12 @@ class ReceivingOrderController extends Controller
 
         $pagination = $query->paginate(10);
 
-        return Inertia::render('receiving-order/index', ['pagination' => $pagination, 'params' => $filters]);
+        return Inertia::render('receiving-order/store/index', ['pagination' => $pagination, 'params' => $filters]);
     }
 
     public function detail(Request $request)
     {
-        $headerId = $request->input('header_id');
+        $headerId = $request->input('headerId');
         $header = null;
         $detailsPagination = null;
         $availableStocks = null;
@@ -133,7 +133,7 @@ class ReceivingOrderController extends Controller
             }
         }
 
-        return Inertia::render('receiving-order/detail', [
+        return Inertia::render('receiving-order/store/detail', [
             'detailsPagination' => $detailsPagination,
             'header' => $header,
             'availableStocks' => $availableStocks,
@@ -210,6 +210,6 @@ class ReceivingOrderController extends Controller
         $order->save();
 
         // return to_route('outbound-dc.index');
-        return to_route('receiving-order.detail', ['header_id' => $id]);
+        return to_route('receiving-order.store.detail', ['headerId' => $id]);
     }
 }

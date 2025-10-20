@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\{
     RemoveRFIDController,
-    ReceivingOrderController,
+    ReceivingOrderStoreController,
+    ReceivingOrderEcommerceController,
     InboundController,
     RFIDTaggingController,
     LocationSuggestionController,
@@ -23,7 +24,7 @@ use App\Http\Controllers\{
 // MAIN AUTH ROUTES
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/', [DashboardController::class, "index"])->name('dashboard');
+    Route::get('/', [DashboardController::class, "index"])->name('home');
 
     // get user for asyncSelectUser component
     Route::get('/users', [UserController::class, "index"])->name('user.index');
@@ -128,9 +129,17 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('receiving-order')->name('receiving-order.')->group(function () {
-        Route::get('/', [ReceivingOrderController::class, 'index'])->name('index');
-        Route::patch('/{header_id}/process', [ReceivingOrderController::class, 'updateHeader'])->name('updateHeader');
-        Route::get('/detail', [ReceivingOrderController::class, 'detail'])->name('detail');
+        Route::prefix('store')->name('store.')->group(function () {
+            Route::get('/', [ReceivingOrderStoreController::class, 'index'])->name('index');
+            Route::patch('/{header_id}/process', [ReceivingOrderStoreController::class, 'updateHeader'])->name('updateHeader');
+            Route::get('/detail', [ReceivingOrderStoreController::class, 'detail'])->name('detail');
+        });
+
+        Route::prefix('ecommerce')->name('ecommerce.')->group(function () {
+            Route::get('/', [ReceivingOrderEcommerceController::class, 'index'])->name('index');
+            Route::patch('/{header_id}/process', [ReceivingOrderEcommerceController::class, 'updateHeader'])->name('updateHeader');
+            Route::get('/detail', [ReceivingOrderEcommerceController::class, 'detail'])->name('detail');
+        });
     });
 
     /*

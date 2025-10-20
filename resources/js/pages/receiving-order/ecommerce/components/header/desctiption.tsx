@@ -10,7 +10,7 @@ const DescriptionHeader: React.FC = () => {
 
     const handleProcess = useCallback(() => {
         router.patch(
-            `/receiving-order/${header?.id}/process`,
+            `/receiving-order/ecommerce/${header?.id}/process`,
             {},
             {
                 onSuccess: () => {
@@ -36,17 +36,17 @@ const DescriptionHeader: React.FC = () => {
             },
             {
                 key: '2',
-                label: 'Di Setujui Oleh',
-                children: header?.approved_name,
+                label: 'Order By',
+                children: header?.customer_name,
             },
             {
                 key: '3',
-                label: 'Tanggal Disetujui',
-                children: <DateDisplay val={header?.approved_at} />,
+                label: 'Paid At',
+                children: <DateDisplay val={header?.completed_at} />,
             },
         ];
 
-        if (header?.status === 'approved') {
+        if (header?.status === 'paid') {
             baseItems.push({
                 key: '4',
                 label: 'Action',
@@ -62,12 +62,7 @@ const DescriptionHeader: React.FC = () => {
     }, [header, handleProcess]);
 
     return (
-        <Descriptions
-            title={`Store Order : ${header?.store_name}`}
-            layout="vertical"
-            column={header?.status === 'approved' ? 2 : 3}
-            items={items}
-        />
+        <Descriptions layout="vertical" column={header?.status === 'paid' ? 4 : 3} items={items} />
     );
 };
 

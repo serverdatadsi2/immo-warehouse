@@ -1,6 +1,6 @@
 import { SystemMessageProvider } from '@/components/messages/message-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ConfigProvider, Layout, theme } from 'antd';
+import { App, ConfigProvider, Layout, theme } from 'antd';
 import { ReactNode } from 'react';
 import { AppHeader } from './app/app-header';
 import { AppSidebar } from './app/app-sidebar';
@@ -56,9 +56,11 @@ export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Pr
                                     border: '1px solid #e6f7ff',
                                 }}
                             >
-                                <QueryClientProvider client={queryClient}>
-                                    {children}
-                                </QueryClientProvider>
+                                <App>
+                                    <QueryClientProvider client={queryClient}>
+                                        {children}
+                                    </QueryClientProvider>
+                                </App>
                             </div>
                         </Content>
                     </Layout>
