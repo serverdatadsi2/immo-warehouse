@@ -21,4 +21,14 @@ class EcommerceOrder extends Model
     {
         return $this->hasMany(EcommerceOrderDetail::class, 'ecommerce_order_id', 'id');
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    public function ecommercePayment()
+    {
+        return $this->belongsTo(EcommercePayment::class, 'id', 'ecommerce_order_id');
+    }
 }

@@ -29,7 +29,7 @@ interface Props {
 export function StoreOrderComponent({ params, pagination }: Props) {
     const handleUpdateStatus = useCallback((orderId: string) => {
         router.patch(
-            route('packing.updateStatus', { order_id: orderId }),
+            route('packing.store.updateStatus', { order_id: orderId }),
             {},
             {
                 onSuccess: () => {

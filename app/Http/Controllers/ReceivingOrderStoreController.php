@@ -210,6 +210,6 @@ class ReceivingOrderStoreController extends Controller
         $order->save();
 
         // return to_route('outbound-dc.index');
-        return to_route('receiving-order.store.detail', ['headerId' => $id]);
+        return to_route('receiving-order.store-order.detail', ['headerId' => $id]);
     }
 }

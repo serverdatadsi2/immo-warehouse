@@ -27,7 +27,7 @@ export function Filters({ params }: Props) {
                 [key]: value,
             };
             if (!value) delete newFilters[key];
-            router.get(route(route().current() ?? 'storage.index'), newFilters, {
+            router.get(route(route().current() ?? 'packing.store.index'), newFilters, {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,

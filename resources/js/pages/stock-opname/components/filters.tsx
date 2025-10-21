@@ -32,7 +32,7 @@ export function Filters({ params }: Props) {
                 delete newFilters[key];
             }
 
-            router.get(route(route().current() ?? 'storage.index'), newFilters, {
+            router.get(route(route().current() ?? 'stock-opname.index'), newFilters, {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,

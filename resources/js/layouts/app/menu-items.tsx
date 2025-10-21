@@ -114,11 +114,11 @@ export const menuItems = [
     }),
     getMenuItem({
         key: 'receiving-order',
-        icon: <NotebookText size={17} />,
+        icon: <NotebookText size={20} />,
         label: 'Receiving Orders',
         children: [
             getMenuItem({
-                key: 'store',
+                key: 'store-order',
                 icon: <NotebookText size={17} />,
                 label: (
                     <Badge count={2} size="small" offset={[15, 5]} color="volcano">
@@ -126,17 +126,17 @@ export const menuItems = [
                     </Badge>
                 ),
 
-                url: '/receiving-order/store',
+                url: '/receiving-order/store-order',
             }),
             getMenuItem({
-                key: 'ecommerce',
+                key: 'ecommerce-order',
                 icon: <NotebookText size={17} />,
                 label: (
                     <Badge count={0} size="small" offset={[7, 5]} color="volcano">
                         <Typography.Text className="!text-gray-100">Ecommerce </Typography.Text>
                     </Badge>
                 ),
-                url: '/receiving-order/ecommerce',
+                url: '/receiving-order/ecommerce-order',
             }),
         ],
     }),
@@ -148,20 +148,42 @@ export const menuItems = [
     }),
     getMenuItem({
         key: 'packing',
-        icon: <Package size={17} />,
+        icon: <Package size={20} />,
         label: 'Packing',
-        url: '/packing',
-    }),
-    getMenuItem({
-        key: 'staging',
-        icon: <Blocks size={17} />,
-        label: 'Staging',
-        url: '/staging',
+        children: [
+            getMenuItem({
+                key: 'store',
+                icon: <Package size={17} />,
+                label: (
+                    <Badge count={2} size="small" offset={[15, 5]} color="volcano">
+                        <Typography.Text className="!text-gray-200">Store </Typography.Text>
+                    </Badge>
+                ),
+
+                url: '/packing/store',
+            }),
+            getMenuItem({
+                key: 'ecommerce',
+                icon: <Package size={17} />,
+                label: (
+                    <Badge count={0} size="small" offset={[7, 5]} color="volcano">
+                        <Typography.Text className="!text-gray-100">Ecommerce </Typography.Text>
+                    </Badge>
+                ),
+                url: '/packing/ecommerce',
+            }),
+        ],
     }),
     getMenuItem({
         key: 'outbound',
         icon: <HardDriveUpload size={17} />,
         label: 'Outbound',
         url: '/outbound',
+    }),
+    getMenuItem({
+        key: 'staging',
+        icon: <Blocks size={17} />,
+        label: 'Staging',
+        url: '/staging',
     }),
 ];

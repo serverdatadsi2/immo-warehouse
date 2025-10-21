@@ -22,7 +22,7 @@ const { Title } = Typography;
 export default function Page({ detailsPagination, header, availableStocks }: PageProps) {
     return (
         <AppLayout
-            navBarLeft={<BackButton backUrl="/receiving-order/ecommerce" />}
+            navBarLeft={<BackButton backUrl="/receiving-order/ecommerce-order" />}
             navBarTitle="Detail Store Order"
         >
             <Head title="Detail Store Order" />

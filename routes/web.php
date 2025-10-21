@@ -129,13 +129,13 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('receiving-order')->name('receiving-order.')->group(function () {
-        Route::prefix('store')->name('store.')->group(function () {
+        Route::prefix('store-order')->name('store-order.')->group(function () {
             Route::get('/', [ReceivingOrderStoreController::class, 'index'])->name('index');
             Route::patch('/{header_id}/process', [ReceivingOrderStoreController::class, 'updateHeader'])->name('updateHeader');
             Route::get('/detail', [ReceivingOrderStoreController::class, 'detail'])->name('detail');
         });
 
-        Route::prefix('ecommerce')->name('ecommerce.')->group(function () {
+        Route::prefix('ecommerce-order')->name('ecommerce-order.')->group(function () {
             Route::get('/', [ReceivingOrderEcommerceController::class, 'index'])->name('index');
             Route::patch('/{header_id}/process', [ReceivingOrderEcommerceController::class, 'updateHeader'])->name('updateHeader');
             Route::get('/detail', [ReceivingOrderEcommerceController::class, 'detail'])->name('detail');
@@ -159,9 +159,17 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('packing')->name('packing.')->group(function () {
-        Route::get('/', [PackingController::class, 'index'])->name('index');
-        Route::patch('/{order_id}/update-status', [PackingController::class, 'updateStatus'])->name('updateStatus');
-        // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
+        Route::prefix('store')->name('store.')->group(function () {
+            Route::get('/', [PackingController::class, 'index'])->name('index');
+            Route::patch('/{order_id}/update-status', [PackingController::class, 'updateStatus'])->name('updateStatus');
+            // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
+        });
+
+        Route::prefix('ecommerce')->name('ecommerce.')->group(function () {
+            Route::get('/', [PackingController::class, 'packingEcommerce'])->name('index');
+            Route::patch('/{order_id}/update-status', [PackingController::class, 'updateStatusOrderEcommerce'])->name('updateStatus');
+            // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
+        });
     });
 
     /*

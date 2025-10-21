@@ -177,6 +177,6 @@ class ReceivingOrderEcommerceController extends Controller
         $order->save();
 
         // return to_route('outbound-dc.index');
-        return to_route('receiving-order.ecommerce.detail', ['headerId' => $id]);
+        return to_route('receiving-order.ecommerce-order.detail', ['headerId' => $id]);
     }
 }

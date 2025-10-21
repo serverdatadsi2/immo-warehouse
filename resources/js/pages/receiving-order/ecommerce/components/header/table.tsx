@@ -13,7 +13,7 @@ const { Title } = Typography;
 
 export function HeaderTable({ pagination }: Props) {
     const handleAction = useCallback((val: HeaderItem) => {
-        router.get(`/receiving-order/ecommerce/detail?headerId=${val.id}`);
+        router.get(`/receiving-order/ecommerce-order/detail?headerId=${val.id}`);
     }, []);
 
     const columns = useMemo<TableProps<HeaderItem>['columns']>(
