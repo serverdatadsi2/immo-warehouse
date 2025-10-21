@@ -37,12 +37,12 @@ class ReceivingOrderEcommerceController extends Controller
             }, function ($q) {
                 $q->whereNotNull('p.completed_at');
             })
-            ->select('ecommerce_orders.*', 'c.name as order_by', 'p.completed_at as approve_at')
+            ->select('ecommerce_orders.*', 'c.name as order_by', 'c.wa_number', 'p.completed_at as approve_at')
             ->where('ecommerce_orders.status', $filters['status'] ?? 'paid')
             ->where(function ($q) use ($userWarehouseIds) {
                 $q->whereNull('ecommerce_orders.handled_by_warehouse_id')->orWhereIn('ecommerce_orders.handled_by_warehouse_id', $userWarehouseIds);
             })
-            ->groupBy('ecommerce_orders.id', 'c.name', 'p.completed_at');
+            ->groupBy('ecommerce_orders.id', 'c.name', 'c.wa_number', 'p.completed_at');
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -151,7 +151,7 @@ class ReceivingOrderEcommerceController extends Controller
 
         $stockErrors = [];
         foreach ($orderDetails as $detail) {
-            $approvedQuantity = (int) $detail->approved_qty;
+            $approvedQuantity = (int) $detail->quantity;
             $productId = $detail->product_id;
 
             // Ambil stok yang tersedia dari map

@@ -1,5 +1,4 @@
-import { Product } from './product.type';
-import { RFIDTag } from './rfid-tag.types';
+import { Outbound } from './warehouse-outbound.type';
 import { Warehouse } from './warehouse.type';
 
 export interface Staging {
@@ -13,14 +12,11 @@ export interface Staging {
 
 interface StagingDetail {
     warehouse_staging_outbound_id: string;
-    product_id: string;
-    rfid_tag_id: string;
-    item_id: string;
+    warehouse_outbound_id: string;
 }
 
 export interface StagingDetailWithRelation extends StagingDetail {
-    product: Product;
-    rfid: RFIDTag;
+    outbound: Outbound;
 }
 
 export interface StagingWithRelations extends Staging {

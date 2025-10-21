@@ -183,6 +183,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/manual-input', [StagingController::class, 'saveHeader']);
         Route::delete('/manual-input/{header_id}', [StagingController::class, 'deleteHeader']);
 
+        Route::put('/release/{header_id}', [StagingController::class, 'release']);
+
         // detail
         Route::post('/manual-input/detail', [StagingController::class, 'saveDetail']);
         Route::delete('/manual-input/detail/{detail_id}', [StagingController::class, 'deleteDetail']);
@@ -191,7 +193,7 @@ Route::middleware(['auth'])->group(function () {
     // packing orders
     Route::prefix('get-all')->name('get-all.')->group(function () {
         Route::get('/store-packing-orders', [OutboundController::class, 'getStoreOrderPacking'])->name('getStoreOrderPacking');
-        Route::get('/ecomerce-packing-orders', [OutboundController::class, 'getEcommerceOrderPacking'])->name('getEcommerceOrderPacking');
+        Route::get('/ecommerce-packing-orders', [OutboundController::class, 'getEcommerceOrderPacking'])->name('getEcommerceOrderPacking');
     });
 
     /*

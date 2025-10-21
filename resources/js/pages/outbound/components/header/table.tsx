@@ -1,3 +1,4 @@
+import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
@@ -11,7 +12,7 @@ import SuratJalanPrinter from './surat-jalan-print';
 
 export function HeaderTable({ pagination }: Props) {
     const handleAction = useCallback((val: OutboundWithRelations) => {
-        router.get(`/outbound/detail?header=${val.id}`);
+        router.get(`/outbound/detail?headerId=${val.id}`);
     }, []);
 
     const columns = useMemo(
@@ -25,11 +26,11 @@ export function HeaderTable({ pagination }: Props) {
                     return (currentPage - 1) * perPage + index + 1;
                 },
             },
-            {
-                title: 'Warehouse',
-                dataIndex: ['warehouse', 'name'],
-                key: 'warehouse_name',
-            },
+            // {
+            //     title: 'Warehouse',
+            //     dataIndex: ['warehouse', 'name'],
+            //     key: 'warehouse_name',
+            // },
             {
                 title: 'User',
                 dataIndex: ['user', 'name'],
@@ -51,7 +52,7 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'pengiriman',
             },
             {
-                title: 'Quantity',
+                title: 'QTY',
                 dataIndex: 'quantity_item',
                 key: 'quantity_item',
             },
@@ -71,19 +72,26 @@ export function HeaderTable({ pagination }: Props) {
                 ],
             },
             {
+                title: 'Release At',
+                dataIndex: 'released_at',
+                key: 'release_at',
+                render: (v) => <DateDisplay val={v} />,
+            },
+            {
                 title: 'Action',
                 key: 'action',
                 fixed: 'right',
-                render: (_, d) => (
-                    <Space>
-                        <Button
-                            type="primary"
-                            onClick={() => handleAction(d)}
-                            icon={<Edit size={17} />}
-                        />
-                        {!!d.quantity_item && <SuratJalanPrinter headerId={d.id} />}
-                    </Space>
-                ),
+                render: (_, d) =>
+                    d?.released_at ? null : (
+                        <Space>
+                            <Button
+                                type="primary"
+                                onClick={() => handleAction(d)}
+                                icon={<Edit size={17} />}
+                            />
+                            {!!d.quantity_item && <SuratJalanPrinter headerId={d.id} />}
+                        </Space>
+                    ),
             },
         ],
         [handleAction, pagination?.current_page, pagination?.per_page],
@@ -101,6 +109,8 @@ export function HeaderTable({ pagination }: Props) {
                 dataSource={pagination?.data}
                 onPaginationChange={handlePageChange}
                 page={pagination?.current_page || 1}
+                className="max-w-full"
+                scroll={{ x: 'max-content' }}
             />
         </Space>
     );

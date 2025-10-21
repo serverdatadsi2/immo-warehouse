@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { PrintButton } from '@/components/buttons/common-buttons';
 import axiosIns from '@/lib/axios';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatFullAddress } from '@/lib/utils';
 import { OutboundDetailPrint } from '@/types/warehouse-outbound.type';
 import { useMutation } from '@tanstack/react-query';
 import { message } from 'antd';
@@ -95,7 +95,9 @@ const SuratJalanPrinter = ({ headerId }: Props) => {
             ];
 
             // Kolom kiri
-            const alamatTujuan = header.store_order.store.address ?? '-';
+            const alamatTujuan =
+                header?.store_order?.store.address ??
+                formatFullAddress(header.ecommerce_order.shipping_address);
             const labelWidth = 28; // lebar teks label sebelum isi (agar sejajar)
             const maxWidth = pageWidth / 2 - marginX - labelWidth; // sisa lebar kolom kiri setelah label
 
@@ -104,7 +106,7 @@ const SuratJalanPrinter = ({ headerId }: Props) => {
 
             const leftColumn = [
                 `Tanggal Kirim  : ${formatDate(header.shipment_date)}`,
-                `Tujuan             : ${header.store_order.store.name}`,
+                `Tujuan             : ${header?.store_order?.store?.name ?? header.ecommerce_order.customer.name}`,
             ];
 
             // Cetak kolom kiri biasa

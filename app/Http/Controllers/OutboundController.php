@@ -30,11 +30,15 @@ class OutboundController extends Controller
 
     public function detail(Request $request)
     {
-        $headerId = $request->input('header');
+        $params = $request->only(['headerId', 'storeOrder', 'ecommerceOrder', 'orderNumber']);
+
+        $headerId = $request->input('headerId');
+        $storeOrderId = $request->input('storeOrder');
+        $ecommerceOrderId = $request->input('ecommerceOrder');
         $header = null;
         $detailsPagination = null;
 
-        if ($headerId) {
+        if($headerId){
             $header = WarehouseOutbound::with([
                             'warehouse:id,name,code',
                             'user:id,name',
@@ -42,6 +46,17 @@ class OutboundController extends Controller
                             ])
                             ->findOrFail($headerId);
 
+        }else if($storeOrderId || $ecommerceOrderId) {
+            $header = WarehouseOutbound::with([
+                            'warehouse:id,name,code',
+                            'user:id,name',
+                            'courier:id,name'
+                            ])
+                            ->where('order_id',$storeOrderId ?? $ecommerceOrderId)
+                            ->first();
+        }
+
+        if($header){
             $detailsPagination = WarehouseOutboundDetail::query()
                 ->with([
                     'item:id,product_id,rfid_tag_id',
@@ -52,10 +67,11 @@ class OutboundController extends Controller
                 ->simplePaginate(5);
         }
 
+
         return Inertia::render('outbound/detail', [
             'detailsPagination' => $detailsPagination,
             'headerData' => $header,
-            'header' => $headerId
+            'params' => $params
         ]);
     }
 
@@ -71,7 +87,13 @@ class OutboundController extends Controller
                             'user:id,name',
                             'courier:id,name',
                             'storeOrder:id,store_id',
-                            'storeOrder.store:id,name,address'
+                            'storeOrder.store:id,name,address',
+                            'ecommerceOrder:id,shipping_address_id,customer_id',
+                            'ecommerceOrder.customer:id,name',
+                            'ecommerceOrder.shippingAddress.provincy:id,code,name',
+                            'ecommerceOrder.shippingAddress.regency:id,code,name',
+                            'ecommerceOrder.shippingAddress.district:id,code,name',
+                            'ecommerceOrder.shippingAddress.village:id,code,name',
                             ])
                             ->findOrFail($headerId);
 
@@ -108,6 +130,7 @@ class OutboundController extends Controller
             'order_ref' => ['string', 'required'],
             'order_id' => ['string', 'required'],
             'order_number' => ['string', 'required'],
+            'outbound_type' => ['string', 'required'],
         ];
 
         $validated = $request->validate($rules);
@@ -142,7 +165,7 @@ class OutboundController extends Controller
             ]);
         });
 
-        return to_route('outbound.detail', ['header' => $header->id]);
+        return to_route('outbound.detail', ['headerId' => $header->id]);
     }
 
     public function saveDetail(Request $request)
@@ -177,7 +200,7 @@ class OutboundController extends Controller
             ]);
         });
 
-        return to_route('outbound.detail', ['header' => $validated['warehouse_outbound_id']]);
+        return to_route('outbound.detail', ['headerId' => $validated['warehouse_outbound_id']]);
     }
 
     public function deleteDetail(string $detailId)
@@ -202,7 +225,7 @@ class OutboundController extends Controller
             ]);
         });
 
-        return to_route('outbound.detail', ['header' => $headerId]);
+        return to_route('outbound.detail', ['headerId' => $headerId]);
     }
 
     public function deleteHeader(string $headerId)

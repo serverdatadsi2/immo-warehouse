@@ -31,4 +31,9 @@ class EcommerceOrder extends Model
     {
         return $this->belongsTo(EcommercePayment::class, 'id', 'ecommerce_order_id');
     }
+
+    public function shippingAddress()
+    {
+        return $this->belongsTo(ShippingAddress::class, 'shipping_address_id');
+    }
 }

@@ -2,6 +2,7 @@ import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
+import { WhatsAppOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
 import { Button, Card, Space, Tag, Tooltip, Typography } from 'antd';
@@ -34,29 +35,39 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'order_number',
                 align: 'center',
             },
-            {
-                title: 'Order By',
-                dataIndex: 'order_by',
-                key: 'order_by',
-                align: 'center',
-            },
+
             {
                 title: 'Approve',
                 children: [
                     {
-                        title: 'By',
-                        dataIndex: 'approved_name',
-                        key: 'approved_name',
+                        title: 'Name',
+                        dataIndex: 'order_by',
+                        key: 'order_by',
                         align: 'center',
                     },
                     {
-                        title: 'Date',
-                        dataIndex: 'approve_at',
-                        key: 'approve_at',
-                        render: (v) => <DateDisplay val={v} />,
+                        title: 'Number',
+                        dataIndex: 'wa_number',
+                        key: 'wa_number',
                         align: 'center',
+                        render: (v) => (
+                            <Button
+                                type="text"
+                                style={{ color: 'green' }}
+                                icon={<WhatsAppOutlined />}
+                            >
+                                {v}
+                            </Button>
+                        ),
                     },
                 ],
+            },
+            {
+                title: 'Date Paid',
+                dataIndex: 'approve_at',
+                key: 'approve_at',
+                render: (v) => <DateDisplay val={v} />,
+                align: 'center',
             },
             {
                 title: 'Status',

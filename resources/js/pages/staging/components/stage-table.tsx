@@ -1,16 +1,15 @@
+import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { StagingWithDetailRelations } from '@/types/warehouse-staging.type';
-import { DownOutlined, RightOutlined } from '@ant-design/icons';
+import { DownOutlined, RightOutlined, TruckOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
 import {
     Button,
     Card,
-    List,
     message,
     Popconfirm,
-    Popover,
     Space,
     Table,
     TableProps,
@@ -21,71 +20,50 @@ import {
 import { Edit, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
-const groupDetailsByProduct = (details) => {
-    const groupedMap = new Map();
-
-    details.forEach((item) => {
-        const { product_id, rfid_tag_id, product } = item;
-
-        if (groupedMap.has(product_id)) {
-            // Jika product_id sudah ada di Map, tambahkan tag baru
-            const existingGroup = groupedMap.get(product_id);
-            existingGroup.qty += 1;
-            existingGroup.rfid_tags.push(rfid_tag_id);
-        } else {
-            // Jika product_id belum ada, buat entri baru
-            groupedMap.set(product_id, {
-                key: product_id,
-                product_id: product_id,
-                product,
-                qty: 1,
-                rfid_tags: [rfid_tag_id],
-            });
-        }
-    });
-
-    // Mengubah nilai dari Map kembali menjadi Array
-    return Array.from(groupedMap.values());
-};
-
 const { Text } = Typography;
 
 // Function untuk merender baris yang diperluas
 const expandedRowRender = (record) => {
-    // Mengelompokkan detail berdasarkan product_id untuk tampilan ringkas
-    const groupedDetails = groupDetailsByProduct(record.detail);
-
     const detailColumns = [
-        { title: 'Product', dataIndex: ['product', 'name'], key: 'product.name' },
         {
-            title: 'Quantity Tag',
-            dataIndex: 'qty',
-            key: 'qty',
-            render: (text) => <Tag color="blue">{text}</Tag>,
+            title: 'No.',
+            key: 'index',
+            render: (_: any, __, index: number) => index + 1,
         },
         {
-            title: 'Lihat Tags',
-            key: 'tags',
-            render: (_, item) => (
-                <Popover
-                    content={
-                        <List
-                            size="small"
-                            dataSource={item.rfid_tags}
-                            renderItem={(tag: string) => <List.Item>{tag}</List.Item>}
-                        />
-                    }
-                >
-                    <Button size="small">Detail Tags ({item.rfid_tags.length})</Button>
-                </Popover>
-            ),
+            title: 'Surat jalan',
+            dataIndex: ['outbound', 'delivery_order_number'],
+            key: 'delivery_order_number',
+        },
+        {
+            title: 'Pengiriman',
+            dataIndex: ['outbound', 'courier', 'name'],
+            key: 'qty',
+            render: (rfid) => <Tag color="blue">{rfid}</Tag>,
+        },
+        {
+            title: 'Order',
+            children: [
+                {
+                    title: 'Type',
+                    dataIndex: ['outbound', 'order_ref'],
+                    key: 'order_ref',
+                    align: 'center',
+                },
+                {
+                    title: 'Number',
+                    dataIndex: ['outbound', 'order_number'],
+                    key: 'order_number',
+                    align: 'center',
+                },
+            ],
         },
     ];
 
     return (
         <Table<StagingWithDetailRelations>
             columns={detailColumns}
-            dataSource={groupedDetails}
+            dataSource={record.detail}
             pagination={false}
             size="small"
             title={() => <Text strong>Detail Staging</Text>}
@@ -116,6 +94,25 @@ export default function StagingTable({ pagination }: Props) {
             // },
         });
     }, []);
+
+    const handleRelease = useCallback((id: string) => {
+        router.put(
+            `/staging/release/${id}`,
+            {},
+            {
+                onError: () => {
+                    message.error('Release Staging Area Gagal');
+                },
+                onSuccess: () => {
+                    message.success('Release Staging Area Success');
+                },
+                // onStart: () => {
+                //     setProcessing(true);
+                // },
+            },
+        );
+    }, []);
+
     const columns = useMemo(
         (): TableProps<StagingWithDetailRelations>['columns'] => [
             { title: 'Warehouse', dataIndex: ['warehouse', 'name'], key: 'warehouse_id' },
@@ -142,32 +139,44 @@ export default function StagingTable({ pagination }: Props) {
                 render: (text) => <Tag color="blue">{text}</Tag>,
             },
             {
+                title: 'Release At',
+                dataIndex: 'released_at',
+                key: 'release_at',
+                render: (v) => <DateDisplay val={v} />,
+            },
+            {
                 title: 'Action',
                 dataIndex: 'id',
                 key: 'id',
-                render: (val) => (
-                    <Space size={20} align="end" className="w-full">
-                        <Tooltip title="Edit detail staging area">
-                            <Button
-                                type="primary"
-                                onClick={() => handleEdit(val)}
-                                icon={<Edit size={18} />}
-                            />
-                        </Tooltip>
-                        <Tooltip title="delete staging area">
-                            <Popconfirm
-                                title="Delete"
-                                description="Are you sure to delete this Data?"
-                                onConfirm={() => handleDelete(val)}
-                            >
-                                <Button type="dashed" danger icon={<Trash2 size={18} />} />
-                            </Popconfirm>
-                        </Tooltip>
-                    </Space>
-                ),
+                render: (val, record) =>
+                    record?.released_at ? null : (
+                        <Space size={20} align="end" className="w-full">
+                            <Tooltip title="Edit detail staging area">
+                                <Button
+                                    type="primary"
+                                    onClick={() => handleEdit(val)}
+                                    icon={<Edit size={18} />}
+                                />
+                            </Tooltip>
+                            <Tooltip title="Dimuat">
+                                <Button icon={<TruckOutlined />} onClick={() => handleRelease(val)}>
+                                    Kirim
+                                </Button>
+                            </Tooltip>
+                            <Tooltip title="delete staging area">
+                                <Popconfirm
+                                    title="Delete"
+                                    description="Are you sure to delete this Data?"
+                                    onConfirm={() => handleDelete(val)}
+                                >
+                                    <Button type="dashed" danger icon={<Trash2 size={18} />} />
+                                </Popconfirm>
+                            </Tooltip>
+                        </Space>
+                    ),
             },
         ],
-        [handleDelete, handleEdit],
+        [handleDelete, handleEdit, handleRelease],
     );
 
     const handlePageChange = useCallback((page: number) => {

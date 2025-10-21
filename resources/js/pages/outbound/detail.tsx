@@ -12,14 +12,14 @@ import { HeaderForm } from './components/header/form';
 export const DetailContext = createContext<PageProps>({
     detailsPagination: null,
     headerData: null,
-    header: '',
+    params: null,
 });
 
-export default function Page({ detailsPagination, header, headerData }: PageProps) {
+export default function Page({ detailsPagination, params, headerData }: PageProps) {
     return (
         <AppLayout navBarLeft={<BackButton backUrl="/outbound" />} navBarTitle="Outboud Detail">
             <Head title="Outbound Detail" />
-            <DetailContext.Provider value={{ detailsPagination, headerData, header }}>
+            <DetailContext.Provider value={{ detailsPagination, headerData, params }}>
                 <Space direction="vertical" className="w-full">
                     <HeaderForm />
                     <Card
@@ -40,7 +40,12 @@ export default function Page({ detailsPagination, header, headerData }: PageProp
 }
 
 type PageProps = {
-    header: string;
+    params: {
+        headerId: string;
+        storeOrder: string;
+        ecommerceOrder: string;
+        orderNumber: string;
+    } | null;
     headerData: Partial<OutboundWithRelations> | null;
     detailsPagination: SimplePagination<OutboundDetailWithRelation> | null;
 };

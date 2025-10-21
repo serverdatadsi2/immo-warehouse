@@ -9,7 +9,7 @@ import { DetailContext } from '../../detail';
 const { Text } = Typography;
 
 export function DetailForm() {
-    const { header } = useContext(DetailContext);
+    const { params, headerData } = useContext(DetailContext);
 
     const { form, post, processing, errors } = useAntdInertiaForm<{
         rfid: string;
@@ -35,12 +35,12 @@ export function DetailForm() {
         const formValues = await form.validateFields();
         post({
             url: '/outbound/detail',
-            data: { ...formValues, warehouse_outbound_id: header },
+            data: { ...formValues, warehouse_outbound_id: params?.headerId ?? headerData?.id },
             onSuccess: () => {
                 form.resetFields();
             },
         });
-    }, [form, post, header]);
+    }, [form, post, params?.headerId, headerData?.id]);
 
     return (
         <Form form={form} layout="vertical" className="mt-4">

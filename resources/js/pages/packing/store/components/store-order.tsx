@@ -15,7 +15,7 @@ import {
     Tooltip,
     Typography,
 } from 'antd';
-import { CheckCheck, PackageCheck } from 'lucide-react';
+import { CheckCheck, HardDriveUpload, PackageCheck } from 'lucide-react';
 import { useCallback } from 'react';
 import { Filters } from './filters';
 
@@ -44,6 +44,10 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                 },
             },
         );
+    }, []);
+
+    const handleOutbound = useCallback((order: StoreOrderWithRelatons) => {
+        router.get(`/outbound/detail?storeOrder=${order.id}&orderNumber=${order.order_number}`);
     }, []);
 
     const generateCollapseItems = useCallback(
@@ -92,7 +96,6 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                                     )
                                 }
                                 type="primary"
-                                size="middle"
                                 style={{
                                     fontWeight: 'bold',
                                     boxShadow: '0 2px 8px #1890ff33',
@@ -107,6 +110,26 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                                 {order.status === 'packing' ? 'Packing Done' : 'Packing'}
                             </Button>
                         </Tooltip>
+                        {order.status === 'packing' && (
+                            <Tooltip title="Outbound">
+                                <Button
+                                    icon={<HardDriveUpload size={20} />}
+                                    type="primary"
+                                    iconPosition="end"
+                                    style={{
+                                        fontWeight: 'bold',
+                                        boxShadow: '0 2px 8px #ffe7ba',
+                                        backgroundColor: '#ad4e00',
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOutbound(order);
+                                    }}
+                                >
+                                    Outbound
+                                </Button>
+                            </Tooltip>
+                        )}
                     </Space>
                 ),
                 children: (
@@ -148,7 +171,7 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                 ),
             },
         ],
-        [handleUpdateStatus],
+        [handleOutbound, handleUpdateStatus],
     );
 
     return (

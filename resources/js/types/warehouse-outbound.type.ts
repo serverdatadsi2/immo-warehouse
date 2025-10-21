@@ -1,4 +1,5 @@
 import { Courier } from './courier.type';
+import { Customer } from './customer.type';
 import { Product } from './product.type';
 import { RFIDTag } from './rfid-tag.types';
 import { StoreOrder } from './store-order.type';
@@ -19,9 +20,11 @@ export interface Outbound {
     order_id: string; //join to ecommerce_orders if order_ref ecommerce || join to store_orders if order_ref store
     order_number: string; //get data to order_id
     order_ref: 'store' | 'ecommerce';
+    outbound_type: 'store' | 'ecommerce' | 'destroy' | 'transfer' | 'return_to_supplier';
 
     created_at: string;
     updated_at: string;
+    released_at: string;
 }
 
 interface OutboundDetail {
@@ -49,6 +52,7 @@ interface StoreOrderWithRelation extends StoreOrder {
 
 export interface HeaderOutboundPrint extends OutboundWithRelations {
     store_order: StoreOrderWithRelation;
+    ecommerce_order: EcommerceOrder;
 }
 
 export interface OutboundDetailPrint {
@@ -60,4 +64,40 @@ export interface OutboundDetailPrint {
         quantity: number;
         unit_name: string;
     }[];
+}
+
+interface Region {
+    id: string; // UUID
+    code: string;
+    name: string;
+}
+
+export interface ShippingAddress {
+    id: string; // UUID
+    customer_id: string; // UUID
+    name: string;
+    phone: string;
+    detail: string;
+    other_detail: string | null; // Asumsi bisa null
+    is_main: boolean;
+    province_code: string;
+    regency_code: string;
+    district_code: string;
+    village_code: string;
+    geom: string; // Tipe data geometri (WKT)
+    created_at: string; // ISO 8601 string (Date)
+
+    provincy: Region; // Nama properti asli Anda adalah 'provincy'
+    regency: Region;
+    district: Region;
+    village: Region;
+}
+
+interface EcommerceOrder {
+    id: string; // UUID
+    shipping_address_id: string; // UUID
+    customer_id: string; // UUID
+
+    customer: Customer;
+    shipping_address: ShippingAddress;
 }

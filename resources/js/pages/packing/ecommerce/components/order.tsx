@@ -16,7 +16,7 @@ import {
     Tooltip,
     Typography,
 } from 'antd';
-import { CheckCheck, PackageCheck } from 'lucide-react';
+import { CheckCheck, HardDriveUpload, PackageCheck } from 'lucide-react';
 import { useCallback } from 'react';
 import { Filters } from './filters';
 
@@ -27,10 +27,10 @@ interface Props {
     pagination: LaravelPagination<EcommerceOrderWithDetailRelation>;
 }
 
-export function StoreOrderComponent({ params, pagination }: Props) {
+export function OrderComponent({ params, pagination }: Props) {
     const handleUpdateStatus = useCallback((orderId: string) => {
         router.patch(
-            route('packing.updateStatus', { order_id: orderId }),
+            route('packing.ecommerce.updateStatus', { order_id: orderId }),
             {},
             {
                 onSuccess: () => {
@@ -45,6 +45,10 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                 },
             },
         );
+    }, []);
+
+    const handleOutbound = useCallback((order: EcommerceOrderWithDetailRelation) => {
+        router.get(`/outbound/detail?ecommerceOrder=${order.id}&orderNumber=${order.order_number}`);
     }, []);
 
     const generateCollapseItems = useCallback(
@@ -108,6 +112,26 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                                 {order.status === 'packing' ? 'Packing Done' : 'Packing'}
                             </Button>
                         </Tooltip>
+                        {order.status === 'packing' && (
+                            <Tooltip title="Outbound">
+                                <Button
+                                    icon={<HardDriveUpload size={20} />}
+                                    type="primary"
+                                    iconPosition="end"
+                                    style={{
+                                        fontWeight: 'bold',
+                                        boxShadow: '0 2px 8px #ffe7ba',
+                                        backgroundColor: '#ad4e00',
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOutbound(order);
+                                    }}
+                                >
+                                    Outbound
+                                </Button>
+                            </Tooltip>
+                        )}
                     </Space>
                 ),
                 children: (
@@ -157,7 +181,7 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                 ),
             },
         ],
-        [handleUpdateStatus],
+        [handleOutbound, handleUpdateStatus],
     );
 
     return (

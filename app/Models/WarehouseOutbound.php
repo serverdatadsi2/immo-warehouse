@@ -37,6 +37,11 @@ class WarehouseOutbound extends Model
         return $this->belongsTo(StoreOrder::class, 'order_id');
     }
 
+    public function ecommerceOrder()
+    {
+        return $this->belongsTo(EcommerceOrder::class, 'order_id');
+    }
+
     public function newUniqueId(): string
     {
         return (string) Uuid::uuid4();

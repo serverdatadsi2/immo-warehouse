@@ -14,14 +14,9 @@ class WarehouseStagingOutboundDetail extends Model
 
     protected $guarded = [];
 
-    public function product()
+    public function outbound()
     {
-        return $this->belongsTo(Product::class, 'product_id', 'id');
-    }
-
-    public function rfid()
-    {
-        return $this->belongsTo(RFIDTag::class, 'rfid_tag_id', 'id');
+        return $this->belongsTo(WarehouseOutbound::class, 'warehouse_outbound_id');
     }
 
     public function newUniqueId(): string

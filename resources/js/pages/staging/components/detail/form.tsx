@@ -13,7 +13,7 @@ interface Props {
 
 export function DetailForm({ header }: Props) {
     const { form, post, processing, errors } = useAntdInertiaForm<{
-        rfid: string;
+        warehouse_outbound_id: string;
         warehouse_staging_outbound_id: string;
     }>('Detail Staging Area');
     const [isScanningLocation, setIsScanningLocation] = useState<boolean>(false);
@@ -26,7 +26,7 @@ export function DetailForm({ header }: Props) {
     const handleScanItem = useCallback(
         (value: string) => {
             setIsScanningLocation(false);
-            form.setFieldsValue({ rfid: value });
+            form.setFieldsValue({ warehouse_outbound_id: value });
             notification.success({ message: 'RFID berhasil discan!', duration: 1 });
         },
         [form],
@@ -74,12 +74,12 @@ export function DetailForm({ header }: Props) {
                                         display: 'block',
                                     }}
                                 >
-                                    RFID Tag
+                                    QRCode Outbound
                                 </Text>
                             }
-                            name="rfid"
+                            name="warehouse_outbound_id"
                             rules={[{ required: true, message: 'Harap masukkan RFID Tag!' }]}
-                            errorMessage={errors?.rfid}
+                            errorMessage={errors?.warehouse_outbound_id}
                         >
                             <Input
                                 placeholder="Klik Tombol disamping untuk scan..."

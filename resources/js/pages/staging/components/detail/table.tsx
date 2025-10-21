@@ -28,12 +28,42 @@ export function DetailTable({ pagination }: Props) {
 
     const columns = useMemo(
         (): TableProps<StagingDetailWithRelation>['columns'] => [
-            { title: 'Product', dataIndex: ['product', 'name'], key: 'product.name' },
             {
-                title: 'RFID Tag',
-                dataIndex: ['rfid', 'value'],
+                title: 'No.',
+                key: 'serial',
+                render: (_: any, __: StagingDetailWithRelation, index: number) => {
+                    const currentPage = pagination?.current_page ?? 1;
+                    const perPage = pagination?.per_page ?? 10;
+                    return (currentPage - 1) * perPage + index + 1;
+                },
+            },
+            {
+                title: 'Surat jalan',
+                dataIndex: ['outbound', 'delivery_order_number'],
+                key: 'delivery_order_number',
+            },
+            {
+                title: 'Pengiriman',
+                dataIndex: ['outbound', 'courier', 'name'],
                 key: 'qty',
                 render: (rfid) => <Tag color="blue">{rfid}</Tag>,
+            },
+            {
+                title: 'Order',
+                children: [
+                    {
+                        title: 'Type',
+                        dataIndex: ['outbound', 'order_ref'],
+                        key: 'order_ref',
+                        align: 'center',
+                    },
+                    {
+                        title: 'Number',
+                        dataIndex: ['outbound', 'order_number'],
+                        key: 'order_number',
+                        align: 'center',
+                    },
+                ],
             },
             {
                 title: 'Action',
@@ -42,7 +72,7 @@ export function DetailTable({ pagination }: Props) {
                 render: (v) => <DeleteButton onClick={() => handleDelete(v)} disabled={false} />,
             },
         ],
-        [handleDelete],
+        [handleDelete, pagination?.current_page, pagination?.per_page],
     );
 
     const handlePageChange = useCallback((page: number) => {

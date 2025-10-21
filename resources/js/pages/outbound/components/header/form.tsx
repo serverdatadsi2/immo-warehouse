@@ -13,8 +13,9 @@ import { DetailContext } from '../../detail';
 import DescriptionHeader from './desctiption';
 
 export function HeaderForm() {
-    const { form, errors, post, processing, destroy } = useAntdInertiaForm<HeaderForm>('Outbound');
-    const { headerData } = useContext(DetailContext);
+    const { form, errors, post, processing, destroy } =
+        useAntdInertiaForm<HeaderFormType>('Outbound');
+    const { headerData, params } = useContext(DetailContext);
     const { props } = usePage<SharedData>();
 
     const handleSave = useCallback(() => {
@@ -34,7 +35,22 @@ export function HeaderForm() {
                 warehouse_id: warehouses[0].id,
             });
         }
-    }, [form, props]);
+        if (params?.storeOrder) {
+            form.setFieldsValue({
+                order_ref: 'store',
+                order_id: params.storeOrder,
+                outbound_type: 'store',
+                order_number: params.orderNumber,
+            });
+        } else if (params?.ecommerceOrder) {
+            form.setFieldsValue({
+                order_ref: 'ecommerce',
+                order_id: params.ecommerceOrder,
+                outbound_type: 'ecommerce',
+                order_number: params.orderNumber,
+            });
+        }
+    }, [form, props, params]);
 
     return (
         <Card
@@ -87,12 +103,12 @@ export function HeaderForm() {
                         <FormItem
                             errorMessage={errors?.courier_id}
                             name="courier_id"
-                            label="Pengiriman"
+                            label="Courier"
                         >
                             <CourierAsyncSelect />
                         </FormItem>
                     </Col>
-                    <Col span={6}>
+                    <Col span={4}>
                         <FormItem
                             errorMessage={errors?.order_ref}
                             name="order_ref"
@@ -107,7 +123,7 @@ export function HeaderForm() {
                             />
                         </FormItem>
                     </Col>
-                    <Col span={6}>
+                    <Col span={4}>
                         <FormItem
                             errorMessage={errors?.order_id}
                             name="order_id"
@@ -115,6 +131,24 @@ export function HeaderForm() {
                             label="Nomor Order"
                         >
                             <OrderAsyncSelect form={form} />
+                        </FormItem>
+                    </Col>
+                    <Col span={4}>
+                        <FormItem
+                            errorMessage={errors?.outbound_type}
+                            name="outbound_type"
+                            required
+                            label="Outbound Type"
+                        >
+                            <Select allowClear placeholder="Outbound To">
+                                <Select.Option value="ecommerce">Ecommerce</Select.Option>
+                                <Select.Option value="store">Store</Select.Option>
+                                {/* <Select.Option value="destroy">Dimusnahkan</Select.Option>
+                                <Select.Option value="transfer">Transfer</Select.Option>
+                                <Select.Option value="return_to_supplier">
+                                    Retur To Supplier
+                                </Select.Option> */}
+                            </Select>
                         </FormItem>
                     </Col>
                 </Row>
@@ -127,7 +161,7 @@ export function HeaderForm() {
     );
 }
 
-type HeaderForm = Partial<Omit<Outbound, 'quantity' | 'grand_total'>> & {
+type HeaderFormType = Partial<Omit<Outbound, 'quantity' | 'grand_total'>> & {
     quantity: number;
     grand_total: number;
 };

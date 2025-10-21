@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EcommerceOrder;
 use App\Models\Item;
 use App\Models\Location;
+use App\Models\StoreOrder;
+use App\Models\WarehouseOutbound;
+use App\Models\WarehouseOutboundDetail;
 use App\Models\WarehouseStagingOutbound;
 use App\Models\WarehouseStagingOutboundDetail;
+use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
 
 class StagingController extends Controller
@@ -19,22 +24,16 @@ class StagingController extends Controller
         $paginations = WarehouseStagingOutbound::query()
             ->with([
                 'detail',
-                'warehouse' => function ($query) {
-                    $query->select('id', 'name', 'code', 'address');
-                },
-                'detail.product' => function ($query) {
-                    $query->select('id', 'name', 'code');
-                },
-                'detail.rfid' => function ($query) {
-                    $query->select('id', 'value');
-                },
+                'warehouse:id,name,code,address',
+                'detail.outbound:id,order_ref,order_number,delivery_order_number,courier_id',
+                'detail.outbound.courier:id,name',
             ])
             ->when($search, fn($q) => $q->where('p.name', 'ILIKE', '%' . $search . '%'))
             ->when($status, function ($q, $status) {
                 if($status==='relesed') $q->whereNotNull('released_at');
                 else $q->whereNull('released_at');
             })
-            ->unless($status, fn ($q) => $q->whereNull('released_at'))
+            // ->unless($status, fn ($q) => $q->whereNull('released_at'))
             ->orderBy('created_at', 'desc')
             ->simplePaginate(10);
 
@@ -74,21 +73,15 @@ class StagingController extends Controller
 
         $header = WarehouseStagingOutbound::query()
         ->with([
-            'warehouse' => function ($query) {
-                $query->select('id', 'name', 'code', 'address');
-            },
+            'warehouse:id,name,code,address',
         ])
         ->where('id', $headerId)
         ->first();
 
         $pagination = WarehouseStagingOutboundDetail::with([
-             'product' => function ($query) {
-                $query->select('id', 'name', 'code');
-            },
-            'rfid' => function ($query) {
-                $query->select('id', 'value');
-            },
-            ])
+                        'outbound:id,order_ref,order_number,delivery_order_number,courier_id',
+                        'outbound.courier:id,name'
+                    ])
             ->where('warehouse_staging_outbound_id', $headerId)
             ->simplePaginate(10);
 
@@ -137,30 +130,17 @@ class StagingController extends Controller
     public function saveDetail(Request $request)
     {
         $validated = $request->validate([
-            'rfid' => ['string', 'required', 'exists:rfid_tags,value'],
+            'warehouse_outbound_id' => ['string', 'required', 'exists:warehouse_outbounds,id'],
             'warehouse_staging_outbound_id' => ['string', 'required', 'exists:warehouse_staging_outbounds,id']
         ]);
 
-        $item = Item::with([
-            'rfidTag' => function ($query) use ($validated) {
-                $query->select('id', 'value');
-            }
-        ])
-        ->whereHas('rfidTag', function ($query) use ($validated) {
-            $query->where('value', $validated['rfid']);
-        })->first();
-
         $header = WarehouseStagingOutboundDetail::newModelInstance();
-        \DB::transaction(function () use ($validated, $item, &$header) {
+        \DB::transaction(function () use ($validated, &$header) {
 
             $detail = WarehouseStagingOutboundDetail::firstOrCreate(
                 [
-                    'rfid_tag_id' => $item->rfidTag->id,
+                    'warehouse_outbound_id' => $validated['warehouse_outbound_id'],
                     'warehouse_staging_outbound_id' => $validated['warehouse_staging_outbound_id'],
-                ],
-                [
-                    'item_id' => $item->id,
-                    'product_id' => $item->product_id,
                 ]);
 
             $header = WarehouseStagingOutbound::findOrFail($detail->warehouse_staging_outbound_id);
@@ -190,6 +170,41 @@ class StagingController extends Controller
             $header->delete();
 
 
+        });
+
+        return to_route('staging.index');
+    }
+
+    public function release(Request $request, $stagingId)
+    {
+        $outboundIds = WarehouseStagingOutboundDetail::where('warehouse_staging_outbound_id', $stagingId)
+                    ->pluck('warehouse_outbound_id')
+                    ->toArray();
+
+        \DB::transaction(function () use ($outboundIds, $stagingId) {
+            WarehouseStagingOutbound::find($stagingId)->update(['released_at' => now()]);
+            $outbounds = WarehouseOutbound::query()->whereIn('id', $outboundIds)
+                        ->select('order_ref', 'order_id')
+                        ->get();
+
+            $groupedOutbounds = $outbounds->groupBy('order_ref');
+
+            $ecommerceOrderIds = $groupedOutbounds->get('ecommerce', collect())->pluck('order_id')->toArray();
+            $storeOrderIds = $groupedOutbounds->get('store', collect())->pluck('order_id')->toArray();
+
+            if (!empty($storeOrderIds)) {
+                StoreOrder::whereIn('id', $storeOrderIds)->update(['status' => 'shipped']);
+            }
+
+            if (!empty($ecommerceOrderIds)) {
+                EcommerceOrder::whereIn('id', $ecommerceOrderIds)->update(['status' => 'shipped']);
+            }
+
+            WarehouseOutbound::whereIn('id', $outboundIds)->update(['released_at' => now()]);
+
+            $itemIds = WarehouseOutboundDetail::whereIn('warehouse_outbound_id', $outboundIds)->pluck('item_id')->toArray();
+            Item::whereIn('id', $itemIds)->update(['status' => 'in_delivery']);
+            WarehouseStock::whereIn('item_id', $itemIds)->delete();
         });
 
         return to_route('staging.index');

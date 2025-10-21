@@ -10,7 +10,7 @@ const DescriptionHeader: React.FC = () => {
 
     const handleProcess = useCallback(() => {
         router.patch(
-            `/receiving-order/ecommerce/${header?.id}/process`,
+            `/receiving-order/ecommerce-order/${header?.id}/process`,
             {},
             {
                 onSuccess: () => {
