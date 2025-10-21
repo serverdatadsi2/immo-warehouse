@@ -71,6 +71,7 @@ export default function TableLocation({ pagination }: Props) {
                 rowKey={(record, i) => `${record.product_id}-${i}`}
                 onPaginationChange={handlePageChange}
                 page={pagination?.current_page || 1}
+                paginationSize="small"
             />
         </Card>
     );

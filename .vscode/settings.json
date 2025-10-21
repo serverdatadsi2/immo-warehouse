@@ -18,6 +18,7 @@
         "staging",
         "return-inbound",
         "stock-opname",
-        "dashboard"
+        "dashboard",
+        "custom-pagination"
     ]
 }

@@ -1,17 +1,20 @@
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { Button, Space } from 'antd';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { SizeType } from 'antd/es/config-provider/SizeContext';
 import React from 'react';
 
 interface CustomPaginationProps {
     dataLength: number;
     page: number;
     onChange: (val: number) => void;
+    paginationSize?: SizeType;
 }
 
 const CustomPagination: React.FC<CustomPaginationProps> = ({
     dataLength = 0,
     page = 0,
     onChange,
+    paginationSize,
 }) => {
     const limit = 10;
 
@@ -19,18 +22,21 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
         <div className="flex justify-end">
             <Space align="end">
                 <Button
-                    icon={<ChevronLeft />}
+                    size={paginationSize ?? 'middle'}
+                    icon={<LeftOutlined />}
                     onClick={() => onChange(page - 1)}
                     disabled={page === 1}
                 />
                 <Button
+                    size={paginationSize ?? 'middle'}
                     style={{ border: '1px solid #C9C9C9', color: 'black' }}
                     className="cursor-default text-black"
                 >
                     {page}
                 </Button>
                 <Button
-                    icon={<ChevronRight />}
+                    size={paginationSize ?? 'middle'}
+                    icon={<RightOutlined />}
                     onClick={() => onChange(page + 1)}
                     disabled={dataLength !== limit}
                 />
