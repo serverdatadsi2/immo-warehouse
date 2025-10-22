@@ -1,8 +1,7 @@
 import { BackButton } from '@/components/buttons/crud-buttons';
 import { AppLayout } from '@/layouts/app-layout';
-import { Inbound, InboundDetail } from '@/types/inbound.type';
+import { Inbound, ReturnInboundDetail } from '@/types/inbound.type';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
-import { ReturnStoreWithDetailRelation } from '@/types/return-store.type';
 import { Head } from '@inertiajs/react';
 import { Space } from 'antd';
 import { createContext } from 'react';
@@ -12,20 +11,18 @@ import { HeaderForm } from './components/header/form';
 export const DetailContext = createContext<PageProps>({
     detailsPagination: null,
     header: null,
-    storeReturn: null,
+    // storeReturn: null,
     storeReturnId: null,
 });
 
-export default function Page({ detailsPagination, header, storeReturn, storeReturnId }: PageProps) {
+export default function Page({ detailsPagination, header, storeReturnId }: PageProps) {
     return (
         <AppLayout
             navBarLeft={<BackButton backUrl="/inbounds/return-store" />}
             navBarTitle="Return Inbound Detail"
         >
             <Head title="Inbound Detail" />
-            <DetailContext.Provider
-                value={{ detailsPagination, header, storeReturn, storeReturnId }}
-            >
+            <DetailContext.Provider value={{ detailsPagination, header, storeReturnId }}>
                 <Space direction="vertical" className="w-full">
                     <HeaderForm />
                     {header && <DetailTable />}
@@ -35,11 +32,11 @@ export default function Page({ detailsPagination, header, storeReturn, storeRetu
     );
 }
 
-export type DetailItem = InboundDetail;
+export type DetailItem = ReturnInboundDetail;
 
 type PageProps = {
     header: Partial<Inbound> | null;
     detailsPagination: LaravelPagination<DetailItem> | null;
-    storeReturn: ReturnStoreWithDetailRelation | null;
+    // storeReturn: ReturnStoreWithDetailRelation | null;
     storeReturnId: string | null;
 };

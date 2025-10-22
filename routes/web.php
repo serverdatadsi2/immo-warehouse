@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\{
     RemoveRFIDController,
     ReceivingOrderStoreController,
@@ -67,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
             // // Details
             Route::get('/detail', [ReturnInboundController::class, 'detail'])->name('detail');
             Route::post('/detail', [ReturnInboundController::class, 'saveDetail']);
+            Route::post('/compare-return', [ReturnInboundController::class, 'compareMissing']);
             Route::delete('/detail/{detail_id}', [ReturnInboundController::class, 'deleteDetail']);
         });
     });

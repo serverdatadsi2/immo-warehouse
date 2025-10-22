@@ -18,6 +18,11 @@ class WarehouseInbound extends Model
         return $this->hasMany(WarehouseInboundDetail::class, 'warehouse_inbound_id');
     }
 
+    public function returnDetail()
+    {
+        return $this->hasMany(WarehouseReturnInboundDetail::class, 'warehouse_inbound_id');
+    }
+
     public function newUniqueId(): string
     {
         return (string) Uuid::uuid4();

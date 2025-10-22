@@ -24,7 +24,7 @@ class WarehouseInboundDetail extends Model
         return $this->belongsTo(Product::class, 'product_id');
     }
 
-        public function newUniqueId(): string
+    public function newUniqueId(): string
     {
         return (string) Uuid::uuid4();
     }

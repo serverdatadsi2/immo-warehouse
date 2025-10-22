@@ -1,4 +1,4 @@
-import { DeleteButton, SaveButton } from '@/components/buttons/common-buttons';
+import { SaveButton } from '@/components/buttons/common-buttons';
 import { LocaleDatePicker } from '@/components/date-picker/locale-date-picker';
 import { FormItem } from '@/components/forms/form-item';
 import { UserAsyncSelect } from '@/components/selects/user';
@@ -7,13 +7,13 @@ import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
 import { SharedData } from '@/types';
 import { Inbound } from '@/types/inbound.type';
 import { usePage } from '@inertiajs/react';
-import { Card, Col, Form, Input, Row, Space } from 'antd';
+import { Card, Col, Form, Input, Row } from 'antd';
 import dayjs from 'dayjs';
 import { useCallback, useContext, useEffect } from 'react';
 import { DetailContext } from '../../detail';
 
 export function HeaderForm() {
-    const { form, errors, post, processing, destroy } = useAntdInertiaForm<HeaderForm>('Inbound');
+    const { form, errors, post, processing } = useAntdInertiaForm<HeaderForm>('Inbound'); //destroy
     const { header, storeReturnId } = useContext(DetailContext);
     const { props } = usePage<SharedData>();
 
@@ -25,9 +25,9 @@ export function HeaderForm() {
         });
     }, [form, header, post, storeReturnId]);
 
-    const handleDelete = useCallback(() => {
-        destroy({ url: `/inbounds/return-store/${header?.id}` });
-    }, [destroy, header?.id]);
+    // const handleDelete = useCallback(() => {
+    //     destroy({ url: `/inbounds/return-store/${header?.id}` });
+    // }, [destroy, header?.id]);
 
     useEffect(() => {
         const { warehouses } = props.auth;
@@ -103,12 +103,12 @@ export function HeaderForm() {
                             <Input placeholder="Masukkan nomor faktur..." />
                         </FormItem>
                     </Col>
-                    <Col span={4}></Col>
-                    <Col span={4}>
-                        <Space>
-                            <DeleteButton onClick={handleDelete} disabled={!header || processing} />
-                            <SaveButton onClick={handleSave} disabled={processing} />
-                        </Space>
+                    <Col span={6}></Col>
+                    <Col span={2}>
+                        {/* <Space>
+                            <DeleteButton onClick={handleDelete} disabled={!header || processing} /> */}
+                        <SaveButton onClick={handleSave} disabled={processing} />
+                        {/* </Space> */}
                     </Col>
                 </Row>
             </Form>

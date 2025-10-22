@@ -29,12 +29,28 @@ export interface InboundDetail {
     updated_at: string;
 }
 
+export interface ReturnInboundDetail {
+    id: string;
+    warehouse_inbound_id: string;
+    item_id: string;
+    product_id: string;
+    status: 'match' | 'extra' | 'missing';
+
+    created_at: string;
+    updated_at: string;
+}
+
+export interface RetrunInboundDetailWithProduct extends ReturnInboundDetail {
+    product: Product;
+}
+
 export interface InboundDetailWithProduct extends InboundDetail {
     product: Product;
 }
 
 export interface HistoryInboundWithRelation extends Inbound {
     inbound_detail: InboundDetailWithProduct[];
+    return_detail: RetrunInboundDetailWithProduct[];
 }
 
 export interface InboundDetailWithRelation extends InboundDetail {

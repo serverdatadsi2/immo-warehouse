@@ -1,7 +1,7 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
 import { appendQueryString } from '@/lib/utils';
-import { HistoryInboundWithRelation, InboundDetailWithProduct } from '@/types/inbound.type';
+import { HistoryInboundWithRelation, RetrunInboundDetailWithProduct } from '@/types/inbound.type';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { router } from '@inertiajs/react';
 import type { TableProps } from 'antd';
@@ -130,12 +130,12 @@ export function HistoryTable({ pagination }: Props) {
 }
 
 // 🧩 Column untuk Tabel Detail (Expandable)
-const detailColumns: TableProps<InboundDetailWithProduct>['columns'] = [
+const detailColumns: TableProps<RetrunInboundDetailWithProduct>['columns'] = [
     {
         title: 'No.',
         key: 'serial',
         align: 'center',
-        render: (_: any, __: InboundDetailWithProduct, index: number) => index + 1,
+        render: (_: any, __: RetrunInboundDetailWithProduct, index: number) => index + 1,
     },
     {
         title: 'Nama Produk',
@@ -144,9 +144,9 @@ const detailColumns: TableProps<InboundDetailWithProduct>['columns'] = [
         align: 'left',
     },
     {
-        title: 'Jumlah',
-        dataIndex: 'quantity',
-        key: 'quantity',
+        title: 'RFID Tag',
+        dataIndex: ['item', 'rfid_tag_id'],
+        key: 'rfid_tag_id',
         align: 'center',
         render: (qty) => (
             <Tag color="blue" style={{ fontWeight: 'bold' }}>
@@ -156,28 +156,49 @@ const detailColumns: TableProps<InboundDetailWithProduct>['columns'] = [
     },
     {
         title: 'Expired Date',
-        dataIndex: 'expired_date',
+        dataIndex: ['item', 'expired_date'],
         key: 'expired_date',
         align: 'center',
         render: (v) => <DateDisplay val={v} />,
     },
     {
-        title: 'Catatan',
-        dataIndex: 'note',
-        key: 'note',
-        align: 'left',
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        align: 'center',
+        render: (status) => {
+            let color = 'default';
+            const text = status?.toUpperCase() ?? '-';
+
+            switch (status) {
+                case 'match':
+                    color = 'green';
+                    break;
+                case 'missing':
+                    color = 'red';
+                    break;
+                case 'extra':
+                    color = 'orange';
+                    break;
+                default:
+                    color = 'default';
+                    break;
+            }
+
+            return <Tag color={color}>{text}</Tag>;
+        },
     },
 ];
 
 // 🔄 Fungsi render tabel detail
 const expandedRowRender = (record: HistoryInboundWithRelation) => {
     return (
-        <Table<InboundDetailWithProduct>
+        <Table<RetrunInboundDetailWithProduct>
             title={() => <Text strong>Detail History Inbound</Text>}
             size="small"
-            rowKey="id"
+            rowKey="item_id"
             columns={detailColumns}
-            dataSource={record.inbound_detail || []}
+            dataSource={record.return_detail || []}
             pagination={false}
         />
     );
