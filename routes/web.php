@@ -110,6 +110,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [WarehouseQcController::class, "indexInboundQC"])->name('index');
         Route::post('/reject-labelling', [WarehouseQcController::class, "updateRejectLabelInbounQc"]);
         Route::get('/monitoring-inbound', [WarehouseQcController::class, 'inboundQC'])->name('inboundQC');
+        Route::get('/history-inbound', [WarehouseQcController::class, 'historyInbounQC'])->name('historyInbounQC');
+        Route::get('/summary-inbound', [WarehouseQcController::class, 'summaryInboundQC'])->name('summaryInboundQC');
+        Route::get('/summary-history-inbound', [WarehouseQcController::class, 'summaryHistoryInboundQC'])->name('summaryHistoryInboundQC');
     });
 
     /*

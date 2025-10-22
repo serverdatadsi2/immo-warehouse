@@ -163,7 +163,33 @@ class WarehouseQcController extends Controller
         $paginatedResults = $dataQuery->orderBy('warehouse_qc.performed_at', 'desc')
                 ->simplePaginate($pageSize);
 
+        // Ambil metadata paginasi
+        $paginationMeta = [
+            'current_page' => $paginatedResults->currentPage(),
+            'from' => $paginatedResults->firstItem(),
+            'to' => $paginatedResults->lastItem(),
+            'per_page' => $paginatedResults->perPage(),
+            'next_page_url' => $paginatedResults->nextPageUrl(),
+            'prev_page_url' => $paginatedResults->previousPageUrl(),
+            'path' => $paginatedResults->path(),
+        ];
 
+        return response()->json([
+            'pagination' => $paginationMeta,
+            'data' => InboundQCResource::collection($paginatedResults->items()),
+        ]);
+    }
+
+    public function summaryInboundQC(Request $request)
+    {
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+
+        // $search = $request->input('search');
+        // $status = $request->input('status');
+        $from = $request->input('from');
+        $to = $request->input('to');
 
         $summaryQuery = WarehouseQC::query()
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
@@ -181,11 +207,11 @@ class WarehouseQcController extends Controller
             });
 
         // Terapkan filter yang
-        if ($search) { $summaryQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
-        if ($status && $status !== 'All') {
-            $oprator = $status === 'Good' ? '=' : '!=';
-            $summaryQuery->where('ic.name', $oprator, 'Good');
-        }
+        // if ($search) { $summaryQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
+        // if ($status && $status !== 'All') {
+        //     $oprator = $status === 'Good' ? '=' : '!=';
+        //     $summaryQuery->where('ic.name', $oprator, 'Good');
+        // }
         if ($from) { $summaryQuery->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()); }
         if ($to) { $summaryQuery->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()); }
 
@@ -203,7 +229,7 @@ class WarehouseQcController extends Controller
             ->where('i.status', 'warehouse_processing')
             ->where('warehouse_qc.qc_type', 'inbound')
             // Terapkan filter yang sama
-            ->when($search, fn($q) => $q->where('p.name', 'ILIKE', '%' . $search . '%'))
+            // ->when($search, fn($q) => $q->where('p.name', 'ILIKE', '%' . $search . '%'))
             ->when($from, fn($q) => $q->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()))
             ->when($to, fn($q) => $q->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()))
             ->where('ic.name', '!=', 'Good')
@@ -212,19 +238,6 @@ class WarehouseQcController extends Controller
             ->orderByDesc('bad_count')
             ->first();
 
-
-        // Ambil metadata paginasi
-        $paginationMeta = [
-            'current_page' => $paginatedResults->currentPage(),
-            'from' => $paginatedResults->firstItem(),
-            'to' => $paginatedResults->lastItem(),
-            'per_page' => $paginatedResults->perPage(),
-            'next_page_url' => $paginatedResults->nextPageUrl(),
-            'prev_page_url' => $paginatedResults->previousPageUrl(),
-            'path' => $paginatedResults->path(),
-        ];
-
-        // Format Summary (sesuai snake_case interface)
         $summaryData = [
             'grand_total' => $total,
             'good_qty' => $goodCount,
@@ -240,11 +253,142 @@ class WarehouseQcController extends Controller
             ],
         ];
 
+        return response()->json($summaryData);
+    }
+
+    public function historyInbounQC(Request $request)
+    {
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $pageSize = 10;
+
+        $dataQuery = WarehouseQC::query()
+            ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
+            ->join('rfid_tags as rt', 'rt.id', '=', 'i.rfid_tag_id')
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->leftJoin('warehouse_item_location_suggestions as wils', 'wils.product_id', '=', 'i.product_id')
+            // location detail
+            ->leftJoin('locations as lr', 'lr.id', '=', 'wils.location_id')
+            ->leftJoin('locations as rk', 'rk.id', '=', 'lr.location_parent_id')
+            ->leftJoin('locations as rm', 'rm.id', '=', 'rk.location_parent_id')
+
+            ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
+            ->join('users as u', 'u.id', '=', 'warehouse_qc.performed_by')
+            ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
+            ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
+            ->where('warehouse_qc.qc_type', 'inbound')
+
+            ->select(
+                'warehouse_qc.*',
+                'p.id as product_id', 'p.name as product_name',
+                'w.id as warehouse_id', 'w.name as warehouse_name',
+                'ic.name as condition_name', 'u.name as performed_by',
+                'rt.value as rfid',
+                'lr.name as layer_name', 'lr.code as layer_code',
+                'rk.name as rack_name', 'rk.code as rack_code',
+                'rm.name as room_name', 'rm.code as room_code',
+            );
+
+        if ($search) { $dataQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
+        if ($status && $status !== 'All') {
+             $oprator = $status === 'Good' ? '=' : '!=';
+             $dataQuery->where('ic.name', $oprator,'Good');
+        }
+        if ($from) { $dataQuery->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()); }
+        if ($to) { $dataQuery->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()); }
+
+        $paginatedResults = $dataQuery->orderBy('warehouse_qc.performed_at', 'desc')
+                ->simplePaginate($pageSize);
+
+        // Ambil metadata paginasi
+        $paginationMeta = [
+            'current_page' => $paginatedResults->currentPage(),
+            'from' => $paginatedResults->firstItem(),
+            'to' => $paginatedResults->lastItem(),
+            'per_page' => $paginatedResults->perPage(),
+            'next_page_url' => $paginatedResults->nextPageUrl(),
+            'prev_page_url' => $paginatedResults->previousPageUrl(),
+            'path' => $paginatedResults->path(),
+        ];
+
         return response()->json([
             'pagination' => $paginationMeta,
             'data' => InboundQCResource::collection($paginatedResults->items()),
-            'summary' => $summaryData,
         ]);
+    }
+
+    public function summaryHistoryInboundQC(Request $request)
+    {
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+
+        // $search = $request->input('search');
+        // $status = $request->input('status');
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        $summaryQuery = WarehouseQC::query()
+            ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
+            ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
+            ->where('warehouse_qc.qc_type', 'inbound');
+
+
+        // Terapkan filter yang
+        // if ($search) { $summaryQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
+        // if ($status && $status !== 'All') {
+        //     $oprator = $status === 'Good' ? '=' : '!=';
+        //     $summaryQuery->where('ic.name', $oprator, 'Good');
+        // }
+        if ($from) { $summaryQuery->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()); }
+        if ($to) { $summaryQuery->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()); }
+
+        // Hitung ringkasan
+        $total = $summaryQuery->count();
+        $goodCount = (clone $summaryQuery)->where('ic.name', 'Good')->count();
+        $badCount = $total - $goodCount;
+
+        // Hitung Highest Bad Product
+        $highestBadProduct = \DB::table('warehouse_qc')
+            ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
+            ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
+            ->where('warehouse_qc.qc_type', 'inbound')
+            // Terapkan filter yang sama
+            // ->when($search, fn($q) => $q->where('p.name', 'ILIKE', '%' . $search . '%'))
+            ->when($from, fn($q) => $q->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()))
+            ->when($to, fn($q) => $q->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()))
+            ->where('ic.name', '!=', 'Good')
+            ->select('p.name', 'p.id', \DB::raw('COUNT(*) as bad_count'))
+            ->groupBy('p.name', 'p.id')
+            ->orderByDesc('bad_count')
+            ->first();
+
+        $summaryData = [
+            'grand_total' => $total,
+            'good_qty' => $goodCount,
+            'bad_dty' => $badCount,
+            'highestBadProduct' => $highestBadProduct ? [
+                'product_name' => $highestBadProduct->name,
+                'product_id' => (string) $highestBadProduct->id,
+                'percentage' => $total > 0 ? round(($highestBadProduct->bad_count / $total) * 100, 2) : 0,
+            ] : [
+                'product_name' => '-',
+                'product_id' => '-',
+                'percentage' => 0,
+            ],
+        ];
+
+        return response()->json($summaryData);
     }
 
     public function indexOutboundQC(Request $request)

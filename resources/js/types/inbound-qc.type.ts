@@ -28,7 +28,7 @@ interface HeightBadProduct {
     percentage: number;
 }
 
-interface InboundQcSummary {
+export interface InboundQcSummary {
     grand_total: number;
     good_qty: number;
     bad_dty: number;
@@ -48,5 +48,4 @@ export interface SimplePaginationMeta {
 export interface MonitoringInboundQc {
     pagination: SimplePaginationMeta;
     data: InboundQC[];
-    summary: InboundQcSummary;
 }
