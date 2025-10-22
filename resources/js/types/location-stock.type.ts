@@ -12,10 +12,15 @@ export interface LocationStock {
 }
 
 // Header produk (ringkasan)
+export interface ConditionGroup {
+    status: string; // Good / Bad / Unknown
+    quantity: number;
+    locations: LocationStock[];
+}
 export interface ProductStock {
     product_name: string;
     product_code: string;
     product_unit: string;
     grand_total: number;
-    locations: LocationStock[];
+    conditions: ConditionGroup[];
 }

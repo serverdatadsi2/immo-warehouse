@@ -1,113 +1,243 @@
 import { ProductStock } from '@/types/location-stock.type';
+import {
+    AppstoreOutlined,
+    BarsOutlined,
+    EnvironmentOutlined,
+    InboxOutlined,
+} from '@ant-design/icons';
 import { Card, Divider, Space, Tag, Typography } from 'antd';
+import { Warehouse } from 'lucide-react';
 
 interface Props {
     data: ProductStock;
 }
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
+
 export default function BarangDetailOverviewCard({ data }: Props) {
     return (
-        <Card className="text-center">
-            <Card.Meta title="Detail Barang" description="Informasi Lokasi Detail Barang" />
-            <div className="grid grid-cols-1 mb-10 sm:grid-cols-2 md:grid-cols-3 gap-4 px-4 sm:px-8 md:px-20 mt-8">
-                <Space direction="vertical" size={20}>
-                    <Text strong>Nama Barang</Text>
-                    <Text>{data.product_name}</Text>
-                </Space>
-                <Space direction="vertical" size={20}>
-                    <Text strong>Kode Barang</Text>
-                    <Text>{data.product_code}</Text>
-                </Space>
-                <Space direction="vertical" size={20}>
-                    <Text strong>Total Stok Tersedia</Text>
-                    <Text strong style={{ color: 'green' }}>
-                        {`${data.grand_total} ${data.product_unit}`}
-                    </Text>
-                </Space>
-            </div>
-            {/* <div className="grid grid-cols-2 px-20 gap-3 mt-10">
-                <Text strong>Supplier</Text>
-                <Text strong>Total Stok Tersedia</Text>
-                <Text>{data.nama_supplier}</Text>
-                <Text strong style={{ color: 'green' }}>
-                    {`${data.grand_total} ${data.product_unit}`}
+        <Card
+            className="w-full"
+            style={{
+                background: '#f5faff',
+                boxShadow: '0 2px 8px #1890ff11',
+            }}
+        >
+            {/* ================= HEADER ================= */}
+            <div className="text-center mb-6">
+                <Title level={4} className="!mb-1">
+                    Detail Barang
+                </Title>
+                <Text type="secondary" className="text-xs sm:text-sm">
+                    Informasi kondisi dan lokasi detail stok barang
                 </Text>
-            </div> */}
+            </div>
 
-            {/* Daftar Lokasi */}
-            <Divider>Lokasi Stok</Divider>
+            {/* ================= PRODUCT INFO ================= */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 px-2 sm:px-4">
+                {/* Nama Barang */}
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <Space direction="vertical" size={8} className="w-full">
+                        <Text strong className="text-xs sm:text-sm text-gray-500">
+                            Nama Barang
+                        </Text>
+                        <Text className="text-sm sm:text-base font-medium break-words">
+                            {data.product_name}
+                        </Text>
+                    </Space>
+                </div>
 
-            {data?.locations?.map((item, index) => (
-                <Card
-                    key={index}
-                    style={{ marginBottom: 25, background: '#fff1b8', padding: '0 20px 0 20px' }}
-                >
-                    <div className="flex justify-between mb-5">
-                        <h4 style={{ fontWeight: 600, color: '#444' }}>Lokasi {index + 1}</h4>
-                        <Tag color="green" className="font-semibold">
-                            Stok: {item.quantity}
+                {/* Kode Barang */}
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <Space direction="vertical" size={8} className="w-full">
+                        <Text strong className="text-xs sm:text-sm text-gray-500">
+                            Kode Barang
+                        </Text>
+                        <Text className="text-sm sm:text-base font-medium">
+                            {data.product_code}
+                        </Text>
+                    </Space>
+                </div>
+
+                {/* Total Stok */}
+                <div className="bg-white p-4 rounded-lg shadow-sm sm:col-span-2 lg:col-span-1">
+                    <Space direction="vertical" size={8} className="w-full">
+                        <Text strong className="text-xs sm:text-sm text-gray-500">
+                            Total Stok Tersedia
+                        </Text>
+                        <Text strong className="text-sm sm:text-base" style={{ color: '#52c41a' }}>
+                            {`${data.grand_total} ${data.product_unit}`}
+                        </Text>
+                    </Space>
+                </div>
+            </div>
+
+            {/* ================= KONDISI STOK ================= */}
+            <Divider className="my-6">
+                <Text strong className="text-sm sm:text-base">
+                    Detail Stok per Kondisi
+                </Text>
+            </Divider>
+
+            {data.conditions.map((condition, cIndex) => (
+                <div key={cIndex} className="mb-8">
+                    {/* Header Kondisi */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                        <Title
+                            level={5}
+                            className={`${condition.status === 'Good' ? '!text-blue-600' : '!text-red-500'} !mb-2 sm:!mb-0 text-sm sm:text-base`}
+                        >
+                            Kondisi: {condition.status}
+                        </Title>
+                        <Tag
+                            color={
+                                condition.status === 'Good'
+                                    ? 'green'
+                                    : condition.status === 'Bad'
+                                      ? 'red'
+                                      : 'orange'
+                            }
+                            className="font-semibold text-xs sm:text-sm"
+                        >
+                            Total: {condition.quantity} {data.product_unit}
                         </Tag>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 px-4 sm:px-6 md:px-10 mt-6">
-                        <Space direction="vertical" size={4}>
-                            <Text strong>Warehouse</Text>
-                            <Text>
-                                {item.warehouse_name} ({item.warehouse_code})
-                            </Text>
-                        </Space>
+                    {/* Lokasi-lokasi dalam kondisi ini */}
+                    <div
+                        className={`grid grid-cols-1 ${
+                            condition.locations.length > 1 && 'lg:grid-cols-2'
+                        } gap-4`}
+                    >
+                        {condition.locations.map((item, index) => (
+                            <Card
+                                key={index}
+                                className="w-full"
+                                style={{
+                                    background:
+                                        condition.status === 'Good'
+                                            ? '#d9f7be'
+                                            : condition.status === 'Bad'
+                                              ? '#fff2f0'
+                                              : '#fffbe6',
+                                }}
+                            >
+                                {/* Header Lokasi */}
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <EnvironmentOutlined className="text-base sm:text-lg" />
+                                        <Text strong className="text-sm sm:text-base">
+                                            Lokasi {index + 1}
+                                        </Text>
+                                    </div>
+                                    <Tag color="blue" className="font-semibold text-xs sm:text-sm">
+                                        Stok: {item.quantity}
+                                    </Tag>
+                                </div>
 
-                        <Space direction="vertical" size={4}>
-                            <Text strong>Rak</Text>
-                            <Text>
-                                {item.rack_name} ({item.rack_code})
-                            </Text>
-                        </Space>
+                                {/* Detail Lokasi */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Warehouse */}
+                                    <div className="bg-white bg-opacity-60 p-3 rounded">
+                                        <Space direction="vertical" size={4} className="w-full">
+                                            <div className="flex items-center gap-2">
+                                                <Warehouse className="text-gray-500" size={16} />
+                                                <Text
+                                                    strong
+                                                    className="text-xs sm:text-sm text-gray-600"
+                                                >
+                                                    Warehouse
+                                                </Text>
+                                            </div>
+                                            <Text className="text-xs sm:text-sm ml-6 break-words">
+                                                {item.warehouse_name}
+                                            </Text>
+                                            <Text type="secondary" className="text-xs ml-6">
+                                                ({item.warehouse_code})
+                                            </Text>
+                                        </Space>
+                                    </div>
 
-                        <Space direction="vertical" size={4}>
-                            <Text strong>Ruangan</Text>
-                            <Text>
-                                {item.room_name} ({item.room_code})
-                            </Text>
-                        </Space>
+                                    {/* Ruangan */}
+                                    <div className="bg-white bg-opacity-60 p-3 rounded">
+                                        <Space direction="vertical" size={4} className="w-full">
+                                            <div className="flex items-center gap-2">
+                                                <InboxOutlined className="text-gray-500" />
+                                                <Text
+                                                    strong
+                                                    className="text-xs sm:text-sm text-gray-600"
+                                                >
+                                                    Ruangan
+                                                </Text>
+                                            </div>
+                                            <Text className="text-xs sm:text-sm ml-6 break-words">
+                                                {item.room_name}
+                                            </Text>
+                                            <Text type="secondary" className="text-xs ml-6">
+                                                ({item.room_code})
+                                            </Text>
+                                        </Space>
+                                    </div>
 
-                        <Space direction="vertical" size={4}>
-                            <Text strong>Layer Rak</Text>
-                            <Text>
-                                {item.layer_name} ({item.layer_code})
-                            </Text>
-                        </Space>
+                                    {/* Rak */}
+                                    <div className="bg-white bg-opacity-60 p-3 rounded">
+                                        <Space direction="vertical" size={4} className="w-full">
+                                            <div className="flex items-center gap-2">
+                                                <AppstoreOutlined className="text-gray-500" />
+                                                <Text
+                                                    strong
+                                                    className="text-xs sm:text-sm text-gray-600"
+                                                >
+                                                    Rak
+                                                </Text>
+                                            </div>
+                                            <Text className="text-xs sm:text-sm ml-6 break-words">
+                                                {item.rack_name}
+                                            </Text>
+                                            <Text type="secondary" className="text-xs ml-6">
+                                                ({item.rack_code})
+                                            </Text>
+                                        </Space>
+                                    </div>
+
+                                    {/* Layer Rak */}
+                                    <div className="bg-white bg-opacity-60 p-3 rounded">
+                                        <Space direction="vertical" size={4} className="w-full">
+                                            <div className="flex items-center gap-2">
+                                                <BarsOutlined className="text-gray-500" />
+                                                <Text
+                                                    strong
+                                                    className="text-xs sm:text-sm text-gray-600"
+                                                >
+                                                    Layer Rak
+                                                </Text>
+                                            </div>
+                                            <Text className="text-xs sm:text-sm ml-6 break-words">
+                                                {item.layer_name}
+                                            </Text>
+                                            <Text type="secondary" className="text-xs ml-6">
+                                                ({item.layer_code})
+                                            </Text>
+                                        </Space>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
                     </div>
-
-                    {/* Tanggal Kadaluarsa */}
-                    {/* {item.tanggal_kadaluarsa && (
-                        <div style={{ marginTop: 12 }}>
-                            <Descriptions bordered column={1} size="small">
-                                <Descriptions.Item label="Tanggal Kadaluarsa">
-                                    {new Date(item.tanggal_kadaluarsa).toLocaleDateString(
-                                        'id-ID',
-                                        {
-                                            day: '2-digit',
-                                            month: 'long',
-                                            year: 'numeric',
-                                        },
-                                    )}
-                                </Descriptions.Item>
-                            </Descriptions>
-                        </div>
-                    )} */}
-                </Card>
+                </div>
             ))}
 
-            {/* Summary */}
-            <div style={{ marginTop: 24, padding: 16, background: '#e6f4ff', borderRadius: 8 }}>
-                <h4 style={{ fontWeight: 600, color: '#0958d9', marginBottom: 8 }}>Summary</h4>
-                <p style={{ fontSize: 14, color: '#1677ff' }}>
-                    Barang <strong>{data.product_name}</strong> tersedia di{' '}
-                    <strong>{data?.locations?.length} lokasi</strong> dengan total stok{' '}
-                    <strong> {`${data.grand_total} ${data.product_name}`}</strong>.
-                </p>
+            {/* ================= SUMMARY ================= */}
+            <div className="mt-6 p-4 sm:p-6 bg-blue-50 rounded-lg">
+                <Title level={5} className="!mb-2 !text-blue-700 text-sm sm:text-base">
+                    Summary
+                </Title>
+                <Text className="text-xs sm:text-sm text-blue-600 leading-relaxed">
+                    Barang <strong>{data.product_name}</strong> memiliki total stok{' '}
+                    <strong>{`${data.grand_total} ${data.product_unit}`}</strong> yang terbagi dalam{' '}
+                    <strong>{data.conditions.length}</strong> kondisi berbeda (
+                    {data.conditions.map((c) => c.status).join(', ')}).
+                </Text>
             </div>
         </Card>
     );

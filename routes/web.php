@@ -35,7 +35,7 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::prefix('search-product')->name('search-product.')->group(function () {
         Route::get('/', [SearchProductController::class, "index"])->name('index');
-        Route::get('/warehouse/{rfid}', [SearchProductController::class, 'searchLocationProduct'])->name('searchLocation');
+        Route::get('/warehouse', [SearchProductController::class, 'searchLocationProduct'])->name('searchLocation');
     });
 
     /*
