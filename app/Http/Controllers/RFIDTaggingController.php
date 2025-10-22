@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\RFIDTag;
 use App\Models\StoreReturnDetail;
 use App\Models\WarehouseInboundDetail;
+use App\Models\WarehouseReturnInboundDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
@@ -94,71 +95,43 @@ class RFIDTaggingController extends Controller
     public function returnInboundDetails(Request $request)
     {
         $user = auth()->user();
-        // ambil warehouse pertama milik user
         $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
         $search = $request->input('search');
 
-        $query = WarehouseInboundDetail::query()
-                ->join('products as p', 'p.id', '=', 'warehouse_inbound_details.product_id')
-                ->join('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_inbound_details.warehouse_inbound_id')
-                ->join('store_returns as sr', 'sr.id', '=', 'wi.store_return_id')
-                ->leftJoin('items as i', 'i.warehouse_inbound_detail_id', '=', 'warehouse_inbound_details.id')
-                ->whereIn('wi.warehouse_id', $userWarehouseIds)
-                ->where('inbound_type', 'store_return')
-                ->select(
-                    'warehouse_inbound_details.id',
-                    'warehouse_inbound_details.product_id',
-                    'warehouse_inbound_details.warehouse_inbound_id',
-                    'warehouse_inbound_details.quantity as quantity_inbound',
-                    'p.name as product_name',
-                    'p.code as product_code',
-                    'wi.received_date',
-                    'wi.warehouse_id',
-                    'warehouse_inbound_details.expired_date',
-                    'wi.store_return_id',
+        $query = WarehouseReturnInboundDetail::query()
+            ->join('products as p', 'p.id', '=', 'warehouse_return_inbound_details.product_id')
+            ->join('warehouse_inbounds as wi', 'wi.id', '=', 'warehouse_return_inbound_details.warehouse_inbound_id')
+            ->whereIn('wi.warehouse_id', $userWarehouseIds)
+            ->where('wi.inbound_type', 'store_return')
+            ->whereNotNull('wi.store_return_id')
+            ->where('warehouse_return_inbound_details.status', 'extra') // ✅ hanya status extra
+            ->select(
+                'warehouse_return_inbound_details.product_id',
+                'p.name as product_name',
+                'p.code as product_code',
+                'wi.id as warehouse_inbound_id',
+                'wi.received_date',
+                DB::raw('COUNT(*) as quantity') // ✅ hitung jumlah record per produk
+            )
+            ->groupBy(
+                'warehouse_return_inbound_details.product_id',
+                'p.name',
+                'p.code',
+                'wi.id',
+                'wi.received_date',
+            )
+            ->orderBy('p.name', 'asc');
 
-                    // 1. Hitung jumlah item yang sudah QC (current_condition_id TIDAK NULL)
-                    // 2. Kurangi quantity inbound detail dengan quantity qc 'quantity'
-                    DB::raw('
-                        warehouse_inbound_details.quantity - COUNT(
-                            CASE
-                                WHEN i.current_condition_id IS NOT NULL THEN i.id
-                                ELSE NULL
-                            END
-                        ) AS quantity'
-                    )
-                )
-                ->orderBy('received_date', 'asc')
-                ->groupBy(
-                    'warehouse_inbound_details.id',
-                    'warehouse_inbound_details.product_id',
-                    'warehouse_inbound_details.warehouse_inbound_id',
-                    'warehouse_inbound_details.quantity',
-                    'p.name',
-                    'p.code',
-                    'wi.received_date',
-                    'wi.warehouse_id',
-                    'warehouse_inbound_details.expired_date',
-                    'wi.store_return_id',
-                )
-
-                // Memastikan quantity sisa (hasil perhitungan) lebih besar dari 0
-                ->havingRaw('
-                    warehouse_inbound_details.quantity - COUNT(
-                        CASE
-                            WHEN i.current_condition_id IS NOT NULL THEN i.id
-                            ELSE NULL
-                        END
-                    ) > 0'
-                );
-
+        // ✅ Tambahkan filter pencarian jika ada
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('p.name', 'ILIKE', "%{$search}%")
-                  ->orWhere('p.code', 'ILIKE', "%{$search}%");
+                ->orWhere('p.code', 'ILIKE', "%{$search}%");
             });
         }
-        $data = $query->paginate(4);
+
+        // ✅ Pagination
+        $data = $query->paginate(10);
 
         return Response::json($data);
     }
@@ -292,88 +265,6 @@ class RFIDTaggingController extends Controller
         return response()->json($allAvailable);
     }
 
-    // generate new item but old rfid tag
-    public function generateNewItemReturn(Request $request)
-    {
-        $rules = [
-            'warehouse_inbound_detail_id' => ['string', 'required', 'exists:warehouse_inbound_details,id'],
-            'store_return_id' => ['string', 'required', 'exists:warehouse_inbound_details,id'],
-            'product_id' => ['string', 'required', 'exists:products,id'],
-            // 'expired_date' => ['date', 'nullable'],
-            // 'quantity' => ['numeric', 'required'],
-        ];
-
-        $validated = $request->validate($rules);
-
-        // $qty = (int) $validated['quantity'];
-
-        $returStore = StoreReturnDetail::join('item as i', 'i.id', '=', 'store_return_details.item_id' )
-                    ->where('store_return_details.store_return_id', $validated['store_return_id'])
-                    ->where('i.priduct_id', $validated['product_id'])
-                    ->select('i.id as item_id', 'i.rfid_tag_id', 'i.expired_date', 'i.product_id')
-                    ->get();
-
-        $createdItems = [];
-
-        foreach ($returStore as $rfid) {
-            $createdItems[] = Item::updateOrCreate(
-                [
-                    'old_item_id' => $rfid->item_id, // referensi item lama
-                ],
-                [
-                    'rfid_tag_id' => $rfid->rfid_tag_id,
-                    'warehouse_inbound_detail_id' => $validated['warehouse_inbound_detail_id'],
-                    'product_id' => $rfid->product_id,
-                    'expired_date' => $rfid->expired_date,
-                    'status' => 'warehouse_processing',
-                ]
-            );
-        }
-
-        // $items = Item::query()
-        //             ->where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])
-        //             ->where('product_id', $validated['product_id'])
-        //             ->whereNull('current_condition_id') // Hanya yang belum QC
-        //             ->whereNull('old_item_id') // Hanya item yang baru
-        //             ->where('items.status', 'warehouse_processing') // Hanya yang belum QC
-        //             ->where('expired_date', $validated['expired_date'])
-        //             ->get();
-
-        // $newItems = DB::transaction(function () use ($items, $validated, $qty) {
-        //     $createdItems = [];
-
-        //     $qtyToInsert = $qty - $items->count();
-
-        //     for ($i = 0; $i < $qtyToInsert; $i++) {
-        //         $rfidId = (string) Str::uuid();
-
-        //         // Simpan RFID Tag
-        //         $rfid = RfidTag::create([
-        //             'id' => $rfidId,
-        //             'value' => $rfidId,
-        //         ]);
-
-        //         // Simpan Item
-        //         $createdItems[] = Item::updateOrCreate(
-        //             [
-        //                 'warehouse_inbound_detail_id' => $validated['warehouse_inbound_detail_id'],
-        //                 'rfid_tag_id' => $rfid->id,
-        //             ],
-        //             [
-        //                 'product_id' => $validated['product_id'],
-        //                 'expired_date' => $validated['expired_date'],
-        //                 'status' => 'warehouse_processing',
-        //             ],
-        //         );
-        //     }
-        //     return $createdItems;
-        // });
-
-        // $allAvailable = $items->merge($newItems);
-
-        return response()->json($createdItems);
-    }
-
     public function getRFIDItems(Request $request)
     {
         $rules = [
@@ -418,8 +309,20 @@ class RFIDTaggingController extends Controller
 
     public function generatePdfWithRFIDInboundReturn(Request $request)
     {
+        $rules = [
+            'warehouse_inbound_id' => ['string', 'required', 'exists:warehouse_inbounds,id'],
+            'product_id' => ['string', 'required', 'exists:products,id'],
+        ];
+
+        $validated = $request->validate($rules);
         try {
-            $items = $this->generateNewItemReturn($request)->getData();
+            $itemIds = WarehouseReturnInboundDetail::where('warehouse_inbound_id', $validated['warehouse_inbound_id'])
+                        ->where('product_id', $validated['product_id'])
+                        ->where('status', 'extra')
+                        ->pluck('item_id')
+                        ->toArray();
+
+            $items = Item::whereIn('id', $itemIds)->get()->toArray();
 
             $product = Product::findOrFail($request->product_id);
 
@@ -456,7 +359,7 @@ class RFIDTaggingController extends Controller
         $y = 10;
 
         foreach ($items as $i => $item) {
-            $rfid_tag_id = $item->rfid_tag_id;
+            $rfid_tag_id = is_array($item) ? $item['rfid_tag_id'] : $item->rfid_tag_id;
 
             // Generate QR ke binary string PNG
             $options = new QROptions([
