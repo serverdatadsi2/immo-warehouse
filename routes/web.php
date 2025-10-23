@@ -18,6 +18,7 @@ use App\Http\Controllers\{
     StagingController,
     DashboardController,
     UserController,
+    MenuController
 };
 
 // MAIN AUTH ROUTES
@@ -231,6 +232,7 @@ Route::middleware(['auth'])->group(function () {
     });
     // get all location
     Route::get('/locations', [LocationSuggestionController::class, 'getLocationByUser'])->name('get-all-location-by-user');
+    Route::get('/all-menu-counts', [MenuController::class, 'counts'])->name('counts');
 
     /*
     |--------------------------------------------------------------------------

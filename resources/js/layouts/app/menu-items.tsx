@@ -1,3 +1,4 @@
+import { MenuCounts } from '@/types/menu.type';
 import { router } from '@inertiajs/react';
 import { Badge, Typography } from 'antd';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
@@ -43,147 +44,169 @@ function getMenuItem({ key, icon, label, url, children }: MenuItemParam): ItemTy
     };
 }
 
-export const menuItems = [
-    getMenuItem({
-        key: 'master',
-        icon: <Blinds size={20} />,
-        label: 'Master',
-        children: [
-            getMenuItem({
-                key: 'location-suggestions',
-                icon: <Map size={17} />,
-                label: 'Location Suggestions',
-                url: '/master/location-suggestions',
-            }),
-        ],
-    }),
-    getMenuItem({
-        key: 'search-product',
-        icon: <Search size={17} />,
-        label: 'Search Product',
-        url: '/search-product',
-    }),
-    getMenuItem({
-        key: 'inbounds',
-        icon: <HardDriveDownload size={20} />,
-        label: 'Inbounds',
-        children: [
-            getMenuItem({
-                key: 'supplier',
-                icon: <Download size={17} />,
-                label: 'on Supplier',
-                url: '/inbounds/supplier',
-            }),
-            getMenuItem({
-                key: 'return-store',
-                icon: <FolderSync size={17} />,
-                label: 'Store Return',
-                url: '/inbounds/return-store',
-            }),
-        ],
-    }),
-    getMenuItem({
-        key: 'rfid-tagging',
-        icon: <QrCode size={17} />,
-        label: 'RFID Tagging',
-        url: '/rfid-tagging',
-    }),
-    getMenuItem({
-        key: 'remove-rfid',
-        icon: <Delete size={17} />,
-        label: 'Remove RFID',
-        url: '/remove-rfid',
-    }),
-    getMenuItem({
-        key: 'inbound-qc',
-        icon: <LassoSelect size={17} />,
-        label: 'Inbound QC',
-        url: '/inbound-qc',
-    }),
-    getMenuItem({
-        key: 'storage-warehouse',
-        icon: <DatabaseZap size={17} />,
-        label: 'Penyimpanan',
-        url: '/storage-warehouse',
-    }),
-    getMenuItem({
-        key: 'stock-opname',
-        icon: <FileChartColumn size={17} />,
-        label: 'Stock Opname',
-        url: '/stock-opname',
-    }),
-    getMenuItem({
-        key: 'receiving-order',
-        icon: <NotebookText size={20} />,
-        label: 'Receiving Orders',
-        children: [
-            getMenuItem({
-                key: 'store-order',
-                icon: <NotebookText size={17} />,
-                label: (
-                    <Badge count={2} size="small" offset={[15, 5]} color="volcano">
-                        <Typography.Text className="!text-gray-200">Store </Typography.Text>
-                    </Badge>
-                ),
+export function getMenuItems(data: MenuCounts | undefined) {
+    return [
+        getMenuItem({
+            key: 'master',
+            icon: <Blinds size={20} />,
+            label: 'Master',
+            children: [
+                getMenuItem({
+                    key: 'location-suggestions',
+                    icon: <Map size={17} />,
+                    label: 'Location Suggestions',
+                    url: '/master/location-suggestions',
+                }),
+            ],
+        }),
+        getMenuItem({
+            key: 'search-product',
+            icon: <Search size={17} />,
+            label: 'Search Product',
+            url: '/search-product',
+        }),
+        getMenuItem({
+            key: 'inbounds',
+            icon: <HardDriveDownload size={20} />,
+            label: 'Inbounds',
+            children: [
+                getMenuItem({
+                    key: 'supplier',
+                    icon: <Download size={17} />,
+                    label: 'on Supplier',
+                    url: '/inbounds/supplier',
+                }),
+                getMenuItem({
+                    key: 'return-store',
+                    icon: <FolderSync size={17} />,
+                    label: 'Store Return',
+                    url: '/inbounds/return-store',
+                }),
+            ],
+        }),
+        getMenuItem({
+            key: 'rfid-tagging',
+            icon: <QrCode size={17} />,
+            label: 'RFID Tagging',
+            url: '/rfid-tagging',
+        }),
+        getMenuItem({
+            key: 'remove-rfid',
+            icon: <Delete size={17} />,
+            label: 'Remove RFID',
+            url: '/remove-rfid',
+        }),
+        getMenuItem({
+            key: 'inbound-qc',
+            icon: <LassoSelect size={17} />,
+            label: 'Inbound QC',
+            url: '/inbound-qc',
+        }),
+        getMenuItem({
+            key: 'storage-warehouse',
+            icon: <DatabaseZap size={17} />,
+            label: 'Penyimpanan',
+            url: '/storage-warehouse',
+        }),
+        getMenuItem({
+            key: 'stock-opname',
+            icon: <FileChartColumn size={17} />,
+            label: 'Stock Opname',
+            url: '/stock-opname',
+        }),
+        getMenuItem({
+            key: 'receiving-order',
+            icon: <NotebookText size={20} />,
+            label: 'Receiving Orders',
+            children: [
+                getMenuItem({
+                    key: 'store-order',
+                    icon: <NotebookText size={17} />,
+                    label: (
+                        <Badge
+                            count={data?.store_order ?? 0}
+                            size="small"
+                            offset={[15, 5]}
+                            color="volcano"
+                        >
+                            <Typography.Text className="!text-gray-200">Store </Typography.Text>
+                        </Badge>
+                    ),
 
-                url: '/receiving-order/store-order',
-            }),
-            getMenuItem({
-                key: 'ecommerce-order',
-                icon: <NotebookText size={17} />,
-                label: (
-                    <Badge count={0} size="small" offset={[7, 5]} color="volcano">
-                        <Typography.Text className="!text-gray-100">Ecommerce </Typography.Text>
-                    </Badge>
-                ),
-                url: '/receiving-order/ecommerce-order',
-            }),
-        ],
-    }),
-    getMenuItem({
-        key: 'outbound-qc',
-        icon: <Lasso size={17} />,
-        label: 'Outbound QC',
-        url: '/outbound-qc',
-    }),
-    getMenuItem({
-        key: 'packing',
-        icon: <Package size={20} />,
-        label: 'Packing',
-        children: [
-            getMenuItem({
-                key: 'store',
-                icon: <Package size={17} />,
-                label: (
-                    <Badge count={2} size="small" offset={[15, 5]} color="volcano">
-                        <Typography.Text className="!text-gray-200">Store </Typography.Text>
-                    </Badge>
-                ),
+                    url: '/receiving-order/store-order',
+                }),
+                getMenuItem({
+                    key: 'ecommerce-order',
+                    icon: <NotebookText size={17} />,
+                    label: (
+                        <Badge
+                            count={data?.ecommrce_order ?? 0}
+                            size="small"
+                            offset={[7, 5]}
+                            color="volcano"
+                        >
+                            <Typography.Text className="!text-gray-100">Ecommerce </Typography.Text>
+                        </Badge>
+                    ),
+                    url: '/receiving-order/ecommerce-order',
+                }),
+            ],
+        }),
+        getMenuItem({
+            key: 'outbound-qc',
+            icon: <Lasso size={17} />,
+            label: 'Outbound QC',
+            url: '/outbound-qc',
+        }),
+        getMenuItem({
+            key: 'packing',
+            icon: <Package size={20} />,
+            label: 'Packing',
+            children: [
+                getMenuItem({
+                    key: 'store',
+                    icon: <Package size={17} />,
+                    label: (
+                        <Badge
+                            count={data?.store_packing ?? 0}
+                            size="small"
+                            offset={[15, 5]}
+                            color="volcano"
+                        >
+                            <Typography.Text className="!text-gray-200">Store </Typography.Text>
+                        </Badge>
+                    ),
 
-                url: '/packing/store',
-            }),
-            getMenuItem({
-                key: 'ecommerce',
-                icon: <Package size={17} />,
-                label: (
-                    <Badge count={0} size="small" offset={[7, 5]} color="volcano">
-                        <Typography.Text className="!text-gray-100">Ecommerce </Typography.Text>
-                    </Badge>
-                ),
-                url: '/packing/ecommerce',
-            }),
-        ],
-    }),
-    getMenuItem({
-        key: 'outbound',
-        icon: <HardDriveUpload size={17} />,
-        label: 'Outbound',
-        url: '/outbound',
-    }),
-    getMenuItem({
-        key: 'staging',
-        icon: <Blocks size={17} />,
-        label: 'Staging',
-        url: '/staging',
-    }),
-];
+                    url: '/packing/store',
+                }),
+                getMenuItem({
+                    key: 'ecommerce',
+                    icon: <Package size={17} />,
+                    label: (
+                        <Badge
+                            count={data?.ecommrce_packing ?? 0}
+                            size="small"
+                            offset={[7, 5]}
+                            color="volcano"
+                        >
+                            <Typography.Text className="!text-gray-100">Ecommerce </Typography.Text>
+                        </Badge>
+                    ),
+                    url: '/packing/ecommerce',
+                }),
+            ],
+        }),
+        getMenuItem({
+            key: 'outbound',
+            icon: <HardDriveUpload size={17} />,
+            label: 'Outbound',
+            url: '/outbound',
+        }),
+        getMenuItem({
+            key: 'staging',
+            icon: <Blocks size={17} />,
+            label: 'Staging',
+            url: '/staging',
+        }),
+    ];
+}

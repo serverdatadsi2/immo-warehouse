@@ -21,7 +21,7 @@ class ReceivingOrderEcommerceController extends Controller
         $dates = $request->query('dateRange');
 
         $user = auth()->user();
-        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
         $query = EcommerceOrder::query()
             ->join('customers as c', 'c.id', '=', 'ecommerce_orders.customer_id')
@@ -39,9 +39,7 @@ class ReceivingOrderEcommerceController extends Controller
             })
             ->select('ecommerce_orders.*', 'c.name as order_by', 'c.wa_number', 'p.completed_at as approve_at')
             ->where('ecommerce_orders.status', $filters['status'] ?? 'paid')
-            ->where(function ($q) use ($userWarehouseIds) {
-                $q->whereNull('ecommerce_orders.handled_by_warehouse_id')->orWhereIn('ecommerce_orders.handled_by_warehouse_id', $userWarehouseIds);
-            })
+            ->where('ecommerce_orders.handled_by_warehouse_id', $userWarehouseId)
             ->groupBy('ecommerce_orders.id', 'c.name', 'c.wa_number', 'p.completed_at');
 
         if (!empty($search)) {

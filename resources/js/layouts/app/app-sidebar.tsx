@@ -1,8 +1,11 @@
+import axiosIns from '@/lib/axios';
+import { MenuCounts } from '@/types/menu.type';
 import { router, usePage } from '@inertiajs/react';
+import { useQuery } from '@tanstack/react-query';
 import { Button, Layout, Menu } from 'antd';
 import { Warehouse } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { menuItems } from './menu-items';
+import { getMenuItems } from './menu-items';
 
 const { Sider } = Layout;
 
@@ -17,6 +20,16 @@ export function AppSidebar() {
     const handleClick = useCallback(() => {
         router.get('/');
     }, []);
+
+    const { data } = useQuery({
+        queryKey: ['all-menu-counts'],
+        queryFn: async () => {
+            const res = await axiosIns.get<MenuCounts>('/all-menu-counts');
+            return res.data;
+        },
+    });
+
+    const menuItems = useMemo(() => getMenuItems(data), [data]);
 
     return (
         <Sider
