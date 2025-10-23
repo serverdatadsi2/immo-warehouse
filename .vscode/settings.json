@@ -20,6 +20,7 @@
         "stock-opname",
         "dashboard",
         "custom-pagination",
-        "handle-order-to-outbound"
+        "handle-order-to-outbound",
+        "spatie-permition"
     ]
 }
