@@ -1,86 +1,19 @@
 import { AppLayout } from '@/layouts/app-layout';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Head, Link, router } from '@inertiajs/react';
-import {
-    Button,
-    Card,
-    Col,
-    Popconfirm,
-    Row,
-    Space,
-    Table,
-    TableColumnsType,
-    Typography,
-} from 'antd';
+import { SimplePagination } from '@/types/laravel-pagination.type';
+import { Role } from '@/types/role.type';
+import { PlusOutlined } from '@ant-design/icons';
+import { Head, router } from '@inertiajs/react';
+import { Button, Card, Col, Row, Typography } from 'antd';
 import { useCallback } from 'react';
+import DataTable from './components/table';
 
-interface RolesIndexProps {
-    roles: Role[];
+interface Props {
+    pagination: SimplePagination<Role>;
 }
-
-interface Role {
-    id: string;
-    name: string;
-    permissions: string[];
-    created_at: string;
-}
-
-const columns: TableColumnsType<Role> = [
-    {
-        title: 'Name',
-        dataIndex: 'name',
-        key: 'name',
-    },
-    {
-        title: 'Permissions',
-        dataIndex: 'permissions',
-        key: 'permissions',
-        render: (permissions: string[]) => <span>{permissions.join(', ')}</span>,
-    },
-    {
-        title: 'Actions',
-        key: 'actions',
-        render: (_, record) => (
-            <Space size="middle">
-                <Link href={route('roles.edit', record.id)}>
-                    <Button type="primary" icon={<EditOutlined />} size="small">
-                        Edit
-                    </Button>
-                </Link>
-                <Popconfirm
-                    title="Delete the role"
-                    description="Are you sure to delete this role?"
-                    okText="Yes"
-                    cancelText="No"
-                    onConfirm={() => handleDelete(record.id)}
-                >
-                    <Button danger icon={<DeleteOutlined />} size="small">
-                        Delete
-                    </Button>
-                </Popconfirm>
-            </Space>
-        ),
-    },
-];
-
-const handleDelete = (id: string) => {
-    // Using Inertia to make a DELETE request to the role endpoint
-    fetch(route('roles.destroy', id), {
-        method: 'DELETE',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN':
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        },
-    }).then(() => {
-        // Refresh the page after deletion
-        window.location.reload();
-    });
-};
 
 const { Title, Text } = Typography;
 
-export default function Page({ roles }: RolesIndexProps) {
+export default function Page({ pagination }: Props) {
     const handleAdd = useCallback(() => {
         router.get('/roles/create');
     }, []);
@@ -114,20 +47,7 @@ export default function Page({ roles }: RolesIndexProps) {
                 </Row>
             </Card>
 
-            <Card
-                style={{
-                    background: '#f5faff',
-                    boxShadow: '0 2px 8px #1890ff11',
-                    marginTop: 20,
-                }}
-            >
-                <Table
-                    columns={columns}
-                    dataSource={roles}
-                    rowKey="id"
-                    pagination={{ pageSize: 10 }}
-                />
-            </Card>
+            <DataTable pagination={pagination} />
         </AppLayout>
     );
 }

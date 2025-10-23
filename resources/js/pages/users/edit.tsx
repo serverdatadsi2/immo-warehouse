@@ -1,7 +1,7 @@
 import { AppLayout } from '@/layouts/app-layout';
 import { Role, User, Warehouse } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Button, Card, Form, Input, InputPassword, Select, Space, Switch, message } from 'antd';
+import { Button, Card, Form, Input, Select, Space, Switch, message } from 'antd';
 
 interface EditUserProps {
     user: User;
@@ -121,7 +121,7 @@ export default function edituser({ user, roles, warehouses }: EditUserProps) {
                     </Form.Item>
 
                     <Form.Item label="New Password" name="password">
-                        <InputPassword placeholder="Leave blank to keep current password" />
+                        <Input.Password placeholder="Leave blank to keep current password" />
                     </Form.Item>
 
                     <Form.Item
@@ -141,7 +141,7 @@ export default function edituser({ user, roles, warehouses }: EditUserProps) {
                             }),
                         ]}
                     >
-                        <InputPassword />
+                        <Input.Password />
                     </Form.Item>
 
                     <Form.Item label="Roles" name="roles">

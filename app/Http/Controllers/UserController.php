@@ -13,15 +13,37 @@ use Illuminate\Http\RedirectResponse;
 
 class UserController extends Controller
 {
+    public function userList(Request $request)
+    {
+        $search = $request->input('search');
+        $page = $request->input('page');
+        $offset = ($page - 1) * 30;
+
+        $user = auth()->user();
+        $warehouseUserIds = $user->warehouses()->pluck('warehouses.id');
+
+        $data = User::query()
+            ->join('warehouse_users as wu', 'wu.user_id', '=', 'users.id')
+            ->where('wms_access', true)
+            ->whereIn('wu.warehouse_id', $warehouseUserIds)
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'ILIKE', "%{$search}%");
+            })
+            ->offset($offset)
+            ->limit(30)->get();
+
+        return Response::json($data);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(): Response
     {
-        $users = User::with(['roles', 'warehouses'])
+        $pagination = User::with(['roles', 'warehouses'])
             ->orderBy('name')
-            ->get()
-            ->map(function ($user) {
+            ->simplePaginate(10)
+            ->through(function ($user) {
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -29,16 +51,13 @@ class UserController extends Controller
                     'email' => $user->email,
                     'roles' => $user->roles->pluck('name')->toArray(),
                     'warehouses' => $user->warehouses->pluck('name', 'id')->toArray(),
-                    'ecommerce_access' => $user->ecommerce_access,
-                    'wms_access' => $user->wms_access,
-                    'backoffice_access' => $user->backoffice_access,
-                    'store_access' => $user->store_access,
                     'created_at' => $user->created_at->format('Y-m-d H:i:s'),
                 ];
             });
 
+
         return Inertia::render('users/index', [
-            'users' => $users
+            'pagination' => $pagination
         ]);
     }
 
@@ -50,7 +69,7 @@ class UserController extends Controller
         $roles = Role::orderBy('name')->get();
         $warehouses = Warehouse::orderBy('name')->get();
 
-        return Inertia::render('users/Create', [
+        return Inertia::render('users/create', [
             'roles' => $roles->map(function ($role) {
                 return [
                     'id' => $role->id,
@@ -156,8 +175,8 @@ class UserController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'roles' => 'array',
             'roles.*' => 'exists:db-auth.roles,name',
-            'warehouses' => 'array',
-            'warehouses.*' => 'exists:warehouses,id',
+            // 'warehouses' => 'array',
+            // 'warehouses.*' => 'exists:warehouses,id',
             'ecommerce_access' => 'boolean',
             'wms_access' => 'boolean',
             'backoffice_access' => 'boolean',
@@ -186,11 +205,11 @@ class UserController extends Controller
             $user->roles()->detach();
         }
 
-        if ($request->warehouses) {
-            $user->warehouses()->sync($request->warehouses);
-        } else {
-            $user->warehouses()->detach();
-        }
+        // if ($request->warehouses) {
+        //     $user->warehouses()->sync($request->warehouses);
+        // } else {
+        //     $user->warehouses()->detach();
+        // }
 
         return redirect()->route('users.index')->with('message', 'User updated successfully.');
     }

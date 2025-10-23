@@ -28,11 +28,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [DashboardController::class, "index"])->name('home');
 
     // get user for asyncSelectUser component
-    Route::get('/users', [UserController::class, "index"])->name('user.index');
+    // Route::get('/users', [UserController::class, "index"])->name('user.index');
 
     // User, Role and Permission management
+    // Route::resource('roles', RoleController::class)->except(['show']);
+    Route::prefix('roles')->name('roles.')->group(function () {
+        Route::get('/', [RoleController::class, 'index'])->name('index');
+        Route::get('/create', [RoleController::class, 'create'])->name('create');
+        Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
+        Route::post('/', [RoleController::class, 'save']);
+        Route::delete('/{role}', [RoleController::class, 'destroy']);
+    });
+
     Route::resource('users', UserController::class)->except(['show']);
-    Route::resource('roles', RoleController::class)->except(['show']);
     Route::resource('permissions', PermissionController::class)->only(['index']);
 
     /*

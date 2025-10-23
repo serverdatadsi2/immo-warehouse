@@ -1,7 +1,7 @@
 import { AppLayout } from '@/layouts/app-layout';
 import { Role, Warehouse } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Button, Card, Form, Input, InputPassword, Select, Space, Switch, message } from 'antd';
+import { Button, Card, Form, Input, Select, Space, Switch, message } from 'antd';
 
 interface CreateUserProps {
     roles: Role[];
@@ -114,7 +114,7 @@ export default function createuser({ roles, warehouses }: CreateUserProps) {
                         name="password"
                         rules={[{ required: true, message: 'Please input the password!' }]}
                     >
-                        <InputPassword />
+                        <Input.Password />
                     </Form.Item>
 
                     <Form.Item
@@ -135,7 +135,7 @@ export default function createuser({ roles, warehouses }: CreateUserProps) {
                             }),
                         ]}
                     >
-                        <InputPassword />
+                        <Input.Password />
                     </Form.Item>
 
                     <Form.Item label="Roles" name="roles">

@@ -61,7 +61,7 @@ export function Filters({ params }: Props) {
     );
 
     const handleClear = useCallback(() => {
-        router.visit('/receiving-order', { replace: true });
+        router.visit('/receiving-order/store-order', { replace: true });
     }, []);
 
     const disabledDate = (current) => {

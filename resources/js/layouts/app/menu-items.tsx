@@ -18,6 +18,8 @@ import {
     Package,
     QrCode,
     Search,
+    ShieldPlus,
+    UserRoundCog,
 } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -185,5 +187,17 @@ export const menuItems = [
         icon: <Blocks size={17} />,
         label: 'Staging',
         url: '/staging',
+    }),
+    getMenuItem({
+        key: 'roles',
+        icon: <ShieldPlus size={17} />,
+        label: 'Role Management',
+        url: '/roles',
+    }),
+    getMenuItem({
+        key: 'users',
+        icon: <UserRoundCog size={17} />,
+        label: 'Users Management',
+        url: '/users',
     }),
 ];
