@@ -18,6 +18,8 @@ use App\Http\Controllers\{
     StagingController,
     DashboardController,
     UserController,
+    PermissionController,
+    RoleController
 };
 
 // MAIN AUTH ROUTES
@@ -27,6 +29,11 @@ Route::middleware(['auth'])->group(function () {
 
     // get user for asyncSelectUser component
     Route::get('/users', [UserController::class, "index"])->name('user.index');
+
+    // User, Role and Permission management
+    Route::resource('users', UserController::class)->except(['show']);
+    Route::resource('roles', RoleController::class)->except(['show']);
+    Route::resource('permissions', PermissionController::class)->only(['index']);
 
     /*
     |--------------------------------------------------------------------------

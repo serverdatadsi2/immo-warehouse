@@ -21,6 +21,7 @@
         "dashboard",
         "custom-pagination",
         "handle-order-to-outbound",
-        "spatie-permition"
+        "spatie-permition",
+        "role-management"
     ]
 }

@@ -23,14 +23,16 @@ class DatabaseSeeder extends Seeder
 
         public function run()
     {
-        User::factory(10)->create();
-        Supplier::factory(5)->create();
-        Warehouse::factory(3)->create();
+        $this->call(PermissionSeeder::class);
 
-        // Seed units & categories terlebih dahulu
-        Unit::factory(5)->create();
-        ProductCategory::factory(5)->create();
+        // User::factory(10)->create();
+        // Supplier::factory(5)->create();
+        // Warehouse::factory(3)->create();
 
-        Product::factory(20)->create();
+        // // Seed units & categories terlebih dahulu
+        // Unit::factory(5)->create();
+        // ProductCategory::factory(5)->create();
+
+        // Product::factory(20)->create();
     }
 }
