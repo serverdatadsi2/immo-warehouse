@@ -50,9 +50,9 @@ class HandleInertiaRequests extends Middleware
                 $user = $request->user();
                 return [
                     'user' => $user,
-                    'warehouses' => $user ? $user->warehouses()->get() : [],
-                    'permissions' => $user ? $user->getAllPermissions()->pluck('name')->toArray() : [],
-                    'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
+                    'warehouse' => $user?->warehouses()->first() ,
+                    'permissions' =>$user?->getAllPermissions()->pluck('name')->toArray(),
+                    'role' => $user?->roles->pluck('name')->first(),
                 ];
             },
             'ziggy' => fn (): array => [

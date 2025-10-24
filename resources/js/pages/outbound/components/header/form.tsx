@@ -28,11 +28,11 @@ export function HeaderForm() {
     }, [destroy, headerData?.id]);
 
     useEffect(() => {
-        if (props.auth.warehouses?.[0]) {
-            const { user, warehouses } = props.auth;
+        if (props.auth.warehouse) {
+            const { user, warehouse } = props.auth;
             form.setFieldsValue({
                 user_id: user.id,
-                warehouse_id: warehouses[0].id,
+                warehouse_id: warehouse.id,
             });
         }
         if (params?.storeOrder) {

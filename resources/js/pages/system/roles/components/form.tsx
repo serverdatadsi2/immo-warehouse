@@ -100,25 +100,28 @@ export default function RoleForm({ role, permissions }: Props) {
                                                 index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                                             }`}
                                         >
-                                            <Row gutter={[8, 8]} style={{ width: '100%' }}>
+                                            <Row style={{ width: '100%' }}>
                                                 <Col span={4}>
                                                     <span className="font-semibold text-blue-600 mb-2 capitalize">
                                                         {group.replace('_', ' ')}
                                                     </span>
                                                 </Col>
-                                                {perms.map((permission, i) =>
-                                                    i === 5 ? (
-                                                        <Col key={permission.name} span={4} />
-                                                    ) : (
-                                                        <Col key={permission.name} span={4}>
-                                                            <Checkbox value={permission.name}>
-                                                                {permission.name
-                                                                    .replace(`${group}.`, '')
-                                                                    .replaceAll('_', ' ')}
-                                                            </Checkbox>
-                                                        </Col>
-                                                    ),
-                                                )}
+                                                <Col span={20}>
+                                                    <Row
+                                                        gutter={[10, 10]}
+                                                        style={{ width: '100%' }}
+                                                    >
+                                                        {perms.map((permission) => (
+                                                            <Col key={permission.name} span={4}>
+                                                                <Checkbox value={permission.name}>
+                                                                    {permission.name
+                                                                        .replace(`${group}.`, '')
+                                                                        .replaceAll('_', ' ')}
+                                                                </Checkbox>
+                                                            </Col>
+                                                        ))}
+                                                    </Row>
+                                                </Col>
                                             </Row>
                                         </List.Item>
                                     )}

@@ -23,7 +23,7 @@ function UserPopoverContent() {
         <Space direction="vertical" size={15} className="text-center">
             <Space direction="vertical" size={0.5}>
                 <Typography.Text strong>{props.auth.user.name}</Typography.Text>
-                <span className="!text-xs text-gray-500">{props.auth.warehouses[0].name}</span>
+                <span className="!text-xs text-gray-500">{props.auth.warehouse.name}</span>
             </Space>
             <Button
                 onClick={onLogout}

@@ -14,7 +14,7 @@ const DescriptionHeader = () => {
             {
                 key: '1',
                 label: 'Warehouse',
-                children: headerData ? headerData?.warehouse?.name : props.auth.warehouses[0].name,
+                children: headerData ? headerData?.warehouse?.name : props.auth.warehouse.name,
             },
             {
                 key: '2',

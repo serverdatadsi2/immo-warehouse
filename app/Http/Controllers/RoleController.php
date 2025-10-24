@@ -55,7 +55,7 @@ class RoleController extends Controller
      */
     public function create(): Response
     {
-        $permissions = Permission::orderBy('name')->get();
+        $permissions = Permission::orderBy('id')->get();
 
         return Inertia::render('system/roles/components/form', [
             'permissions' => $permissions,
@@ -68,7 +68,7 @@ class RoleController extends Controller
     public function edit(Role $role): Response
     {
         $role->load('permissions');
-        $permissions = Permission::orderBy('name')->get();
+        $permissions = Permission::orderBy('id')->get();
 
         return Inertia::render('system/roles/components/form', [
             'role' => $role,

@@ -25,7 +25,7 @@ class PermissionSeeder extends Seeder
             'location_suggestion.delete',
 
             // 🔍 PRODUCT SEARCH
-            'product.search',
+            'search_product',
 
             // 🚚 INBOUND (SUPPLIER)
             'inbound.supplier.create',
@@ -49,12 +49,13 @@ class PermissionSeeder extends Seeder
             'inbound_qc.reject',
 
             // 🏬 STORAGE / PENYIMPANAN
-            'storage.view',
-            'storage.assign',
+            'penyimpanan.view',
+            'penyimpanan.assign',
 
             // 📦 STOCK OPNAME
             'stock_opname.view',
             'stock_opname.monitoring',
+            'stock_opname.manual_stock_opname',
             'stock_opname.validate',
             'stock_opname.approve',
             'stock_opname.bad_labeling',
@@ -96,15 +97,12 @@ class PermissionSeeder extends Seeder
             'role.view',
             'role.update',
             'role.delete',
-            'role.assign_permission',
 
             // 👤 USER MANAGEMENT
             'user.create',
             'user.view',
             'user.update',
             'user.delete',
-            'user.assign_role',
-            'user.assign_warehouse',
         ];
 
 

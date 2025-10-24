@@ -25,23 +25,23 @@ use App\Http\Controllers\{
 // MAIN AUTH ROUTES
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/', [DashboardController::class, "index"])->name('home');
+    Route::get('/', [DashboardController::class, "index"])->name('home')->middleware('permission:dashboard.view');
 
     Route::prefix('system')->name('system.')->group(function () {
         Route::prefix('roles')->name('roles.')->group(function () {
             Route::get('/list', [RoleController::class, 'roleList'])->name('roleList');
-            Route::get('/', [RoleController::class, 'index'])->name('index');
-            Route::get('/create', [RoleController::class, 'create'])->name('create');
-            Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
-            Route::post('/', [RoleController::class, 'save']);
-            Route::delete('/{role}', [RoleController::class, 'destroy']);
+            Route::get('/', [RoleController::class, 'index'])->name('index')->middleware('permission:role.view');
+            Route::get('/create', [RoleController::class, 'create'])->name('create')->middleware('permission:role.create');
+            Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit')->middleware('permission:role.update');
+            Route::post('/', [RoleController::class, 'save'])->middleware('permission:role.create|role.update');
+            Route::delete('/{role}', [RoleController::class, 'destroy'])->middleware('permission:role.delete');
         });
 
         Route::prefix('users')->name('users.')->group(function () {
             Route::get('/list', [UserController::class, 'userList'])->name('userList');
-            Route::get('/', [UserController::class, 'index'])->name('index');
-            Route::post('/', [UserController::class, 'save']);
-            Route::delete('/{user}', [UserController::class, 'destroy']);
+            Route::get('/', [UserController::class, 'index'])->name('index')->middleware('permission:user.view');
+            Route::post('/', [UserController::class, 'save'])->middleware('permission:user.update|user.create');
+            Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('permission:user.delete');
         });
     });
 
@@ -52,9 +52,9 @@ Route::middleware(['auth'])->group(function () {
     | Search Product
     |--------------------------------------------------------------------------
     */
-    Route::prefix('search-product')->name('search-product.')->group(function () {
+    Route::prefix('search-product')->name('search-product.')->middleware('permission:search_product')->group( function () {
         Route::get('/', [SearchProductController::class, "index"])->name('index');
-        Route::get('/warehouse', [SearchProductController::class, 'searchLocationProduct'])->name('searchLocation');
+        Route::get('/warehouse', [SearchProductController::class, 'searchLocationProduct']);
     });
 
     /*
@@ -64,29 +64,29 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::prefix('inbounds')->name('inbounds.')->group(function () {
         // Supprier Inbound
-        Route::prefix('supplier')->name('supplier.')->group(function () {
+        Route::prefix('supplier')->name('supplier.')->middleware('permission:inbound.supplier.view')->group(function () {
             Route::get('/', [InboundController::class, 'index'])->name('index');
-            Route::post('/', [InboundController::class, 'saveHeader']);
-            Route::delete('/{header_id}', [InboundController::class, 'deleteHeader']);
+            Route::post('/', [InboundController::class, 'saveHeader'])->middleware('permission:inbound.supplier.create|inbound.supplier.update');
+            Route::delete('/{header_id}', [InboundController::class, 'deleteHeader'])->middleware('permission:inbound.supplier.delete');
 
             // Details
             Route::get('/detail', [InboundController::class, 'detail'])->name('detail');
-            Route::post('/detail', [InboundController::class, 'saveDetail']);
-            Route::delete('/detail/{detail_id}', [InboundController::class, 'deleteDetail']);
+            Route::post('/detail', [InboundController::class, 'saveDetail'])->middleware('permission:inbound.supplier.create|inbound.supplier.update');
+            Route::delete('/detail/{detail_id}', [InboundController::class, 'deleteDetail'])->middleware('permission:inbound.supplier.delete');
         });
 
         // Return Store Inbound
-        Route::prefix('return-store')->name('return-store.')->group(function () {
-            Route::get('/history', [ReturnInboundController::class, 'history'])->name('history');
+        Route::prefix('return-store')->name('return-store.')->middleware('permission:inbound.return.view')->group(function () {
+            Route::get('/history', [ReturnInboundController::class, 'history'])->name('history')->middleware('permission:inbound.return.history');
             Route::get('/', [ReturnInboundController::class, 'index'])->name('index');
-            Route::post('/', [ReturnInboundController::class, 'saveHeader']);
-            Route::delete('/{header_id}', [ReturnInboundController::class, 'deleteHeader']);
+            Route::post('/', [ReturnInboundController::class, 'saveHeader'])->middleware('permission:inbound.return.write');
+            Route::delete('/{header_id}', [ReturnInboundController::class, 'deleteHeader'])->middleware('permission:inbound.return.write');
 
             // // Details
             Route::get('/detail', [ReturnInboundController::class, 'detail'])->name('detail');
-            Route::post('/detail', [ReturnInboundController::class, 'saveDetail']);
-            Route::post('/compare-return', [ReturnInboundController::class, 'compareMissing']);
-            Route::delete('/detail/{detail_id}', [ReturnInboundController::class, 'deleteDetail']);
+            Route::post('/detail', [ReturnInboundController::class, 'saveDetail'])->middleware('permission:inbound.return.write');
+            Route::post('/compare-return', [ReturnInboundController::class, 'compareMissing'])->middleware('permission:inbound.return.write');
+            Route::delete('/detail/{detail_id}', [ReturnInboundController::class, 'deleteDetail'])->middleware('permission:inbound.return.write');
         });
     });
 
@@ -95,7 +95,7 @@ Route::middleware(['auth'])->group(function () {
     | RFID Tagging
     |--------------------------------------------------------------------------
     */
-    Route::prefix('rfid-tagging')->name('rfid-tagging.')->group(function () {
+    Route::prefix('rfid-tagging')->name('rfid-tagging.')->middleware('permission:rfid.tagging')->group(function () {
         Route::get('/', [RFIDTaggingController::class, 'index'])->name('index');
         Route::get('/supplier-inbound-detail-list', [RFIDTaggingController::class, 'supplierInboundDetails'])->name('supplierInboundDetails');
         Route::get('/return-inbound-detail-list', [RFIDTaggingController::class, 'returnInboundDetails'])->name('returnInboundDetails');
@@ -114,7 +114,7 @@ Route::middleware(['auth'])->group(function () {
     | Remove RFID
     |--------------------------------------------------------------------------
     */
-    Route::prefix('remove-rfid')->name('remove-rfid.')->group(function () {
+    Route::prefix('remove-rfid')->name('remove-rfid.')->middleware('permission:rfid.remove')->group(function () {
         Route::get("/", [RemoveRFIDController::class, "index"])->name("index");
         Route::get("/check-rfid/{rfidId}", [RemoveRFIDController::class, "checkRfid"])->name('checkRfid');
         Route::post("/remove", [RemoveRFIDController::class, "removeRfid"]);
@@ -125,9 +125,9 @@ Route::middleware(['auth'])->group(function () {
     | Inbound QC
     |--------------------------------------------------------------------------
     */
-    Route::prefix('inbound-qc')->name('inbound-qc.')->group(function () {
+    Route::prefix('inbound-qc')->name('inbound-qc.')->middleware('permission:inbound_qc.view')->group(function () {
         Route::get('/', [WarehouseQcController::class, "indexInboundQC"])->name('index');
-        Route::post('/reject-labelling', [WarehouseQcController::class, "updateRejectLabelInbounQc"]);
+        Route::post('/reject-labelling', [WarehouseQcController::class, "updateRejectLabelInbounQc"])->middleware('permission:inbound_qc.reject');
         Route::get('/monitoring-inbound', [WarehouseQcController::class, 'inboundQC'])->name('inboundQC');
         Route::get('/history-inbound', [WarehouseQcController::class, 'historyInbounQC'])->name('historyInbounQC');
         Route::get('/summary-inbound', [WarehouseQcController::class, 'summaryInboundQC'])->name('summaryInboundQC');
@@ -139,10 +139,10 @@ Route::middleware(['auth'])->group(function () {
     | Storage Warehouse
     |--------------------------------------------------------------------------
     */
-    Route::prefix('storage-warehouse')->name('storage-warehouse.')->group(function () {
+    Route::prefix('storage-warehouse')->name('storage-warehouse.')->middleware('permission:penyimpanan.view')->group(function () {
         Route::get('/', [WarehouseStorageController::class,'index'])->name('index');
         Route::get('/assignment',[WarehouseStorageController::class,'listProductUnsignLocation'])->name('listProductUnsignLocation');
-        Route::post('/assignment',[WarehouseStorageController::class,'store']);
+        Route::post('/assignment',[WarehouseStorageController::class,'store'])->middleware('permission:penyimpanan.assign');
     });
 
     /*
@@ -151,15 +151,15 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('receiving-order')->name('receiving-order.')->group(function () {
-        Route::prefix('store-order')->name('store-order.')->group(function () {
+        Route::prefix('store-order')->name('store-order.')->middleware('permission:receiving_order.store.view')->group(function () {
             Route::get('/', [ReceivingOrderStoreController::class, 'index'])->name('index');
-            Route::patch('/{header_id}/process', [ReceivingOrderStoreController::class, 'updateHeader'])->name('updateHeader');
+            Route::patch('/{header_id}/process', [ReceivingOrderStoreController::class, 'updateHeader'])->name('updateHeader')->middleware('permission:receiving_order.store.process');
             Route::get('/detail', [ReceivingOrderStoreController::class, 'detail'])->name('detail');
         });
 
-        Route::prefix('ecommerce-order')->name('ecommerce-order.')->group(function () {
+        Route::prefix('ecommerce-order')->name('ecommerce-order.')->middleware('permission:receiving_order.ecommerce.view')->group(function () {
             Route::get('/', [ReceivingOrderEcommerceController::class, 'index'])->name('index');
-            Route::patch('/{header_id}/process', [ReceivingOrderEcommerceController::class, 'updateHeader'])->name('updateHeader');
+            Route::patch('/{header_id}/process', [ReceivingOrderEcommerceController::class, 'updateHeader'])->name('updateHeader')->middleware('permission:receiving_order.ecommerce.process');
             Route::get('/detail', [ReceivingOrderEcommerceController::class, 'detail'])->name('detail');
         });
     });
@@ -169,9 +169,9 @@ Route::middleware(['auth'])->group(function () {
     | Outbound QC
     |--------------------------------------------------------------------------
     */
-    Route::prefix('outbound-qc')->name('outbound-qc.')->group(function () {
+    Route::prefix('outbound-qc')->name('outbound-qc.')->middleware('permission:outbound_qc.view')->group(function () {
         Route::get('/', [WarehouseQcController::class, 'indexOutboundQC'])->name('index');
-        Route::post('/rejected', [WarehouseQcController::class, 'rejectOutboundQC']);
+        Route::post('/rejected', [WarehouseQcController::class, 'rejectOutboundQC'])->middleware('permission:outbound_qc.reject');
         Route::get('/monitoring-outbound', [WarehouseQcController::class, 'outboundQC'])->name('outboundQC');
     });
 
@@ -181,15 +181,15 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('packing')->name('packing.')->group(function () {
-        Route::prefix('store')->name('store.')->group(function () {
+        Route::prefix('store')->name('store.')->middleware('permission:packing.store.view')->group(function () {
             Route::get('/', [PackingController::class, 'index'])->name('index');
-            Route::patch('/{order_id}/update-status', [PackingController::class, 'updateStatus'])->name('updateStatus');
+            Route::patch('/{order_id}/update-status', [PackingController::class, 'updateStatus'])->name('updateStatus')->middleware('permission:packing.store.process');
             // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
         });
 
-        Route::prefix('ecommerce')->name('ecommerce.')->group(function () {
+        Route::prefix('ecommerce')->name('ecommerce.')->middleware('permission:packing.ecommerce.view')->group(function () {
             Route::get('/', [PackingController::class, 'packingEcommerce'])->name('index');
-            Route::patch('/{order_id}/update-status', [PackingController::class, 'updateStatusOrderEcommerce'])->name('updateStatus');
+            Route::patch('/{order_id}/update-status', [PackingController::class, 'updateStatusOrderEcommerce'])->name('updateStatus')->middleware('permission:packing.ecommerce.process');
             // Route::get('/monitoring-outbound', [PackingController::class, 'outboundQC'])->name('outboundQC');
         });
     });
@@ -199,17 +199,17 @@ Route::middleware(['auth'])->group(function () {
     | Staging Area
     |--------------------------------------------------------------------------
     */
-    Route::prefix('staging')->name('staging.')->group(function () {
+    Route::prefix('staging')->name('staging.')->middleware('permission:staging.view')->group(function () {
         Route::get('/', [StagingController::class, 'index'])->name('index');
         Route::get('/manual-input', [StagingController::class, 'detail'])->name('detail');
-        Route::post('/manual-input', [StagingController::class, 'saveHeader']);
-        Route::delete('/manual-input/{header_id}', [StagingController::class, 'deleteHeader']);
+        Route::post('/manual-input', [StagingController::class, 'saveHeader'])->middleware('permission:staging.create');
+        Route::delete('/manual-input/{header_id}', [StagingController::class, 'deleteHeader'])->middleware('permission:staging.delete');
 
-        Route::put('/release/{header_id}', [StagingController::class, 'release']);
+        Route::put('/release/{header_id}', [StagingController::class, 'release'])->middleware('permission:staging.update');
 
         // detail
-        Route::post('/manual-input/detail', [StagingController::class, 'saveDetail']);
-        Route::delete('/manual-input/detail/{detail_id}', [StagingController::class, 'deleteDetail']);
+        Route::post('/manual-input/detail', [StagingController::class, 'saveDetail'])->middleware('permission:staging.create|staging.update');
+        Route::delete('/manual-input/detail/{detail_id}', [StagingController::class, 'deleteDetail'])->middleware('permission:staging.delete');
     });
 
     // packing orders
@@ -223,16 +223,16 @@ Route::middleware(['auth'])->group(function () {
     | Outbound
     |--------------------------------------------------------------------------
     */
-    Route::prefix('outbound')->name('outbound.')->group(function () {
+    Route::prefix('outbound')->name('outbound.')->middleware('permission:outbound.view')->group(function () {
         Route::get('/', [OutboundController::class, 'index'])->name('index');
-        Route::post('/', [OutboundController::class, 'saveHeader']);
-        Route::delete('/{header_id}', [OutboundController::class, 'deleteHeader']);
+        Route::post('/', [OutboundController::class, 'saveHeader'])->middleware('permission:outbound.create|outbound.update');
+        Route::delete('/{header_id}', [OutboundController::class, 'deleteHeader'])->middleware('permission:outbound.delete');
 
         // Details
         Route::get('/detail-outbound/{header_id}', [OutboundController::class, 'detailOutbound'])->name('detailOutbound');
         Route::get('/detail', [OutboundController::class, 'detail'])->name('detail');
-        Route::post('/detail', [OutboundController::class, 'saveDetail']);
-        Route::delete('/detail/{detail_id}', [OutboundController::class, 'deleteDetail']);
+        Route::post('/detail', [OutboundController::class, 'saveDetail'])->middleware('permission:outbound.update|outbound.create');
+        Route::delete('/detail/{detail_id}', [OutboundController::class, 'deleteDetail'])->middleware('permission:outbound.delete');
 
     });
 
@@ -242,10 +242,10 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('master')->group(function () {
-        Route::prefix('location-suggestions')->name('location-suggestions.')->group(function () {
+        Route::prefix('location-suggestions')->name('location-suggestions.')->middleware('permission:location_suggestion.view')->group(function () {
             Route::get('/', [LocationSuggestionController::class, 'index'])->name('index');
-            Route::post('/', [LocationSuggestionController::class, 'save']);
-            Route::delete('/{id}', [LocationSuggestionController::class, 'delete']);
+            Route::post('/', [LocationSuggestionController::class, 'save'])->middleware('permission:location_suggestion.create|location_suggestion.update');
+            Route::delete('/{id}', [LocationSuggestionController::class, 'delete'])->middleware('permission:location_suggestion.delete');
         });
     });
     // get all location
@@ -256,14 +256,14 @@ Route::middleware(['auth'])->group(function () {
     | Stock Opname
     |--------------------------------------------------------------------------
     */
-    Route::prefix('stock-opname')->name('stock-opname.')->group(function () {
+    Route::prefix('stock-opname')->name('stock-opname.')->middleware('permission:stock_opname.view')->group(function () {
         Route::get('/', [StockOpnameController::class, 'index'])->name('index');
         Route::get('/detail', [StockOpnameController::class, 'detail'])->name('detail');
-        Route::get('/monitoring', [StockOpnameController::class, 'monitoring'])->name('monitoring');
-        Route::put('/{stockOpnameId}/process', [StockOpnameController::class, 'updateStockOpnameStatus'])->name('updateStockOpnameStatus');
-        Route::post('/manual-stock-opname', [StockOpnameController::class, 'manualStockOpname'])->name('manualStockOpname');
-        Route::post('/update-stock', [StockOpnameController::class, 'updateStock'])->name('updateStock');
-        Route::post('/bad-condition-item', [StockOpnameController::class, 'updateItemCondition'])->name('updateItemCondition');
+        Route::get('/monitoring', [StockOpnameController::class, 'monitoring'])->name('monitoring')->middleware('permission:stock_opname.monitoring');
+        Route::put('/{stockOpnameId}/process', [StockOpnameController::class, 'updateStockOpnameStatus'])->name('updateStockOpnameStatus')->middleware('permission:stock_opname.validate');
+        Route::post('/manual-stock-opname', [StockOpnameController::class, 'manualStockOpname'])->name('manualStockOpname')->middleware('permission:stock_opname.manual_stock_opname');
+        Route::post('/update-stock', [StockOpnameController::class, 'updateStock'])->name('updateStock')->middleware('permission:stock_opname.approve');
+        Route::post('/bad-condition-item', [StockOpnameController::class, 'updateItemCondition'])->name('updateItemCondition')->middleware('permission:stock_opname.bad_labeling');
     });
 });
 

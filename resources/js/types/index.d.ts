@@ -4,7 +4,9 @@ import { Warehouse } from './warehouse.type';
 
 export interface Auth {
     user: User;
-    warehouses: Warehouse[];
+    warehouse: Warehouse;
+    permissions: string[];
+    role: string;
 }
 
 export interface BreadcrumbItem {
