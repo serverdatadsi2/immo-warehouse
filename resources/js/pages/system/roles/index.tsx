@@ -15,7 +15,7 @@ const { Title, Text } = Typography;
 
 export default function Page({ pagination }: Props) {
     const handleAdd = useCallback(() => {
-        router.get('/roles/create');
+        router.get('/system/roles/create');
     }, []);
 
     return (

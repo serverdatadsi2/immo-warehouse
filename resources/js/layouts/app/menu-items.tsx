@@ -18,6 +18,7 @@ import {
     Package,
     QrCode,
     Search,
+    Settings,
     ShieldPlus,
     UserRoundCog,
 } from 'lucide-react';
@@ -189,15 +190,22 @@ export const menuItems = [
         url: '/staging',
     }),
     getMenuItem({
-        key: 'roles',
-        icon: <ShieldPlus size={17} />,
-        label: 'Role Management',
-        url: '/roles',
-    }),
-    getMenuItem({
-        key: 'users',
-        icon: <UserRoundCog size={17} />,
-        label: 'Users Management',
-        url: '/users',
+        key: 'system',
+        icon: <Settings size={20} />,
+        label: 'System',
+        children: [
+            getMenuItem({
+                key: 'roles',
+                icon: <ShieldPlus size={17} />,
+                label: 'Role',
+                url: '/system/roles',
+            }),
+            getMenuItem({
+                key: 'users',
+                icon: <UserRoundCog size={17} />,
+                label: 'Users',
+                url: '/system/users',
+            }),
+        ],
     }),
 ];

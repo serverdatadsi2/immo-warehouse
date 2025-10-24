@@ -27,21 +27,25 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/', [DashboardController::class, "index"])->name('home');
 
-    // get user for asyncSelectUser component
-    // Route::get('/users', [UserController::class, "index"])->name('user.index');
+    Route::prefix('system')->name('system.')->group(function () {
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::get('/list', [RoleController::class, 'roleList'])->name('roleList');
+            Route::get('/', [RoleController::class, 'index'])->name('index');
+            Route::get('/create', [RoleController::class, 'create'])->name('create');
+            Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
+            Route::post('/', [RoleController::class, 'save']);
+            Route::delete('/{role}', [RoleController::class, 'destroy']);
+        });
 
-    // User, Role and Permission management
-    // Route::resource('roles', RoleController::class)->except(['show']);
-    Route::prefix('roles')->name('roles.')->group(function () {
-        Route::get('/', [RoleController::class, 'index'])->name('index');
-        Route::get('/create', [RoleController::class, 'create'])->name('create');
-        Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
-        Route::post('/', [RoleController::class, 'save']);
-        Route::delete('/{role}', [RoleController::class, 'destroy']);
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/list', [UserController::class, 'userList'])->name('userList');
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::post('/', [UserController::class, 'save']);
+            Route::delete('/{user}', [UserController::class, 'destroy']);
+        });
     });
 
-    Route::resource('users', UserController::class)->except(['show']);
-    Route::resource('permissions', PermissionController::class)->only(['index']);
+    // Route::resource('permissions', PermissionController::class)->only(['index']);
 
     /*
     |--------------------------------------------------------------------------

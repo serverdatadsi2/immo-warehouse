@@ -27,7 +27,7 @@ export default function RoleForm({ role, permissions }: Props) {
     const handleSave = useCallback(() => {
         const formValues = form.getFieldsValue();
         post({
-            url: '/roles',
+            url: '/system/roles',
             data: { ...role, ...formValues },
             onSuccess: () => {
                 message.success('Role and permissions saved successfully.');
@@ -37,7 +37,7 @@ export default function RoleForm({ role, permissions }: Props) {
 
     const handleDelete = useCallback(() => {
         destroy({
-            url: `/roles/${role?.id}`,
+            url: `/system/roles/${role?.id}`,
             onSuccess: () => {
                 message.success('Role and permissions delete successfully.');
             },
@@ -61,7 +61,7 @@ export default function RoleForm({ role, permissions }: Props) {
 
     return (
         <AppLayout
-            navBarLeft={<BackButton backUrl="/roles" />}
+            navBarLeft={<BackButton backUrl="/system/roles" />}
             navBarTitle={`${role?.id ? 'Edit Role: ' + role.name : 'Create New Role'}`}
         >
             <Head title={role?.name ? 'Edit Role' : 'New Role'} />

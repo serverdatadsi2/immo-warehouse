@@ -1,25 +1,24 @@
 import { useDebounce } from '@/hooks/use-debounce';
 import axiosIns from '@/lib/axios';
 import { OptionSelect } from '@/types/option.type';
-import { User } from '@/types/user.type';
+import { Role } from '@/types/role.type';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Divider, Select, SelectProps, Space } from 'antd';
 import { useEffect, useState } from 'react';
 
-export function UserAsyncSelect(props: Props) {
+export function RoleAsyncSelect(props: Props) {
     const [search, setSearch] = useState<string>();
     const [options, setOptions] = useState<OptionSelect[]>([]);
     const [page, setPage] = useState<number>(1);
 
     const { data, isLoading } = useQuery({
-        queryKey: ['users', search, page],
+        queryKey: ['roles', search, page],
         queryFn: async () => {
-            // const res = await axiosIns.get<Array<User>>('/api/users', {
-            const res = await axiosIns.get<Array<User>>('/system/users/list', {
+            const res = await axiosIns.get<Array<Role>>('/system/roles/list', {
                 params: { search, page },
             });
             return res.data.map((d) => ({
-                value: d.id,
+                value: d.name,
                 label: d.name,
             }));
         },
@@ -46,11 +45,11 @@ export function UserAsyncSelect(props: Props) {
             {...props}
             showSearch
             defaultActiveFirstOption={false}
-            // suffixIcon={null}
             filterOption={false}
+            // suffixIcon={null}
             onSearch={debouncedSearch}
             options={options}
-            placeholder="Search User"
+            placeholder="Search Role"
             loading={isLoading}
             style={{ width: '100%' }}
             popupRender={(menu) => (

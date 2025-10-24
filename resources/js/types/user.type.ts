@@ -1,13 +1,11 @@
+import { Warehouse } from './warehouse.type';
+
 export interface User {
     id: string;
     name: string;
     username: string;
     email: string;
-    roles: string[];
-    warehouses: Record<string, string>;
-    ecommerce_access: boolean;
-    wms_access: boolean;
-    backoffice_access: boolean;
-    store_access: boolean;
+    role: string;
+    warehouse: Warehouse;
     created_at: string;
 }
