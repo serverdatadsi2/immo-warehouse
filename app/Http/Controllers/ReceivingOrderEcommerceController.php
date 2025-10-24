@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\EcommerceOrder;
 use App\Models\EcommerceOrderDetail;
-use App\Models\StoreOrder;
-use App\Models\StoreOrderDetail;
 use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -21,12 +19,11 @@ class ReceivingOrderEcommerceController extends Controller
         $dates = $request->query('dateRange');
 
         $user = auth()->user();
-        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
         $query = EcommerceOrder::query()
             ->join('customers as c', 'c.id', '=', 'ecommerce_orders.customer_id')
-            ->join('ecommerce_payments as ep', 'ep.ecommerce_order_id', '=', 'ecommerce_orders.id')
-            ->join('payments as p', 'p.id', '=', 'ep.payment_id')
+            ->join('payments as p', 'p.id', '=', 'ecommerce_orders.payment_id')
             ->when(!empty($dates) && count($dates) === 2, function ($q) use ($dates) {
                 $from = trim($dates[0]);
                 $to = trim($dates[1]);
@@ -39,9 +36,7 @@ class ReceivingOrderEcommerceController extends Controller
             })
             ->select('ecommerce_orders.*', 'c.name as order_by', 'c.wa_number', 'p.completed_at as approve_at')
             ->where('ecommerce_orders.status', $filters['status'] ?? 'paid')
-            ->where(function ($q) use ($userWarehouseIds) {
-                $q->whereNull('ecommerce_orders.handled_by_warehouse_id')->orWhereIn('ecommerce_orders.handled_by_warehouse_id', $userWarehouseIds);
-            })
+            ->where('ecommerce_orders.handled_by_warehouse_id', $userWarehouseId)
             ->groupBy('ecommerce_orders.id', 'c.name', 'c.wa_number', 'p.completed_at');
 
         if (!empty($search)) {
@@ -65,8 +60,7 @@ class ReceivingOrderEcommerceController extends Controller
         if ($headerId) {
             $header = EcommerceOrder::query()
                 ->join('customers as c', 'c.id', '=', 'ecommerce_orders.customer_id')
-                ->join('ecommerce_payments as ep', 'ep.ecommerce_order_id', '=', 'ecommerce_orders.id')
-                ->join('payments as p', 'p.id', '=', 'ep.payment_id')
+                ->join('payments as p', 'p.id', '=', 'ecommerce_orders.payment_id')
                 ->whereNotNull('p.completed_at')
                 ->select('ecommerce_orders.*', 'c.name as customer_name', 'p.completed_at')
                 ->where('ecommerce_orders.id', $headerId)

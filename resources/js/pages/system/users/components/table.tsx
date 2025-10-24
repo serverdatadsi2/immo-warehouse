@@ -42,7 +42,7 @@ export default function DataTable({ pagination }: Props) {
                 title: 'No.',
                 key: 'serial',
                 align: 'center',
-                width: 70,
+                width: 40,
                 render: (_: any, __: User, index: number) => {
                     const currentPage = pagination?.current_page ?? 1;
                     const perPage = pagination?.per_page ?? 10;
@@ -84,7 +84,7 @@ export default function DataTable({ pagination }: Props) {
                         onClick={() => handleAction(d)}
                         icon={<EditOutlined />}
                         type="primary"
-                        shape="circle"
+                        // shape="circle"
                         title="Edit user"
                     />
                 ),

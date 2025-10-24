@@ -22,6 +22,7 @@
         "custom-pagination",
         "handle-order-to-outbound",
         "spatie-permition",
+        "menu",
         "role-management"
     ]
 }

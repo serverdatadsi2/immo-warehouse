@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use App\Models\Permission;
 use App\Models\Role;
@@ -116,11 +117,15 @@ class PermissionSeeder extends Seeder
 
         // Create default roles and assign permissions
         $superAdminRole = Role::firstOrCreate([
-            'name' => 'superadmin',
+            'name' => 'Super Admin',
             'guard_name' => 'web'
         ]);
 
         // Assign all permissions to admin role
         $superAdminRole->syncPermissions($permissions);
+
+        // Assign role to user
+        $userSuperAdmin = User::where('username', 'superadmin')->first();
+        $userSuperAdmin->syncRoles('Super Admin');
     }
 }

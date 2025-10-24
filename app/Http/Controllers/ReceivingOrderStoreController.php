@@ -20,17 +20,14 @@ class ReceivingOrderStoreController extends Controller
         $dates = $request->query('dateRange');
 
         $user = auth()->user();
-        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
         $query = StoreOrder::query()
             ->join('stores as s', 's.id', '=', 'store_orders.store_id')
             ->join('users as u', 'u.id', '=', 'store_orders.approved_by')
             ->select('store_orders.*', 's.name as store_name', 'u.name as approved_name')
             ->where('status',$filters['status'] ?? 'approved')
-            ->where(function ($q) use ($userWarehouseIds) {
-                $q->whereNull('store_orders.warehouse_id')
-                ->orWhereIn('store_orders.warehouse_id', $userWarehouseIds);
-            })
+            ->Where('store_orders.warehouse_id', $userWarehouseId)
             ->groupBy('store_orders.id', 's.name', 'u.name');
 
         if (!empty($search)) {

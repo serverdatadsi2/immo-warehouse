@@ -16,7 +16,7 @@ const { Text } = Typography;
 export function Filters({ params }: Props) {
     const [filters, setFilters] = useState({
         search: params.search || '',
-        status: params.status || '',
+        status: params.status || 'processing',
         dateRange: params.dateRange || undefined,
     });
 

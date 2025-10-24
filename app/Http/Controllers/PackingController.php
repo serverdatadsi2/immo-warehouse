@@ -15,7 +15,7 @@ class PackingController extends Controller
     public function index(Request $request)
     {
         $filters = $request->only(['search', 'dateRange', 'status']);
-        $status = $filters['status'] ?? '';
+        $status = $filters['status'] ?? 'processing';
         $search = $filters['search'] ?? '';
         $dates = $filters['dateRange'] ?? '';
 
@@ -82,7 +82,7 @@ class PackingController extends Controller
     public function packingEcommerce(Request $request)
     {
         $filters = $request->only(['search', 'dateRange', 'status']);
-        $status = $filters['status'] ?? '';
+        $status = $filters['status'] ?? 'paid';
         $search = $filters['search'] ?? '';
         $dates = $filters['dateRange'] ?? '';
 

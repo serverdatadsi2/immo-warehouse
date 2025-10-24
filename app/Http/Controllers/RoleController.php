@@ -81,6 +81,9 @@ class RoleController extends Controller
      */
     public function destroy(Role $role): RedirectResponse
     {
+        if ($role->name === 'Super Admin') {
+            return redirect()->back()->withErrors(['error' => 'Role Super Admin tidak dapat dihapus.']);
+        }
         $role->delete();
 
         return to_route('system.roles.index');

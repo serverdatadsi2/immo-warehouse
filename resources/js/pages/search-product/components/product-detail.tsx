@@ -5,7 +5,7 @@ import {
     EnvironmentOutlined,
     InboxOutlined,
 } from '@ant-design/icons';
-import { Card, Divider, Space, Tag, Typography } from 'antd';
+import { Card, Divider, Empty, Space, Tag, Typography } from 'antd';
 import { Warehouse } from 'lucide-react';
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
 const { Text, Title } = Typography;
 
 export default function BarangDetailOverviewCard({ data }: Props) {
-    return (
+    return data.product_name ? (
         <Card
             className="w-full"
             style={{
@@ -66,7 +66,7 @@ export default function BarangDetailOverviewCard({ data }: Props) {
                             Total Stok Tersedia
                         </Text>
                         <Text strong className="text-sm sm:text-base" style={{ color: '#52c41a' }}>
-                            {`${data.grand_total} ${data.product_unit}`}
+                            {`${data?.grand_total} ${data?.product_unit}`}
                         </Text>
                     </Space>
                 </div>
@@ -79,7 +79,7 @@ export default function BarangDetailOverviewCard({ data }: Props) {
                 </Text>
             </Divider>
 
-            {data.conditions.map((condition, cIndex) => (
+            {data.conditions?.map((condition, cIndex) => (
                 <div key={cIndex} className="mb-8">
                     {/* Header Kondisi */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -106,10 +106,10 @@ export default function BarangDetailOverviewCard({ data }: Props) {
                     {/* Lokasi-lokasi dalam kondisi ini */}
                     <div
                         className={`grid grid-cols-1 ${
-                            condition.locations.length > 1 && 'lg:grid-cols-2'
+                            condition.locations?.length > 1 && 'lg:grid-cols-2'
                         } gap-4`}
                     >
-                        {condition.locations.map((item, index) => (
+                        {condition.locations?.map((item, index) => (
                             <Card
                                 key={index}
                                 className="w-full"
@@ -235,10 +235,22 @@ export default function BarangDetailOverviewCard({ data }: Props) {
                 <Text className="text-xs sm:text-sm text-blue-600 leading-relaxed">
                     Barang <strong>{data.product_name}</strong> memiliki total stok{' '}
                     <strong>{`${data.grand_total} ${data.product_unit}`}</strong> yang terbagi dalam{' '}
-                    <strong>{data.conditions.length}</strong> kondisi berbeda (
-                    {data.conditions.map((c) => c.status).join(', ')}).
+                    <strong>{data.conditions?.length}</strong> kondisi berbeda (
+                    {data.conditions?.map((c) => c.status).join(', ')}).
                 </Text>
             </div>
+        </Card>
+    ) : (
+        <Card
+            className="w-full text-center"
+            style={{
+                background: '#f5faff',
+                boxShadow: '0 2px 8px #1890ff11',
+            }}
+        >
+            <Empty
+                description={<Text type="secondary">Tidak ada data barang yang tersedia</Text>}
+            />
         </Card>
     );
 }

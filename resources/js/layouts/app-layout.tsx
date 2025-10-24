@@ -38,33 +38,32 @@ export function AppLayout({ children, navBarTitle, navBarLeft, navBarRight }: Pr
             }}
         >
             <SystemMessageProvider>
-                <Layout style={{ minHeight: '100vh' }}>
-                    <AppSidebar />
-                    <Layout>
-                        <AppHeader
-                            title={navBarTitle}
-                            leftContent={navBarLeft}
-                            rightContent={navBarRight}
-                        />
-                        <Content>
-                            <div
-                                style={{
-                                    padding: 24,
-                                    minHeight: 360,
-                                    background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                                    borderRadius: borderRadiusLG,
-                                    border: '1px solid #e6f7ff',
-                                }}
-                            >
-                                <App>
-                                    <QueryClientProvider client={queryClient}>
-                                        {children}
-                                    </QueryClientProvider>
-                                </App>
-                            </div>
-                        </Content>
+                <QueryClientProvider client={queryClient}>
+                    <Layout style={{ minHeight: '100vh' }}>
+                        <AppSidebar />
+                        <Layout>
+                            <AppHeader
+                                title={navBarTitle}
+                                leftContent={navBarLeft}
+                                rightContent={navBarRight}
+                            />
+                            <Content>
+                                <div
+                                    style={{
+                                        padding: 24,
+                                        minHeight: 360,
+                                        background:
+                                            'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                                        borderRadius: borderRadiusLG,
+                                        border: '1px solid #e6f7ff',
+                                    }}
+                                >
+                                    <App>{children}</App>
+                                </div>
+                            </Content>
+                        </Layout>
                     </Layout>
-                </Layout>
+                </QueryClientProvider>
             </SystemMessageProvider>
         </ConfigProvider>
     );

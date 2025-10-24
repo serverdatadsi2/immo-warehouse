@@ -7,7 +7,7 @@ import { Permission } from '@/types/permission.type';
 import { Role } from '@/types/role.type';
 import { Head } from '@inertiajs/react';
 import { Card, Checkbox, Col, Divider, Form, Input, List, message, Row, Typography } from 'antd';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 const { Title, Text } = Typography;
 
@@ -22,7 +22,7 @@ interface FormValues {
 }
 
 export default function RoleForm({ role, permissions }: Props) {
-    const { form, errors, processing, post, destroy } = useAntdInertiaForm<Role>('Roles');
+    const { form, errors, processing, post, destroy } = useAntdInertiaForm<FormValues>('Roles');
 
     const handleSave = useCallback(() => {
         const formValues = form.getFieldsValue();
@@ -44,11 +44,6 @@ export default function RoleForm({ role, permissions }: Props) {
         });
     }, [destroy, role?.id]);
 
-    const initialValues: FormValues = {
-        name: role?.name ?? '',
-        permissions: role?.permissions.map((d) => d.name) ?? [],
-    };
-
     const groupedPermissions = useMemo(() => {
         const groups: Record<string, Permission[]> = {};
         permissions.forEach((p) => {
@@ -58,6 +53,13 @@ export default function RoleForm({ role, permissions }: Props) {
         });
         return groups;
     }, [permissions]);
+
+    useEffect(() => {
+        form.setFieldsValue({
+            name: role?.name ?? '',
+            permissions: role?.permissions.map((d) => d.name) ?? [],
+        });
+    }, [form, role?.name, role?.permissions]);
 
     return (
         <AppLayout
@@ -72,7 +74,7 @@ export default function RoleForm({ role, permissions }: Props) {
                     boxShadow: '0 2px 8px #1890ff11',
                 }}
             >
-                <Form form={form} initialValues={initialValues} layout="vertical">
+                <Form form={form} layout="vertical">
                     <FormItem
                         label="Role Name"
                         name="name"

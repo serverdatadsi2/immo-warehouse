@@ -26,7 +26,7 @@ export default function DataTable({ pagination }: Props) {
                 title: 'No.',
                 key: 'serial',
                 align: 'center',
-                width: 70,
+                width: 40,
                 render: (_: any, __: Role, index: number) => {
                     const currentPage = pagination?.current_page ?? 1;
                     const perPage = pagination?.per_page ?? 10;
@@ -37,6 +37,7 @@ export default function DataTable({ pagination }: Props) {
                 title: 'Role Name',
                 dataIndex: 'name',
                 key: 'name',
+                width: 130,
                 render: (name: string) => (
                     <strong className="text-gray-800 capitalize">{name}</strong>
                 ),
@@ -76,7 +77,7 @@ export default function DataTable({ pagination }: Props) {
                         onClick={() => handleAction(d.id)}
                         icon={<EditOutlined />}
                         type="primary"
-                        shape="circle"
+                        // shape="circle"
                         title="Edit role"
                     />
                 ),
