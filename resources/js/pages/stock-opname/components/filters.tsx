@@ -1,4 +1,5 @@
 import { useDebounce } from '@/hooks/use-debounce';
+import { usePermission } from '@/hooks/use-permission';
 import { Params } from '@/types/stock-opname.type';
 import { CalendarOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
@@ -15,6 +16,7 @@ const { RangePicker } = DatePicker;
 const { Text } = Typography;
 
 export function Filters({ params }: Props) {
+    const { hasPermission } = usePermission();
     const [filters, setFilters] = useState({
         search: params.search || '',
         status: params.status || '',
@@ -169,19 +171,21 @@ export function Filters({ params }: Props) {
                     </Col>
                 ) : (
                     <Col span={4}>
-                        <Button
-                            icon={<TextCursorInput />}
-                            type="primary"
-                            style={{
-                                width: '100%',
-                                marginTop: 24,
-                                fontWeight: 'bold',
-                                boxShadow: '0 2px 8px #ff4d4f22',
-                            }}
-                            onClick={handleManualStockOpname}
-                        >
-                            Manual Opname
-                        </Button>
+                        {hasPermission('stock_opname.manual_stock_opname') && (
+                            <Button
+                                icon={<TextCursorInput />}
+                                type="primary"
+                                style={{
+                                    width: '100%',
+                                    marginTop: 24,
+                                    fontWeight: 'bold',
+                                    boxShadow: '0 2px 8px #ff4d4f22',
+                                }}
+                                onClick={handleManualStockOpname}
+                            >
+                                Manual Opname
+                            </Button>
+                        )}
                     </Col>
                 )}
             </Row>

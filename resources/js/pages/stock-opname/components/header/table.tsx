@@ -1,5 +1,6 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { router } from '@inertiajs/react';
@@ -12,6 +13,7 @@ import { HeaderItem } from '../..';
 const { Title } = Typography;
 
 export function HeaderTable({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleAction = useCallback((val: HeaderItem) => {
         router.get(`/stock-opname/monitoring?headerId=${val.id}`);
     }, []);
@@ -66,19 +68,20 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'action',
                 fixed: 'right',
                 align: 'center',
-                render: (_, d) => (
-                    <Tooltip title="Monitoring">
-                        <Button
-                            onClick={() => handleAction(d)}
-                            icon={<MonitorCog size={18} />}
-                            type="primary"
-                            style={{ borderRadius: 8, fontWeight: 'bold' }}
-                        />
-                    </Tooltip>
-                ),
+                render: (_, d) =>
+                    hasPermission('stock_opname.monitoring') && (
+                        <Tooltip title="Monitoring">
+                            <Button
+                                onClick={() => handleAction(d)}
+                                icon={<MonitorCog size={18} />}
+                                type="primary"
+                                style={{ borderRadius: 8, fontWeight: 'bold' }}
+                            />
+                        </Tooltip>
+                    ),
             },
         ],
-        [handleAction, pagination?.current_page, pagination?.per_page],
+        [handleAction, pagination, hasPermission],
     );
 
     const handlePageChange = useCallback((page: number) => {

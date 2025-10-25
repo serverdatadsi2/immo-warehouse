@@ -1,5 +1,6 @@
 import { DeleteButton } from '@/components/buttons/common-buttons';
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { OutboundDetailWithRelation } from '@/types/warehouse-outbound.type';
 import { router } from '@inertiajs/react';
@@ -9,6 +10,7 @@ import { DetailContext } from '../../detail';
 
 export function DetailTable() {
     const { detailsPagination: pagination } = useContext(DetailContext);
+    const { hasPermission } = usePermission();
 
     const handleDelete = useCallback((id: string) => {
         router.delete(`/outbound/detail/${id}`, {
@@ -33,14 +35,20 @@ export function DetailTable() {
                 key: 'qty',
                 render: (rfid) => <Tag color="blue">{rfid}</Tag>,
             },
-            {
-                title: 'Action',
-                dataIndex: 'id',
-                key: 'action',
-                render: (v) => <DeleteButton onClick={() => handleDelete(v)} disabled={false} />,
-            },
+            ...(hasPermission('outbound.delete')
+                ? [
+                      {
+                          title: 'Action',
+                          dataIndex: 'id',
+                          key: 'action',
+                          render: (v) => (
+                              <DeleteButton onClick={() => handleDelete(v)} disabled={false} />
+                          ),
+                      },
+                  ]
+                : []),
         ],
-        [handleDelete],
+        [handleDelete, hasPermission],
     );
 
     const handlePageChange = useCallback((page: number) => {

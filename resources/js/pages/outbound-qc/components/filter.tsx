@@ -1,5 +1,6 @@
 import SelectRangePicker from '@/components/date-picker/range-picker';
 import { useDebounce } from '@/hooks/use-debounce';
+import { usePermission } from '@/hooks/use-permission';
 import { FilterQc } from '@/types/inbound-qc.type';
 import { QrcodeOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Card, Col, Input, Row, Select, Typography } from 'antd';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function Filters({ filters, setFilters, setSearch, search, setVisible }: Props) {
+    const { hasPermission } = usePermission();
     const handleFilterChange = useCallback(
         (key, value) => {
             setFilters((prev) => ({
@@ -84,22 +86,24 @@ export function Filters({ filters, setFilters, setSearch, search, setVisible }: 
                         }}
                     />
                 </Col>
-                <Col span={4}>
-                    <Button
-                        danger
-                        type="primary"
-                        onClick={() => setVisible(true)}
-                        style={{
-                            width: '100%',
-                            marginTop: 24,
-                            fontWeight: 'bold',
-                            boxShadow: '0 2px 8px #ff4d4f22',
-                        }}
-                        icon={<QrcodeOutlined />}
-                    >
-                        Rejected
-                    </Button>
-                </Col>
+                {hasPermission('outbound_qc.reject') && (
+                    <Col span={4}>
+                        <Button
+                            danger
+                            type="primary"
+                            onClick={() => setVisible(true)}
+                            style={{
+                                width: '100%',
+                                marginTop: 24,
+                                fontWeight: 'bold',
+                                boxShadow: '0 2px 8px #ff4d4f22',
+                            }}
+                            icon={<QrcodeOutlined />}
+                        >
+                            Rejected
+                        </Button>
+                    </Col>
+                )}
             </Row>
         </Card>
     );

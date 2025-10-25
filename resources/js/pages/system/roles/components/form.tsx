@@ -2,6 +2,7 @@ import { DeleteButton, SaveButton } from '@/components/buttons/common-buttons';
 import { BackButton } from '@/components/buttons/crud-buttons';
 import { FormItem } from '@/components/forms/form-item';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { AppLayout } from '@/layouts/app-layout';
 import { Permission } from '@/types/permission.type';
 import { Role } from '@/types/role.type';
@@ -22,6 +23,7 @@ interface FormValues {
 }
 
 export default function RoleForm({ role, permissions }: Props) {
+    const { hasPermission, hasAnyPermission } = usePermission();
     const { form, errors, processing, post, destroy } = useAntdInertiaForm<FormValues>('Roles');
 
     const handleSave = useCallback(() => {
@@ -135,12 +137,19 @@ export default function RoleForm({ role, permissions }: Props) {
                     <Divider />
 
                     <Row justify="end" gutter={20}>
-                        <Col>
-                            <DeleteButton onClick={handleDelete} disabled={!role || processing} />
-                        </Col>
-                        <Col>
-                            <SaveButton onClick={handleSave} disabled={processing} />
-                        </Col>
+                        {hasPermission('role.delete') && (
+                            <Col>
+                                <DeleteButton
+                                    onClick={handleDelete}
+                                    disabled={!role || processing}
+                                />
+                            </Col>
+                        )}
+                        {hasAnyPermission(['role.create', 'role.update']) && (
+                            <Col>
+                                <SaveButton onClick={handleSave} disabled={processing} />
+                            </Col>
+                        )}
                     </Row>
                 </Form>
             </Card>

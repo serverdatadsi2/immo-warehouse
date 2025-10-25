@@ -27,9 +27,9 @@ class EcommerceOrder extends Model
         return $this->belongsTo(Customer::class, 'customer_id');
     }
 
-    public function ecommercePayment()
+    public function payment()
     {
-        return $this->belongsTo(EcommercePayment::class, 'id', 'ecommerce_order_id');
+        return $this->belongsTo(Payment::class, 'payment_id');
     }
 
     public function shippingAddress()

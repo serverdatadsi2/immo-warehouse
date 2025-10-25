@@ -1,4 +1,5 @@
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { User } from '@/types/user.type';
@@ -14,6 +15,7 @@ interface Props {
 const { Title, Text } = Typography;
 
 export default function DataTable({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const [formOpen, setFormOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<User>();
 
@@ -79,18 +81,19 @@ export default function DataTable({ pagination }: Props) {
                 key: 'actions',
                 align: 'center',
                 width: 80,
-                render: (_, d) => (
-                    <Button
-                        onClick={() => handleAction(d)}
-                        icon={<EditOutlined />}
-                        type="primary"
-                        // shape="circle"
-                        title="Edit user"
-                    />
-                ),
+                render: (_, d) =>
+                    hasPermission('user.update') && (
+                        <Button
+                            onClick={() => handleAction(d)}
+                            icon={<EditOutlined />}
+                            type="primary"
+                            // shape="circle"
+                            title="Edit user"
+                        />
+                    ),
             },
         ],
-        [handleAction, pagination?.current_page, pagination?.per_page],
+        [handleAction, pagination, hasPermission],
     );
 
     return (
@@ -108,16 +111,18 @@ export default function DataTable({ pagination }: Props) {
                         </Title>
                         <Text type="secondary">Manage user dan hak akses user.</Text>
                     </Col>
-                    <Col>
-                        <Button
-                            onClick={handleAdd}
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            style={{ fontWeight: 'bold', borderRadius: 8 }}
-                        >
-                            Create New User
-                        </Button>
-                    </Col>
+                    {hasPermission('user.create') && (
+                        <Col>
+                            <Button
+                                onClick={handleAdd}
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                style={{ fontWeight: 'bold', borderRadius: 8 }}
+                            >
+                                Create New User
+                            </Button>
+                        </Col>
+                    )}
                 </Row>
             </Card>
 

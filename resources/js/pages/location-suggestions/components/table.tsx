@@ -1,5 +1,6 @@
 import { AddButton } from '@/components/buttons/crud-buttons';
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { LocationSuggestion } from '@/types/location-suggestion.type';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function TableData({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const [formOpen, setFormOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<LocationSuggestion>();
 
@@ -72,19 +74,23 @@ export default function TableData({ pagination }: Props) {
                     return parts.join(' > ');
                 },
             },
-            {
-                title: 'Actions',
-                key: 'actions',
-                render: (record: LocationSuggestion) => (
-                    <Button
-                        type="primary"
-                        icon={<Edit size={17} />}
-                        onClick={() => handleEdit(record)}
-                    />
-                ),
-            },
+            ...(hasPermission('location_suggestion.update')
+                ? [
+                      {
+                          title: 'Actions',
+                          key: 'actions',
+                          render: (record: LocationSuggestion) => (
+                              <Button
+                                  type="primary"
+                                  icon={<Edit size={17} />}
+                                  onClick={() => handleEdit(record)}
+                              />
+                          ),
+                      },
+                  ]
+                : []),
         ],
-        [pagination],
+        [pagination, hasPermission],
     );
 
     return (
@@ -106,9 +112,11 @@ export default function TableData({ pagination }: Props) {
                             lokasi penyimpanan barang.
                         </Text>
                     </Col>
-                    <Col>
-                        <AddButton onClick={handleAdd} />
-                    </Col>
+                    {hasPermission('location_suggestion.create') && (
+                        <Col>
+                            <AddButton onClick={handleAdd} />
+                        </Col>
+                    )}
                 </Row>
             </Card>
             <Card

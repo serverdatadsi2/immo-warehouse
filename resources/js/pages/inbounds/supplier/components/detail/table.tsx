@@ -1,6 +1,7 @@
 import { AddButton } from '@/components/buttons/crud-buttons';
 import { DateDisplay } from '@/components/displays/date-display';
 import { LaravelTable } from '@/components/tables/laravel-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { EditOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
@@ -13,6 +14,7 @@ import { DetailForm } from './form';
 const { Title } = Typography;
 
 export function DetailTable() {
+    const { hasPermission, hasAnyPermission } = usePermission();
     const [formOpen, setFormOpen] = useState(false);
     const [selectedData, setSelectedData] = useState<DetailItem>();
 
@@ -70,17 +72,18 @@ export function DetailTable() {
                 key: 'action',
                 fixed: 'right',
                 align: 'center',
-                render: (_, v) => (
-                    <Button
-                        onClick={() => handleAction(v)}
-                        icon={<EditOutlined />}
-                        type="primary"
-                        style={{ borderRadius: 8 }}
-                    />
-                ),
+                render: (_, v) =>
+                    hasAnyPermission(['inbound.supplier.create', 'inbound.supplier.update']) && (
+                        <Button
+                            onClick={() => handleAction(v)}
+                            icon={<EditOutlined />}
+                            type="primary"
+                            style={{ borderRadius: 8 }}
+                        />
+                    ),
             },
         ],
-        [handleAction, pagination?.current_page, pagination?.per_page],
+        [handleAction, pagination, hasAnyPermission],
     );
 
     const handlePageChange = useCallback((page: number) => {
@@ -110,9 +113,11 @@ export function DetailTable() {
                     <Title level={5} style={{ color: '#1890ff', marginBottom: 16 }}>
                         Detail Barang Inbound
                     </Title>
-                    <AddButton disabled={!header} onClick={handleAdd}>
-                        Tambah Detail Barang
-                    </AddButton>
+                    {hasPermission('inbound.supplier.create') && (
+                        <AddButton disabled={!header} onClick={handleAdd}>
+                            Tambah Detail Barang
+                        </AddButton>
+                    )}
                 </div>
                 <Space direction="vertical" className="w-full">
                     <LaravelTable<DetailItem>

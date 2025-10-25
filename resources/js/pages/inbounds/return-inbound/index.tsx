@@ -1,3 +1,4 @@
+import { usePermission } from '@/hooks/use-permission';
 import { AppLayout } from '@/layouts/app-layout';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { ReturnStoreWithRelation } from '@/types/return-store.type';
@@ -10,6 +11,8 @@ import { HeaderTable } from './components/header/table';
 const { Title, Text } = Typography;
 
 export default function Page({ pagination }: PageProps) {
+    const { hasPermission } = usePermission();
+
     const handleHistory = useCallback(() => {
         router.get('/inbounds/return-store/history');
     }, []);
@@ -31,11 +34,17 @@ export default function Page({ pagination }: PageProps) {
                             Monitoring data daftar tunggu retur inbound barang ke gudang.
                         </Text>
                     </Col>
-                    <Col>
-                        <Button icon={<HistoryOutlined />} type="primary" onClick={handleHistory}>
-                            History Return Inbound
-                        </Button>
-                    </Col>
+                    {hasPermission('inbound.return.history') && (
+                        <Col>
+                            <Button
+                                icon={<HistoryOutlined />}
+                                type="primary"
+                                onClick={handleHistory}
+                            >
+                                History Return Inbound
+                            </Button>
+                        </Col>
+                    )}
                 </Row>
             </Card>
             <Card

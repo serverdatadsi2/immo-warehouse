@@ -1,5 +1,6 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { StagingWithDetailRelations } from '@/types/warehouse-staging.type';
@@ -77,6 +78,7 @@ interface Props {
     pagination: SimplePagination<StagingWithDetailRelations>;
 }
 export default function StagingTable({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleEdit = useCallback((id: string) => {
         router.get('/staging/manual-input?header=' + id);
     }, []);
@@ -151,32 +153,37 @@ export default function StagingTable({ pagination }: Props) {
                 render: (val, record) =>
                     record?.released_at ? null : (
                         <Space size={20} align="end" className="w-full">
-                            <Tooltip title="Edit detail staging area">
-                                <Button
-                                    type="primary"
-                                    onClick={() => handleEdit(val)}
-                                    icon={<Edit size={18} />}
-                                />
-                            </Tooltip>
+                            {hasPermission('staging.update') && (
+                                <Tooltip title="Edit detail staging area">
+                                    <Button
+                                        type="primary"
+                                        onClick={() => handleEdit(val)}
+                                        icon={<Edit size={18} />}
+                                    />
+                                </Tooltip>
+                            )}
+                            {hasPermission('staging.kirim')}
                             <Tooltip title="Dimuat">
                                 <Button icon={<TruckOutlined />} onClick={() => handleRelease(val)}>
                                     Kirim
                                 </Button>
                             </Tooltip>
-                            <Tooltip title="delete staging area">
-                                <Popconfirm
-                                    title="Delete"
-                                    description="Are you sure to delete this Data?"
-                                    onConfirm={() => handleDelete(val)}
-                                >
-                                    <Button type="dashed" danger icon={<Trash2 size={18} />} />
-                                </Popconfirm>
-                            </Tooltip>
+                            {hasPermission('staging.delete') && (
+                                <Tooltip title="delete staging area">
+                                    <Popconfirm
+                                        title="Delete"
+                                        description="Are you sure to delete this Data?"
+                                        onConfirm={() => handleDelete(val)}
+                                    >
+                                        <Button type="dashed" danger icon={<Trash2 size={18} />} />
+                                    </Popconfirm>
+                                </Tooltip>
+                            )}
                         </Space>
                     ),
             },
         ],
-        [handleDelete, handleEdit, handleRelease],
+        [handleDelete, handleEdit, handleRelease, hasPermission],
     );
 
     const handlePageChange = useCallback((page: number) => {

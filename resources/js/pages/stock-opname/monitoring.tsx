@@ -1,4 +1,5 @@
 import { BackButton } from '@/components/buttons/crud-buttons';
+import { usePermission } from '@/hooks/use-permission';
 import { AppLayout } from '@/layouts/app-layout';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
 import { StockOpnameDetailWithRelation } from '@/types/stock-opname.type';
@@ -17,6 +18,7 @@ export const DetailContext = createContext<PageProps>({
 });
 
 export default function Page({ detailsPagination, header }: PageProps) {
+    const { hasPermission } = usePermission();
     const [visible, setVisible] = useState(false);
 
     return (
@@ -55,21 +57,22 @@ export default function Page({ detailsPagination, header }: PageProps) {
                             >
                                 Detail Stock Opname
                             </Typography.Title>
-                            {header?.status !== 'completed' && (
-                                <Button
-                                    danger
-                                    type="primary"
-                                    onClick={() => setVisible(true)}
-                                    style={{
-                                        // width: '100%',
-                                        fontWeight: 'bold',
-                                        boxShadow: '0 2px 8px #ff4d4f22',
-                                    }}
-                                    icon={<QrcodeOutlined />}
-                                >
-                                    Bad Label Item
-                                </Button>
-                            )}
+                            {header?.status !== 'completed' &&
+                                hasPermission('stock_opname.bad_labeling') && (
+                                    <Button
+                                        danger
+                                        type="primary"
+                                        onClick={() => setVisible(true)}
+                                        style={{
+                                            // width: '100%',
+                                            fontWeight: 'bold',
+                                            boxShadow: '0 2px 8px #ff4d4f22',
+                                        }}
+                                        icon={<QrcodeOutlined />}
+                                    >
+                                        Bad Label Item
+                                    </Button>
+                                )}
                         </div>
                         <DetailTable />
                     </Card>

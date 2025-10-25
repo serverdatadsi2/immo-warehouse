@@ -3,6 +3,7 @@ import { FormItem } from '@/components/forms/form-item';
 import { LocationSelect } from '@/components/selects/location';
 import { ProductAsyncSelect } from '@/components/selects/product';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { LocationSuggestion } from '@/types/location-suggestion.type';
 import { CloseOutlined } from '@ant-design/icons';
 import { Col, Form, Modal, Row, Space, Tooltip } from 'antd';
@@ -19,6 +20,7 @@ export function LocationSuggestionForm({
     onClose,
     existingData,
 }: LocationSuggestionFormProps) {
+    const { hasPermission, hasAnyPermission } = usePermission();
     const { form, errors, processing, post, destroy } =
         useAntdInertiaForm<LocationSuggestionFormData>('Location Suggestion');
 
@@ -81,7 +83,13 @@ export function LocationSuggestionForm({
             title={modalTitle}
             footer={
                 <Space>
-                    <DeleteButton onClick={handleDelete} disabled={!existingData || processing} />
+                    {hasPermission('location_suggestion.delete') && (
+                        <DeleteButton
+                            onClick={handleDelete}
+                            disabled={!existingData || processing}
+                        />
+                    )}
+                    {hasAnyPermission(['location_suggestion.create', 'location_suggestion.update'])}
                     <SaveButton onClick={handleSave} disabled={processing} />
                 </Space>
             }

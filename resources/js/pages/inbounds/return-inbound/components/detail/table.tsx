@@ -1,6 +1,7 @@
 import { AddButton } from '@/components/buttons/crud-buttons';
 import { DateDisplay } from '@/components/displays/date-display';
 import { LaravelTable } from '@/components/tables/laravel-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { ExclamationCircleFilled, IssuesCloseOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
@@ -13,6 +14,7 @@ import { DetailForm } from './form';
 const { Title } = Typography;
 
 export function DetailTable() {
+    const { hasPermission } = usePermission();
     const [formOpen, setFormOpen] = useState(false);
     const [selectedData, setSelectedData] = useState<DetailItem>();
 
@@ -174,9 +176,11 @@ export function DetailTable() {
                     <Title level={5} style={{ color: '#1890ff', marginBottom: 16 }}>
                         Detail Barang Inbound
                     </Title>
-                    <AddButton disabled={!header} onClick={handleAdd}>
-                        Tambah Detail Barang
-                    </AddButton>
+                    {hasPermission('inbound.return.write') && (
+                        <AddButton disabled={!header} onClick={handleAdd}>
+                            Tambah Detail Barang
+                        </AddButton>
+                    )}
                 </div>
                 <Space direction="vertical" className="w-full">
                     <LaravelTable<DetailItem>
@@ -209,14 +213,16 @@ export function DetailTable() {
                         //     </>
                         // )}
                     />
-                    <Button
-                        onClick={showCompareConfirm}
-                        icon={<IssuesCloseOutlined />}
-                        type="primary"
-                        style={{ backgroundColor: '#3f6600' }}
-                    >
-                        Done and Compare return
-                    </Button>
+                    {hasPermission('inbound.return.write') && (
+                        <Button
+                            onClick={showCompareConfirm}
+                            icon={<IssuesCloseOutlined />}
+                            type="primary"
+                            style={{ backgroundColor: '#3f6600' }}
+                        >
+                            Done and Compare return
+                        </Button>
+                    )}
                 </Space>
             </Card>
             <DetailForm onClose={handleFormClose} open={formOpen} existingData={selectedData} />

@@ -3,6 +3,7 @@ import { FormItem } from '@/components/forms/form-item';
 import QRCodeScanner from '@/components/scanner/qr-scanner';
 import { ProductAsyncSelect } from '@/components/selects/product';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { CloseOutlined, ScanOutlined, StopOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Input, Modal, notification, Row, Tooltip, Typography } from 'antd';
 import { useCallback, useContext, useMemo, useState } from 'react';
@@ -10,6 +11,7 @@ import { DetailContext, DetailItem } from '../../detail';
 
 const { Text } = Typography;
 export function DetailForm({ onClose, existingData, open }: Props) {
+    const { hasPermission } = usePermission();
     const { form, errors, processing, post } =
         useAntdInertiaForm<DetailFormType>('Return Inbound Detail');
     const modalTitle = useMemo(() => `${existingData ? 'Edit' : 'Add'} Detail`, [existingData]);
@@ -53,7 +55,11 @@ export function DetailForm({ onClose, existingData, open }: Props) {
     return (
         <Modal
             title={modalTitle}
-            footer={<SaveButton onClick={handleSubmit} disabled={processing} />}
+            footer={
+                hasPermission('inbound.return.write') && (
+                    <SaveButton onClick={handleSubmit} disabled={processing} />
+                )
+            }
             open={open}
             onCancel={_onClose}
             closeIcon={

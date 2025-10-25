@@ -3,6 +3,7 @@ import { FormItem } from '@/components/forms/form-item';
 import { RoleAsyncSelect } from '@/components/selects/role';
 import { WarehouseAsyncSelect } from '@/components/selects/warehouse';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { User } from '@/types/user.type';
 import { CloseOutlined } from '@ant-design/icons';
 import { Col, Form, Input, Modal, Row, Space, Tooltip } from 'antd';
@@ -24,6 +25,7 @@ interface UserFormData {
 }
 
 export function FormModal({ existingData, open, onClose }: Props) {
+    const { hasPermission, hasAnyPermission } = usePermission();
     const { form, errors, processing, post, destroy } = useAntdInertiaForm<UserFormData>('User');
 
     const modalTitle = useMemo(() => `${existingData ? 'Edit' : 'Add New'} User`, [existingData]);
@@ -72,8 +74,10 @@ export function FormModal({ existingData, open, onClose }: Props) {
             onCancel={_onClose}
             footer={
                 <Space>
-                    <DeleteButton onClick={handleDelete} />
-                    <SaveButton onClick={handleSave} disabled={processing} />
+                    {hasPermission('user.delete') && <DeleteButton onClick={handleDelete} />}
+                    {hasAnyPermission(['user.create', 'user.update']) && (
+                        <SaveButton onClick={handleSave} disabled={processing} />
+                    )}
                 </Space>
             }
             closeIcon={

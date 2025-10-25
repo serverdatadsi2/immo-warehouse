@@ -1,3 +1,4 @@
+import { usePermission } from '@/hooks/use-permission';
 import { AppLayout } from '@/layouts/app-layout';
 import { Inbound } from '@/types/inbound.type';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
@@ -10,6 +11,7 @@ import { HeaderTable } from './components/header/table';
 const { Title, Text } = Typography;
 
 export default function Page({ pagination }: PageProps) {
+    const { hasPermission } = usePermission();
     const handleAdd = useCallback(() => {
         router.get('/inbounds/supplier/detail');
     }, []);
@@ -32,16 +34,18 @@ export default function Page({ pagination }: PageProps) {
                             Monitoring dan penambahan data supplier inbound barang ke gudang.
                         </Text>
                     </Col>
-                    <Col>
-                        <Button
-                            onClick={handleAdd}
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            style={{ fontWeight: 'bold', borderRadius: 8 }}
-                        >
-                            Add Inbound
-                        </Button>
-                    </Col>
+                    {hasPermission('inbound.supplier.create') && (
+                        <Col>
+                            <Button
+                                onClick={handleAdd}
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                style={{ fontWeight: 'bold', borderRadius: 8 }}
+                            >
+                                Add Inbound
+                            </Button>
+                        </Col>
+                    )}
                 </Row>
             </Card>
             <Card

@@ -1,5 +1,4 @@
 import { Customer } from './customer.type';
-import { EcommercePayment } from './ecommrec-payment.type';
 import { Payment } from './payment.type';
 import { Product } from './product.type';
 
@@ -31,12 +30,8 @@ interface DetailWithRelation extends EcommerceOrderDetail {
     product: Product;
 }
 
-interface EcommercePaymentWithDetail extends EcommercePayment {
-    payment: Payment;
-}
-
 export interface EcommerceOrderWithDetailRelation extends EcommerceOrder {
     details: DetailWithRelation[];
     customer: Customer;
-    ecommerce_payment: EcommercePaymentWithDetail;
+    payment: Payment;
 }

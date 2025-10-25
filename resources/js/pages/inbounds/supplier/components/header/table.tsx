@@ -1,4 +1,5 @@
 import { DateDisplay } from '@/components/displays/date-display';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
 import { EditOutlined } from '@ant-design/icons';
@@ -9,6 +10,7 @@ import { useCallback, useMemo } from 'react';
 import { HeaderItem } from '../..';
 
 export function HeaderTable({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleAction = useCallback((val: HeaderItem) => {
         router.get(`/inbounds/supplier/detail?header_id=${val.id}`);
     }, []);
@@ -94,17 +96,18 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'action',
                 fixed: 'right',
                 align: 'center',
-                render: (_, d) => (
-                    <Button
-                        onClick={() => handleAction(d)}
-                        icon={<EditOutlined />}
-                        type="primary"
-                        style={{ borderRadius: 8 }}
-                    />
-                ),
+                render: (_, d) =>
+                    hasPermission('inbound.supplier.update') && (
+                        <Button
+                            onClick={() => handleAction(d)}
+                            icon={<EditOutlined />}
+                            type="primary"
+                            style={{ borderRadius: 8 }}
+                        />
+                    ),
             },
         ],
-        [handleAction, pagination?.current_page, pagination?.per_page],
+        [handleAction, hasPermission, pagination],
     );
 
     const handlePageChange = useCallback((page: number) => {

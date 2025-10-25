@@ -1,6 +1,7 @@
 import { FormItem } from '@/components/forms/form-item';
 import QRCodeScanner from '@/components/scanner/qr-scanner';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { ScanOutlined, SendOutlined, StopOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Input, Row, Typography, notification } from 'antd';
 import { useCallback, useState } from 'react';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function DetailForm({ header }: Props) {
+    const { hasPermission } = usePermission();
     const { form, post, processing, errors } = useAntdInertiaForm<{
         warehouse_outbound_id: string;
         warehouse_staging_outbound_id: string;
@@ -99,20 +101,22 @@ export function DetailForm({ header }: Props) {
                             Scan
                         </Button>
                     </Col>
-                    <Col span={2}>
-                        <Button
-                            iconPosition="end"
-                            key="save"
-                            type="primary"
-                            icon={<SendOutlined />}
-                            onClick={handleSubmit}
-                            loading={processing}
-                            disabled={isScanningLocation}
-                            className=" mt-5"
-                        >
-                            Save
-                        </Button>
-                    </Col>
+                    {hasPermission('staging.create') && (
+                        <Col span={2}>
+                            <Button
+                                iconPosition="end"
+                                key="save"
+                                type="primary"
+                                icon={<SendOutlined />}
+                                onClick={handleSubmit}
+                                loading={processing}
+                                disabled={isScanningLocation}
+                                className=" mt-5"
+                            >
+                                Save
+                            </Button>
+                        </Col>
+                    )}
                 </Row>
             )}
         </Form>

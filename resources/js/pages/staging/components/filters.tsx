@@ -1,5 +1,6 @@
 import { AddButton } from '@/components/buttons/crud-buttons';
 import { useDebounce } from '@/hooks/use-debounce';
+import { usePermission } from '@/hooks/use-permission';
 import { Params } from '@/types/receiving-order.type';
 import { SearchOutlined } from '@ant-design/icons';
 import { router } from '@inertiajs/react';
@@ -12,6 +13,7 @@ interface Props {
     params: Params;
 }
 export function Filters({ params }: Props) {
+    const { hasPermission } = usePermission();
     const [filters, setFilters] = useState({
         search: params.search || '',
         status: params.status || 'All',
@@ -93,11 +95,13 @@ export function Filters({ params }: Props) {
                         </div>
                     </Space>
                 </Col>
-                <Col>
-                    <AddButton icon={<TextCursorInput />} onClick={handleAdd}>
-                        Manual Input
-                    </AddButton>
-                </Col>
+                {hasPermission('staging.create') && (
+                    <Col>
+                        <AddButton icon={<TextCursorInput />} onClick={handleAdd}>
+                            Manual Input
+                        </AddButton>
+                    </Col>
+                )}
             </Row>
         </Card>
     );

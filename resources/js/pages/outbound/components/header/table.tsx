@@ -1,5 +1,6 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { OutboundWithRelations } from '@/types/warehouse-outbound.type';
@@ -11,6 +12,7 @@ import { useCallback, useMemo } from 'react';
 import SuratJalanPrinter from './surat-jalan-print';
 
 export function HeaderTable({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleAction = useCallback((val: OutboundWithRelations) => {
         router.get(`/outbound/detail?headerId=${val.id}`);
     }, []);
@@ -81,20 +83,23 @@ export function HeaderTable({ pagination }: Props) {
                 title: 'Action',
                 key: 'action',
                 fixed: 'right',
-                render: (_, d) =>
-                    d?.released_at ? null : (
-                        <Space>
-                            <Button
-                                type="primary"
-                                onClick={() => handleAction(d)}
-                                icon={<Edit size={17} />}
-                            />
-                            {!!d.quantity_item && <SuratJalanPrinter headerId={d.id} />}
-                        </Space>
-                    ),
+                render: (_, d) => (
+                    <Space>
+                        {d?.released_at
+                            ? null
+                            : hasPermission('outbound.update') && (
+                                  <Button
+                                      type="primary"
+                                      onClick={() => handleAction(d)}
+                                      icon={<Edit size={17} />}
+                                  />
+                              )}
+                        {!!d.quantity_item && <SuratJalanPrinter headerId={d.id} />}
+                    </Space>
+                ),
             },
         ],
-        [handleAction, pagination?.current_page, pagination?.per_page],
+        [handleAction, pagination, hasPermission],
     );
 
     const handlePageChange = useCallback((page: number) => {

@@ -1,3 +1,4 @@
+import { usePermission } from '@/hooks/use-permission';
 import { AppLayout } from '@/layouts/app-layout';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { Role } from '@/types/role.type';
@@ -14,6 +15,7 @@ interface Props {
 const { Title, Text } = Typography;
 
 export default function Page({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleAdd = useCallback(() => {
         router.get('/system/roles/create');
     }, []);
@@ -34,16 +36,18 @@ export default function Page({ pagination }: Props) {
                         </Title>
                         <Text type="secondary">Manage hak akses dan permissions.</Text>
                     </Col>
-                    <Col>
-                        <Button
-                            onClick={handleAdd}
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            style={{ fontWeight: 'bold', borderRadius: 8 }}
-                        >
-                            Create New Role
-                        </Button>
-                    </Col>
+                    {hasPermission('role.create') && (
+                        <Col>
+                            <Button
+                                onClick={handleAdd}
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                style={{ fontWeight: 'bold', borderRadius: 8 }}
+                            >
+                                Create New Role
+                            </Button>
+                        </Col>
+                    )}
                 </Row>
             </Card>
 

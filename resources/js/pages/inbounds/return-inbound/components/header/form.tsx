@@ -4,6 +4,7 @@ import { FormItem } from '@/components/forms/form-item';
 import { UserAsyncSelect } from '@/components/selects/user';
 import { WarehouseAsyncSelect } from '@/components/selects/warehouse';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { SharedData } from '@/types';
 import { Inbound } from '@/types/inbound.type';
 import { usePage } from '@inertiajs/react';
@@ -13,6 +14,7 @@ import { useCallback, useContext, useEffect } from 'react';
 import { DetailContext } from '../../detail';
 
 export function HeaderForm() {
+    const { hasPermission } = usePermission();
     const { form, errors, post, processing } = useAntdInertiaForm<HeaderForm>('Inbound'); //destroy
     const { header, storeReturnId } = useContext(DetailContext);
     const { props } = usePage<SharedData>();
@@ -30,8 +32,8 @@ export function HeaderForm() {
     // }, [destroy, header?.id]);
 
     useEffect(() => {
-        const { warehouses } = props.auth;
-        if (warehouses?.[0]) form.setFieldValue('warehouse_id', warehouses?.[0]?.id);
+        const { warehouse } = props.auth;
+        if (warehouse) form.setFieldValue('warehouse_id', warehouse.id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props]);
 
@@ -107,7 +109,9 @@ export function HeaderForm() {
                     <Col span={2}>
                         {/* <Space>
                             <DeleteButton onClick={handleDelete} disabled={!header || processing} /> */}
-                        <SaveButton onClick={handleSave} disabled={processing} />
+                        {hasPermission('inbound.return.write') && (
+                            <SaveButton onClick={handleSave} disabled={processing} />
+                        )}
                         {/* </Space> */}
                     </Col>
                 </Row>

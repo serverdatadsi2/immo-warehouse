@@ -5,6 +5,7 @@ import { SupplierAsyncSelect } from '@/components/selects/supplier';
 import { UserAsyncSelect } from '@/components/selects/user';
 import { WarehouseAsyncSelect } from '@/components/selects/warehouse';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { Card, Col, Form, Input, Row, Space } from 'antd';
@@ -14,6 +15,7 @@ import { HeaderItem } from '../..';
 import { DetailContext } from '../../detail';
 
 export function HeaderForm() {
+    const { hasPermission, hasAnyPermission } = usePermission();
     const { form, errors, post, processing, destroy } = useAntdInertiaForm<HeaderForm>('Inbound');
     const { header } = useContext(DetailContext);
     const { props } = usePage<SharedData>();
@@ -28,8 +30,8 @@ export function HeaderForm() {
     }, [destroy, header?.id]);
 
     useEffect(() => {
-        const { warehouses } = props.auth;
-        if (warehouses?.[0]) form.setFieldValue('warehouse_id', warehouses?.[0]?.id);
+        const { warehouse } = props.auth;
+        if (warehouse) form.setFieldValue('warehouse_id', warehouse.id);
     }, [props, form]);
 
     return (
@@ -103,8 +105,12 @@ export function HeaderForm() {
                     </Col>
                 </Row>
                 <Space style={{ marginTop: 24 }}>
-                    <DeleteButton onClick={handleDelete} disabled={!header || processing} />
-                    <SaveButton onClick={handleSave} disabled={processing} />
+                    {hasPermission('inbound.supplier.delete') && (
+                        <DeleteButton onClick={handleDelete} disabled={!header || processing} />
+                    )}
+                    {hasAnyPermission(['inbound.supplier.create', 'inbound.supplier.update']) && (
+                        <SaveButton onClick={handleSave} disabled={processing} />
+                    )}
                 </Space>
             </Form>
         </Card>

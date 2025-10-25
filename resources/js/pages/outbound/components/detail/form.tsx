@@ -1,6 +1,7 @@
 import { FormItem } from '@/components/forms/form-item';
 import QRCodeScanner from '@/components/scanner/qr-scanner';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { ScanOutlined, SendOutlined, StopOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Input, Row, Typography, notification } from 'antd';
 import { useCallback, useContext, useState } from 'react';
@@ -9,6 +10,7 @@ import { DetailContext } from '../../detail';
 const { Text } = Typography;
 
 export function DetailForm() {
+    const { hasAnyPermission } = usePermission();
     const { params, headerData } = useContext(DetailContext);
 
     const { form, post, processing, errors } = useAntdInertiaForm<{
@@ -98,20 +100,22 @@ export function DetailForm() {
                             Scan
                         </Button>
                     </Col>
-                    <Col span={2}>
-                        <Button
-                            iconPosition="end"
-                            key="save"
-                            type="primary"
-                            icon={<SendOutlined />}
-                            onClick={handleSubmit}
-                            loading={processing}
-                            disabled={isScanningLocation}
-                            className=" mt-5"
-                        >
-                            Save
-                        </Button>
-                    </Col>
+                    {hasAnyPermission(['outbound.update', 'outbound.create']) && (
+                        <Col span={2}>
+                            <Button
+                                iconPosition="end"
+                                key="save"
+                                type="primary"
+                                icon={<SendOutlined />}
+                                onClick={handleSubmit}
+                                loading={processing}
+                                disabled={isScanningLocation}
+                                className=" mt-5"
+                            >
+                                Save
+                            </Button>
+                        </Col>
+                    )}
                 </Row>
             )}
         </Form>

@@ -1,4 +1,5 @@
 import { AddButton } from '@/components/buttons/crud-buttons';
+import { usePermission } from '@/hooks/use-permission';
 import { AppLayout } from '@/layouts/app-layout';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { OutboundWithRelations } from '@/types/warehouse-outbound.type';
@@ -9,6 +10,7 @@ import { useCallback } from 'react';
 import { HeaderTable } from './components/header/table';
 
 export default function Page({ pagination }: PageProps) {
+    const { hasPermission } = usePermission();
     const handleAdd = useCallback(() => {
         router.get('/outbound/detail');
     }, []);
@@ -31,15 +33,17 @@ export default function Page({ pagination }: PageProps) {
                             Monitoring data outbound barang dari gudang.
                         </Typography.Text>
                     </Col>
-                    <Col>
-                        <AddButton
-                            icon={<TextCursorInput />}
-                            onClick={handleAdd}
-                            style={{ fontWeight: 'bold', borderRadius: 8 }}
-                        >
-                            Manual Outbound
-                        </AddButton>
-                    </Col>
+                    {hasPermission('outbound.create') && (
+                        <Col>
+                            <AddButton
+                                icon={<TextCursorInput />}
+                                onClick={handleAdd}
+                                style={{ fontWeight: 'bold', borderRadius: 8 }}
+                            >
+                                Manual Outbound
+                            </AddButton>
+                        </Col>
+                    )}
                 </Row>
             </Card>
             <Card

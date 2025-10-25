@@ -1,5 +1,6 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { ReturnStoreWithRelation } from '@/types/return-store.type';
@@ -10,6 +11,7 @@ import { HandCoins } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
 export function HeaderTable({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleAction = useCallback((val: ReturnStoreWithRelation) => {
         router.get(`/inbounds/return-store/detail?storeReturnId=${val.id}`);
     }, []);
@@ -87,19 +89,20 @@ export function HeaderTable({ pagination }: Props) {
                 key: 'action',
                 fixed: 'right',
                 align: 'center',
-                render: (_, d) => (
-                    <Tooltip title="Terima">
-                        <Button
-                            onClick={() => handleAction(d)}
-                            icon={<HandCoins />}
-                            type="primary"
-                            style={{ borderRadius: 8, backgroundColor: '#73d13d' }}
-                        />
-                    </Tooltip>
-                ),
+                render: (_, d) =>
+                    hasPermission('inbound.return.write') && (
+                        <Tooltip title="Terima">
+                            <Button
+                                onClick={() => handleAction(d)}
+                                icon={<HandCoins />}
+                                type="primary"
+                                style={{ borderRadius: 8, backgroundColor: '#73d13d' }}
+                            />
+                        </Tooltip>
+                    ),
             },
         ],
-        [handleAction, pagination?.current_page, pagination?.per_page],
+        [handleAction, pagination, hasPermission],
     );
 
     const handlePageChange = useCallback((page: number) => {

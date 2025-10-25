@@ -1,5 +1,6 @@
 import { DeleteButton } from '@/components/buttons/common-buttons';
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { StagingDetailWithRelation } from '@/types/warehouse-staging.type';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function DetailTable({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleDelete = useCallback((id: string) => {
         router.delete(`/staging/manual-input/detail/${id}`, {
             onError: () => {
@@ -65,14 +67,20 @@ export function DetailTable({ pagination }: Props) {
                     },
                 ],
             },
-            {
-                title: 'Action',
-                dataIndex: 'id',
-                key: 'action',
-                render: (v) => <DeleteButton onClick={() => handleDelete(v)} disabled={false} />,
-            },
+            ...(hasPermission('staging.delete')
+                ? [
+                      {
+                          title: 'Action',
+                          dataIndex: 'id',
+                          key: 'action',
+                          render: (v) => (
+                              <DeleteButton onClick={() => handleDelete(v)} disabled={false} />
+                          ),
+                      },
+                  ]
+                : []),
         ],
-        [handleDelete, pagination?.current_page, pagination?.per_page],
+        [handleDelete, pagination, hasPermission],
     );
 
     const handlePageChange = useCallback((page: number) => {

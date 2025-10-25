@@ -3,12 +3,14 @@ import { LocaleDatePicker } from '@/components/date-picker/locale-date-picker';
 import { FormItem } from '@/components/forms/form-item';
 import { ProductAsyncSelect } from '@/components/selects/product';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { CloseOutlined } from '@ant-design/icons';
 import { Col, Form, Input, InputNumber, Modal, Row, Space, Tooltip } from 'antd';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
 import { DetailContext, DetailItem } from '../../detail';
 
 export function DetailForm({ onClose, existingData, open }: Props) {
+    const { hasPermission, hasAnyPermission } = usePermission();
     const { form, errors, processing, post, destroy } =
         useAntdInertiaForm<DetailForm>('Inbound Detail');
     const modalTitle = useMemo(() => `${existingData ? 'Edit' : 'Add'} Detail`, [existingData]);
@@ -45,8 +47,15 @@ export function DetailForm({ onClose, existingData, open }: Props) {
             title={modalTitle}
             footer={
                 <Space>
-                    <DeleteButton onClick={handleDelete} disabled={!existingData || processing} />
-                    <SaveButton onClick={handleSave} disabled={processing} />
+                    {hasPermission('inbound.supplier.delete') && (
+                        <DeleteButton
+                            onClick={handleDelete}
+                            disabled={!existingData || processing}
+                        />
+                    )}
+                    {hasAnyPermission(['inbound.supplier.create', 'inbound.supplier.update']) && (
+                        <SaveButton onClick={handleSave} disabled={processing} />
+                    )}
                 </Space>
             }
             open={open}

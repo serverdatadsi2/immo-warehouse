@@ -1,3 +1,4 @@
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString, formatDate } from '@/lib/utils';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
 import { Params, StoreOrderWithRelatons } from '@/types/outbound-qc.type';
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export function StoreOrderComponent({ params, pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleUpdateStatus = useCallback((orderId: string) => {
         router.patch(
             route('packing.store.updateStatus', { order_id: orderId }),
@@ -86,31 +88,33 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                 ),
                 extra: (
                     <Space>
-                        <Tooltip title="Packing Order">
-                            <Button
-                                icon={
-                                    order.status === 'packing' ? (
-                                        <CheckCheck size={20} />
-                                    ) : (
-                                        <PackageCheck size={18} />
-                                    )
-                                }
-                                type="primary"
-                                style={{
-                                    fontWeight: 'bold',
-                                    boxShadow: '0 2px 8px #1890ff33',
-                                    // backgroundColor: 'green',
-                                }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUpdateStatus(order?.id);
-                                }}
-                                disabled={order.status === 'packing'}
-                            >
-                                {order.status === 'packing' ? 'Packing Done' : 'Packing'}
-                            </Button>
-                        </Tooltip>
-                        {order.status === 'packing' && (
+                        {hasPermission('packing.store.process') && (
+                            <Tooltip title="Packing Order">
+                                <Button
+                                    icon={
+                                        order.status === 'packing' ? (
+                                            <CheckCheck size={20} />
+                                        ) : (
+                                            <PackageCheck size={18} />
+                                        )
+                                    }
+                                    type="primary"
+                                    style={{
+                                        fontWeight: 'bold',
+                                        boxShadow: '0 2px 8px #1890ff33',
+                                        // backgroundColor: 'green',
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUpdateStatus(order?.id);
+                                    }}
+                                    disabled={order.status === 'packing'}
+                                >
+                                    {order.status === 'packing' ? 'Packing Done' : 'Packing'}
+                                </Button>
+                            </Tooltip>
+                        )}
+                        {order.status === 'packing' && hasPermission('outbound.create') && (
                             <Tooltip title="Outbound">
                                 <Button
                                     icon={<HardDriveUpload size={20} />}
@@ -171,7 +175,7 @@ export function StoreOrderComponent({ params, pagination }: Props) {
                 ),
             },
         ],
-        [handleOutbound, handleUpdateStatus],
+        [handleOutbound, handleUpdateStatus, hasPermission],
     );
 
     return (

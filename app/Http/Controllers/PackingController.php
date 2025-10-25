@@ -96,8 +96,7 @@ class PackingController extends Controller
                 'details:id,ecommerce_order_id,product_id,quantity,note' ,
                 'details.product:id,name,code',
                 'customer:id,name',
-                'ecommercePayment:id,ecommerce_order_id,payment_id',
-                'ecommercePayment.payment:id,completed_at,status',
+                'payment:id,completed_at,status',
             ])
             ->when($status, function ($query, $status) {
                 $query->where('status', $status);
@@ -112,7 +111,7 @@ class PackingController extends Controller
             ->orderBy('created_at', 'asc');
 
             if (!empty($dates) && count($dates) === 2) {
-                $query->whereHas('ecommercePayment.payment', function ($subQuery) use ($dates) {
+                $query->whereHas('payment', function ($subQuery) use ($dates) {
                     $subQuery->whereBetween('completed_at', $dates);
                 });
             }

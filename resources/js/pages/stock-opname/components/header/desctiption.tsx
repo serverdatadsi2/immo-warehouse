@@ -1,3 +1,4 @@
+import { usePermission } from '@/hooks/use-permission';
 import { formatDate } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import type { DescriptionsProps } from 'antd';
@@ -8,6 +9,7 @@ import { DetailContext } from '../../monitoring';
 import { renderStatusStockOpname } from './table';
 
 const DescriptionHeader: React.FC = () => {
+    const { hasPermission } = usePermission();
     const { header } = useContext(DetailContext);
 
     const items: DescriptionsProps['items'] = useMemo(() => {
@@ -80,23 +82,26 @@ const DescriptionHeader: React.FC = () => {
             title={`Kode : ${header?.code}`}
             extra={
                 header?.status === 'draft' ? (
-                    <Button
-                        type="primary"
-                        style={{ backgroundColor: '#874d00' }}
-                        onClick={handleProcess}
-                        icon={<ClipboardCheck size={16} />}
-                    >
-                        Validasi Stok
-                    </Button>
+                    hasPermission('stock_opname.validate') ? (
+                        <Button
+                            type="primary"
+                            style={{ backgroundColor: '#874d00' }}
+                            onClick={handleProcess}
+                            icon={<ClipboardCheck size={16} />}
+                        >
+                            Validasi Stok
+                        </Button>
+                    ) : null
                 ) : (
-                    header?.status === 'in_progress' && (
+                    header?.status === 'in_progress' &&
+                    hasPermission('stock_opname.approve') && (
                         <Button
                             type="primary"
                             style={{ backgroundColor: '#3f6600' }}
                             onClick={handleUpdateStock}
                             icon={<LoaderPinwheel size={16} />}
                         >
-                            Ajukan Approval
+                            Approval
                         </Button>
                     )
                 )

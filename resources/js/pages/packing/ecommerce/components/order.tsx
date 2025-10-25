@@ -1,3 +1,4 @@
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString, formatDate } from '@/lib/utils';
 import { EcommerceOrderWithDetailRelation } from '@/types/ecommerce-order.type';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export function OrderComponent({ params, pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleUpdateStatus = useCallback((orderId: string) => {
         router.patch(
             route('packing.ecommerce.updateStatus', { order_id: orderId }),
@@ -66,7 +68,7 @@ export function OrderComponent({ params, pagination }: Props) {
                         <Text type="secondary">
                             Paid:{' '}
                             <span style={{ color: '#1890ff' }}>
-                                {formatDate(order.ecommerce_payment.payment?.completed_at)}
+                                {formatDate(order.payment?.completed_at)}
                             </span>
                         </Text>
                         <Divider type="vertical" className="border border-gray-500" />
@@ -87,32 +89,34 @@ export function OrderComponent({ params, pagination }: Props) {
                 ),
                 extra: (
                     <Space>
-                        <Tooltip title="Packing Order">
-                            <Button
-                                icon={
-                                    order.status === 'packing' ? (
-                                        <CheckCheck size={20} />
-                                    ) : (
-                                        <PackageCheck size={18} />
-                                    )
-                                }
-                                type="primary"
-                                size="middle"
-                                style={{
-                                    fontWeight: 'bold',
-                                    boxShadow: '0 2px 8px #1890ff33',
-                                    // backgroundColor: 'green',
-                                }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUpdateStatus(order?.id);
-                                }}
-                                disabled={order.status === 'packing'}
-                            >
-                                {order.status === 'packing' ? 'Packing Done' : 'Packing'}
-                            </Button>
-                        </Tooltip>
-                        {order.status === 'packing' && (
+                        {hasPermission('packing.ecommerce.process') && (
+                            <Tooltip title="Packing Order">
+                                <Button
+                                    icon={
+                                        order.status === 'packing' ? (
+                                            <CheckCheck size={20} />
+                                        ) : (
+                                            <PackageCheck size={18} />
+                                        )
+                                    }
+                                    type="primary"
+                                    size="middle"
+                                    style={{
+                                        fontWeight: 'bold',
+                                        boxShadow: '0 2px 8px #1890ff33',
+                                        // backgroundColor: 'green',
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUpdateStatus(order?.id);
+                                    }}
+                                    disabled={order.status === 'packing'}
+                                >
+                                    {order.status === 'packing' ? 'Packing Done' : 'Packing'}
+                                </Button>
+                            </Tooltip>
+                        )}
+                        {order.status === 'packing' && hasPermission('outbound.create') && (
                             <Tooltip title="Outbound">
                                 <Button
                                     icon={<HardDriveUpload size={20} />}
@@ -181,7 +185,7 @@ export function OrderComponent({ params, pagination }: Props) {
                 ),
             },
         ],
-        [handleOutbound, handleUpdateStatus],
+        [handleOutbound, handleUpdateStatus, hasPermission],
     );
 
     return (

@@ -1,5 +1,6 @@
 import { AddButton } from '@/components/buttons/crud-buttons';
 import { useDebounce } from '@/hooks/use-debounce';
+import { usePermission } from '@/hooks/use-permission';
 import { AppLayout } from '@/layouts/app-layout';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { Storage } from '@/types/storage.type';
@@ -23,6 +24,7 @@ interface PageProps {
 const { Text } = Typography;
 
 export default function StoragePage({ params, pagination }: PageProps) {
+    const { hasPermission } = usePermission();
     const [filters, setFilters] = useState({
         search: params.search || '',
         location: params.location,
@@ -122,9 +124,11 @@ export default function StoragePage({ params, pagination }: PageProps) {
                             </div>
                         </Space>
                     </Col>
-                    <Col>
-                        <AddButton onClick={handleAdd}>Assignment Item</AddButton>
-                    </Col>
+                    {hasPermission('penyimpanan.assign') && (
+                        <Col>
+                            <AddButton onClick={handleAdd}>Assignment Item</AddButton>
+                        </Col>
+                    )}
                 </Row>
             </Card>
             <TableData pagination={pagination} />

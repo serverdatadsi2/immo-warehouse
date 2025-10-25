@@ -1,4 +1,5 @@
 import CustomTable from '@/components/tables/custom-table';
+import { usePermission } from '@/hooks/use-permission';
 import { appendQueryString } from '@/lib/utils';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { Role } from '@/types/role.type';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function DataTable({ pagination }: Props) {
+    const { hasPermission } = usePermission();
     const handleAction = useCallback((id: string) => {
         router.get(`/system/roles/${id}/edit`);
     }, []);
@@ -72,18 +74,19 @@ export default function DataTable({ pagination }: Props) {
                 key: 'actions',
                 align: 'center',
                 width: 80,
-                render: (_, d) => (
-                    <Button
-                        onClick={() => handleAction(d.id)}
-                        icon={<EditOutlined />}
-                        type="primary"
-                        // shape="circle"
-                        title="Edit role"
-                    />
-                ),
+                render: (_, d) =>
+                    hasPermission('role.update') && (
+                        <Button
+                            onClick={() => handleAction(d.id)}
+                            icon={<EditOutlined />}
+                            type="primary"
+                            // shape="circle"
+                            title="Edit role"
+                        />
+                    ),
             },
         ],
-        [handleAction, pagination?.current_page, pagination?.per_page],
+        [handleAction, pagination, hasPermission],
     );
 
     return (

@@ -4,6 +4,7 @@ import { FormItem } from '@/components/forms/form-item';
 import { CourierAsyncSelect } from '@/components/selects/courier';
 import { OrderAsyncSelect } from '@/components/selects/order';
 import { useAntdInertiaForm } from '@/hooks/use-antd-inertia-form';
+import { usePermission } from '@/hooks/use-permission';
 import { SharedData } from '@/types';
 import { Outbound } from '@/types/warehouse-outbound.type';
 import { usePage } from '@inertiajs/react';
@@ -13,6 +14,7 @@ import { DetailContext } from '../../detail';
 import DescriptionHeader from './desctiption';
 
 export function HeaderForm() {
+    const { hasPermission, hasAnyPermission } = usePermission();
     const { form, errors, post, processing, destroy } =
         useAntdInertiaForm<HeaderFormType>('Outbound');
     const { headerData, params } = useContext(DetailContext);
@@ -154,8 +156,12 @@ export function HeaderForm() {
                 </Row>
             </Form>
             <Space>
-                <DeleteButton onClick={handleDelete} disabled={!headerData || processing} />
-                <SaveButton onClick={handleSave} disabled={processing} />
+                {hasPermission('outbound.delete') && (
+                    <DeleteButton onClick={handleDelete} disabled={!headerData || processing} />
+                )}
+                {hasAnyPermission(['outbound.create', 'outbound.update']) && (
+                    <SaveButton onClick={handleSave} disabled={processing} />
+                )}
             </Space>
         </Card>
     );

@@ -1,4 +1,5 @@
 import { DateDisplay } from '@/components/displays/date-display';
+import { usePermission } from '@/hooks/use-permission';
 import { router } from '@inertiajs/react';
 import type { DescriptionsProps } from 'antd';
 import { Button, Descriptions, message, notification } from 'antd';
@@ -6,6 +7,7 @@ import React, { useCallback, useContext, useMemo } from 'react';
 import { DetailContext } from '../../detail';
 
 const DescriptionHeader: React.FC = () => {
+    const { hasPermission } = usePermission();
     const { header } = useContext(DetailContext);
 
     const handleProcess = useCallback(() => {
@@ -46,7 +48,7 @@ const DescriptionHeader: React.FC = () => {
             },
         ];
 
-        if (header?.status === 'paid') {
+        if (header?.status === 'paid' && hasPermission('receiving_order.ecommerce.process')) {
             baseItems.push({
                 key: '4',
                 label: 'Action',
@@ -59,7 +61,7 @@ const DescriptionHeader: React.FC = () => {
         }
 
         return baseItems;
-    }, [header, handleProcess]);
+    }, [header, handleProcess, hasPermission]);
 
     return (
         <Descriptions layout="vertical" column={header?.status === 'paid' ? 4 : 3} items={items} />

@@ -89,6 +89,7 @@ class PermissionSeeder extends Seeder
 
             // 🏗️ STAGING
             'staging.view',
+            'staging.kirim',
             'staging.create',
             'staging.update',
             'staging.delete',
