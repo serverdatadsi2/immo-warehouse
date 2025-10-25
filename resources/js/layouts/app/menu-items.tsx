@@ -3,6 +3,7 @@ import { router } from '@inertiajs/react';
 import { Badge, Typography } from 'antd';
 import { ItemType, MenuItemType } from 'antd/es/menu/interface';
 import {
+    Barcode,
     Blinds,
     Blocks,
     DatabaseZap,
@@ -15,12 +16,15 @@ import {
     Lasso,
     LassoSelect,
     Map,
-    NotebookText,
     Package,
     QrCode,
     Search,
     Settings,
     ShieldPlus,
+    ShoppingBag,
+    ShoppingCart,
+    Shuffle,
+    Store,
     UserRoundCog,
 } from 'lucide-react';
 import { ReactNode } from 'react';
@@ -98,19 +102,29 @@ export function getMenuItems(
                         : null,
                 ],
             }),
-        hasPermission('rfid.tagging') &&
+        hasAnyPermission(['rfid.tagging', 'rfid.remove']) &&
             getMenuItem({
-                key: 'rfid-tagging',
-                icon: <QrCode size={17} />,
-                label: 'RFID Tagging',
-                url: '/rfid-tagging',
-            }),
-        hasPermission('rfid.remove') &&
-            getMenuItem({
-                key: 'remove-rfid',
-                icon: <Delete size={17} />,
-                label: 'Remove RFID',
-                url: '/remove-rfid',
+                key: 'rfid',
+                icon: <Barcode size={20} />,
+                label: 'RFID',
+                children: [
+                    hasPermission('rfid.tagging')
+                        ? getMenuItem({
+                              key: 'tagging',
+                              icon: <QrCode size={17} />,
+                              label: 'Tagging',
+                              url: '/rfid/tagging',
+                          })
+                        : null,
+                    hasPermission('rfid.remove')
+                        ? getMenuItem({
+                              key: 'remove',
+                              icon: <Delete size={17} />,
+                              label: 'Remove',
+                              url: '/rfid/remove',
+                          })
+                        : null,
+                ],
             }),
         hasPermission('inbound_qc.view') &&
             getMenuItem({
@@ -136,13 +150,18 @@ export function getMenuItems(
         hasAnyPermission(['receiving_order.store.view', 'receiving_order.ecommerce.view']) &&
             getMenuItem({
                 key: 'receiving-order',
-                icon: <NotebookText size={20} />,
+                icon: (
+                    <Badge count={data?.store_order ?? 0} size="small" color="volcano">
+                        <Shuffle size={20} />
+                    </Badge>
+                ),
                 label: 'Receiving Orders',
+
                 children: [
                     hasPermission('receiving_order.store.view')
                         ? getMenuItem({
                               key: 'store-order',
-                              icon: <NotebookText size={17} />,
+                              icon: <Store size={17} />,
                               label: (
                                   <Badge
                                       count={data?.store_order ?? 0}
@@ -162,10 +181,10 @@ export function getMenuItems(
                     hasPermission('receiving_order.ecommerce.view')
                         ? getMenuItem({
                               key: 'ecommerce-order',
-                              icon: <NotebookText size={17} />,
+                              icon: <ShoppingCart size={17} />,
                               label: (
                                   <Badge
-                                      count={data?.ecommrce_order ?? 0}
+                                      count={data?.ecommerce_order ?? 0}
                                       size="small"
                                       offset={[7, 5]}
                                       color="volcano"
@@ -190,8 +209,17 @@ export function getMenuItems(
         hasAnyPermission(['packing.store.view', 'packing.ecommerce.view']) &&
             getMenuItem({
                 key: 'packing',
-                icon: <Package size={20} />,
+                icon: (
+                    <Badge
+                        count={Math.max(data?.store_packing || 0, data?.ecommerce_packing || 0)}
+                        size="small"
+                        color="volcano"
+                    >
+                        <Package size={20} />
+                    </Badge>
+                ),
                 label: 'Packing',
+
                 children: [
                     hasPermission('packing.store.view')
                         ? getMenuItem({
@@ -216,10 +244,10 @@ export function getMenuItems(
                     hasPermission('packing.ecommerce.view')
                         ? getMenuItem({
                               key: 'ecommerce',
-                              icon: <Package size={17} />,
+                              icon: <ShoppingBag size={17} />,
                               label: (
                                   <Badge
-                                      count={data?.ecommrce_packing ?? 0}
+                                      count={data?.ecommerce_packing ?? 0}
                                       size="small"
                                       offset={[7, 5]}
                                       color="volcano"

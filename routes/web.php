@@ -96,15 +96,23 @@ Route::middleware(['auth'])->group(function () {
     | RFID Tagging
     |--------------------------------------------------------------------------
     */
-    Route::prefix('rfid-tagging')->name('rfid-tagging.')->middleware('permission:rfid.tagging')->group(function () {
-        Route::get('/', [RFIDTaggingController::class, 'index'])->name('index');
-        Route::get('/supplier-inbound-detail-list', [RFIDTaggingController::class, 'supplierInboundDetails'])->name('supplierInboundDetails');
-        Route::get('/return-inbound-detail-list', [RFIDTaggingController::class, 'returnInboundDetails'])->name('returnInboundDetails');
-        Route::post('/', [RFIDTaggingController::class, 'insertItemStock']);
-        Route::post('/create-rfid', [RFIDTaggingController::class, 'createRFIDTag']);
-        Route::post('/generate-rfid-tag', [RFIDTaggingController::class, 'generateRFIDTagItems']);
-        Route::post('/generate-rfid-tag-pdf', [RFIDTaggingController::class, 'generatePdfWithRFIDInboundSupplier']);
-        Route::post('/generate-return-rfid-tag-pdf', [RFIDTaggingController::class, 'generatePdfWithRFIDInboundReturn']);
+    Route::prefix('rfid')->name('rfid.')->middleware('permission:rfid.tagging')->group(function () {
+        Route::prefix('tagging')->name('tagging.')->middleware('permission:rfid.tagging')->group(function () {
+            Route::get('/', [RFIDTaggingController::class, 'index'])->name('index');
+            Route::get('/supplier-inbound-detail-list', [RFIDTaggingController::class, 'supplierInboundDetails'])->name('supplierInboundDetails');
+            Route::get('/return-inbound-detail-list', [RFIDTaggingController::class, 'returnInboundDetails'])->name('returnInboundDetails');
+            Route::post('/', [RFIDTaggingController::class, 'insertItemStock']);
+            Route::post('/create-rfid', [RFIDTaggingController::class, 'createRFIDTag']);
+            Route::post('/generate-rfid-tag', [RFIDTaggingController::class, 'generateRFIDTagItems']);
+            Route::post('/generate-rfid-tag-pdf', [RFIDTaggingController::class, 'generatePdfWithRFIDInboundSupplier']);
+            Route::post('/generate-return-rfid-tag-pdf', [RFIDTaggingController::class, 'generatePdfWithRFIDInboundReturn']);
+        });
+
+           Route::prefix('remove')->name('remove.')->middleware('permission:rfid.remove')->group(function () {
+            Route::get("/", [RemoveRFIDController::class, "index"])->name("index");
+            Route::get("/check-rfid/{rfidId}", [RemoveRFIDController::class, "checkRfid"])->name('checkRfid');
+            Route::post("/remove", [RemoveRFIDController::class, "removeRfid"]);
+        });
     });
 
     // Items (by inbound details)
@@ -115,11 +123,7 @@ Route::middleware(['auth'])->group(function () {
     | Remove RFID
     |--------------------------------------------------------------------------
     */
-    Route::prefix('remove-rfid')->name('remove-rfid.')->middleware('permission:rfid.remove')->group(function () {
-        Route::get("/", [RemoveRFIDController::class, "index"])->name("index");
-        Route::get("/check-rfid/{rfidId}", [RemoveRFIDController::class, "checkRfid"])->name('checkRfid');
-        Route::post("/remove", [RemoveRFIDController::class, "removeRfid"]);
-    });
+
 
     /*
     |--------------------------------------------------------------------------

@@ -8,8 +8,6 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\User;
-use App\Models\Warehouse;
-use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
 
 class UserController extends Controller
@@ -44,6 +42,7 @@ class UserController extends Controller
     {
         $pagination = User::with(['roles', 'warehouses'])
             ->whereNull('deleted_at')
+            ->where('wms_access', true)
             ->orderBy('name')
             ->simplePaginate(10)
             ->through(function ($user) {

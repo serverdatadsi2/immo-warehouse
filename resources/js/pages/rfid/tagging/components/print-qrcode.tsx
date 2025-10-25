@@ -15,7 +15,7 @@ const QRCodePrinter = ({ selectInbound }: Props) => {
     const { mutate } = useMutation({
         mutationFn: (payload: InsertItems) =>
             // axiosIns.post<RFIDTag[]>('/rfid-tagging/create-rfid', payload),
-            axiosIns.post<Item[]>('/rfid-tagging/generate-rfid-tag', payload),
+            axiosIns.post<Item[]>('/rfid/tagging/generate-rfid-tag', payload),
         onSuccess: (res) => {
             if (res.data) {
                 handlePrint(res.data);

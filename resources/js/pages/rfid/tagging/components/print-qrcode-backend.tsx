@@ -13,7 +13,7 @@ const QRCodePrinter = ({ selectInbound }: Props) => {
             message.loading('Loading...', 0);
 
             const res = await axiosIns.post(
-                '/rfid-tagging/generate-rfid-tag-pdf',
+                '/rfid/tagging/generate-rfid-tag-pdf',
                 {
                     quantity: selectInbound?.quantity || 0,
                     warehouse_inbound_detail_id: selectInbound.id,

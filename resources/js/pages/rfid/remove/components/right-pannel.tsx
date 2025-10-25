@@ -12,7 +12,7 @@ export function RightPannel() {
     const [loading, setLoading] = useState<boolean>(false);
 
     const { mutate } = useMutation({
-        mutationFn: (rfid_tags: string[]) => axiosIns.post('/remove-rfid/remove', { rfid_tags }),
+        mutationFn: (rfid_tags: string[]) => axiosIns.post('/rfid/remove/remove', { rfid_tags }),
         onSuccess: () => {
             message.success('RFID berhasil dihapus');
             setScannedRfids([]);

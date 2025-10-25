@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Product;
 use App\Models\RFIDTag;
-use App\Models\StoreReturnDetail;
 use App\Models\WarehouseInboundDetail;
 use App\Models\WarehouseReturnInboundDetail;
 use Illuminate\Http\Request;
@@ -20,7 +19,7 @@ class RFIDTaggingController extends Controller
 {
     public function index(Request $request)
     {
-        return Inertia::render('rfid-tagging/index');
+        return Inertia::render('rfid/tagging/index');
     }
 
     public function supplierInboundDetails(Request $request)
@@ -164,7 +163,7 @@ class RFIDTaggingController extends Controller
             // WarehouseStock::insert($stocks);
         });
 
-        return to_route('rfid-tagging.index');
+        return to_route('rfid.tagging.index');
     }
 
     public function createRFIDTag(Request $request)

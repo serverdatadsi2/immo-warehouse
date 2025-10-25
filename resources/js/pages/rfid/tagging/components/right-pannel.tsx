@@ -17,7 +17,7 @@ export function RightPannel() {
     const handleUpdateStock = useCallback(() => {
         setLoading(true);
         router.post(
-            '/rfid-tagging',
+            '/rfid/tagging',
             {
                 warehouse_id: selected?.warehouse_id,
                 rfid_tags: data?.map((d) => d.rfid_tag_id),

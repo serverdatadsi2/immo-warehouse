@@ -25,7 +25,7 @@ export function ReturnInboundDetail() {
                         store_return_id: string;
                     }
                 >
-            >('/rfid-tagging/return-inbound-detail-list', {
+            >('/rfid/tagging/return-inbound-detail-list', {
                 params: { search, page },
             });
             return res.data;

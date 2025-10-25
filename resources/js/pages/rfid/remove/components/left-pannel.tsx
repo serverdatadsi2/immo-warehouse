@@ -14,7 +14,7 @@ export function LeftPannel() {
     const handleScan = useCallback(
         (barcodeValue: string) => {
             axiosIns
-                .get(`/remove-rfid/check-rfid/${barcodeValue}`)
+                .get(`/rfid/remove/check-rfid/${barcodeValue}`)
                 .then((res) => {
                     if (res.data && res.data.exists) {
                         addScannedRfid(res.data);

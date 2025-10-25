@@ -16,7 +16,7 @@ const PrintComponent = ({ selectInbound }: Props) => {
             message.loading('Loading...', 0);
 
             const res = await axiosIns.post(
-                '/rfid-tagging/generate-return-rfid-tag-pdf',
+                '/rfid/tagging/generate-return-rfid-tag-pdf',
                 {
                     warehouse_inbound_id: selectInbound.warehouse_inbound_id,
                     product_id: selectInbound.product_id,

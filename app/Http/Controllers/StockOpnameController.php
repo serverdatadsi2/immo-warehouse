@@ -34,6 +34,7 @@ class StockOpnameController extends Controller
             ->when($status, fn($q) => $q->where('status', $status))
             ->when($search, fn($q) => $q->where('code', 'ILIKE', '%' . $search . '%'))
             ->when($dates, fn($q) => $q->whereBetween('created_at', $dates))
+            ->orderBy('created_at','desc')
             ->simplePaginate(10);
 
         return Inertia::render('stock-opname/index', ['pagination' => $pagination, 'params' => $filters]);

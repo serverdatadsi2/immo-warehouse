@@ -15,7 +15,7 @@ class RemoveRFIDController extends Controller
 {
     public function index(Request $request)
     {
-        return Inertia::render('remove-rfid/index');
+        return Inertia::render('rfid/remove/index');
     }
 
     public function checkRfid(Request $request, $rfidId)

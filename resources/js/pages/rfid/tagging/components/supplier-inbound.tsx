@@ -22,7 +22,7 @@ export function SupplierInbound() {
         queryKey: ['supplier-inbound-detail-list', search, page],
         queryFn: async () => {
             const res = await axiosIns.get<LaravelPagination<InboundDetailWithRelation>>(
-                '/rfid-tagging/supplier-inbound-detail-list',
+                '/rfid/tagging/supplier-inbound-detail-list',
                 {
                     params: { search, page },
                 },
