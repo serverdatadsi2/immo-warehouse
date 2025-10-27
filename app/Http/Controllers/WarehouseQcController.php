@@ -118,7 +118,7 @@ class WarehouseQcController extends Controller
         $to = $request->input('to');
         $pageSize = 10;
 
-        $dataQuery = WarehouseQC::query()
+        $query = WarehouseQC::query()
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
             ->join('rfid_tags as rt', 'rt.id', '=', 'i.rfid_tag_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
@@ -152,15 +152,15 @@ class WarehouseQcController extends Controller
                 'rm.name as room_name', 'rm.code as room_code',
             );
 
-        if ($search) { $dataQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
+        if ($search) { $query->where('p.name', 'ILIKE', '%' . $search . '%'); }
         if ($status && $status !== 'All') {
              $oprator = $status === 'Good' ? '=' : '!=';
-             $dataQuery->where('ic.name', $oprator,'Good');
+             $query->where('ic.name', $oprator,'Good');
         }
-        if ($from) { $dataQuery->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()); }
-        if ($to) { $dataQuery->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()); }
+        if ($from) { $query->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()); }
+        if ($to) { $query->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()); }
 
-        $paginatedResults = $dataQuery->orderBy('warehouse_qc.performed_at', 'desc')
+        $paginatedResults = $query->orderBy('warehouse_qc.performed_at', 'desc')
                 ->simplePaginate($pageSize);
 
         // Ambil metadata paginasi
@@ -268,7 +268,7 @@ class WarehouseQcController extends Controller
         $to = $request->input('to');
         $pageSize = 10;
 
-        $dataQuery = WarehouseQC::query()
+        $query = WarehouseQC::query()
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
             ->join('rfid_tags as rt', 'rt.id', '=', 'i.rfid_tag_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
@@ -295,15 +295,15 @@ class WarehouseQcController extends Controller
                 'rm.name as room_name', 'rm.code as room_code',
             );
 
-        if ($search) { $dataQuery->where('p.name', 'ILIKE', '%' . $search . '%'); }
+        if ($search) { $query->where('p.name', 'ILIKE', '%' . $search . '%'); }
         if ($status && $status !== 'All') {
              $oprator = $status === 'Good' ? '=' : '!=';
-             $dataQuery->where('ic.name', $oprator,'Good');
+             $query->where('ic.name', $oprator,'Good');
         }
-        if ($from) { $dataQuery->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()); }
-        if ($to) { $dataQuery->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()); }
+        if ($from) { $query->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay()); }
+        if ($to) { $query->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay()); }
 
-        $paginatedResults = $dataQuery->orderBy('warehouse_qc.performed_at', 'desc')
+        $paginatedResults = $query->orderBy('warehouse_qc.performed_at', 'desc')
                 ->simplePaginate($pageSize);
 
         // Ambil metadata paginasi
@@ -395,6 +395,7 @@ class WarehouseQcController extends Controller
     {
         return Inertia::render('outbound-qc/index');
     }
+
     public function outboundQC(Request $request)
     {
         $user = auth()->user();
@@ -407,8 +408,13 @@ class WarehouseQcController extends Controller
         $to = $request->input('to');
         $pageSize = 10;
 
-        $dataQuery = WarehouseQC::query()
+        $query = WarehouseQC::query()
             ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
+            ->leftJoin('warehouse_outbound_details as wod', 'wod.item_id', '=', 'i.id')
+            ->leftJoin('warehouse_outbounds as wo', function ($join) {
+                $join->on('wo.id', '=', 'wod.warehouse_outbound_id')
+                    ->on('wo.warehouse_id', '=', 'warehouse_qc.warehouse_id');
+            })
             ->join('rfid_tags as rt', 'rt.id', '=', 'i.rfid_tag_id')
             ->join('products as p', 'p.id', '=', 'i.product_id')
             ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
@@ -416,6 +422,46 @@ class WarehouseQcController extends Controller
             ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
             ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->where('i.status', 'warehouse_processing')
+            ->where('warehouse_qc.qc_type', 'outbound')
+            ->whereNull('wod.id') // hanya ambil item yang belum outbound
+            ->select(
+                'warehouse_qc.*',
+                'p.id as product_id', 'p.name as product_name',
+                'w.id as warehouse_id', 'w.name as warehouse_name',
+                'ic.name as condition_name', 'u.name as performed_by',
+                'rt.value as rfid'
+            );
+
+        if ($search)  $query->where('p.name', 'ILIKE', '%' . $search . '%');
+        if ($status) $query->where('warehouse_qc.status', '=', $status);
+        if ($from)  $query->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay());
+        if ($to)  $query->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay());
+
+        $pagination = $query->orderBy('warehouse_qc.created_at', 'desc')
+                            ->simplePaginate($pageSize);
+
+        return response()->json($pagination);
+    }
+
+    public function historyOutboundQC(Request $request)
+    {
+        $user = auth()->user();
+        // ambil warehouse pertama milik user
+        $userWarehouseIds = $user->warehouses()->pluck('warehouses.id');
+
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        $query = WarehouseQC::query()
+            ->join('items as i', 'i.id', '=', 'warehouse_qc.item_id')
+            ->join('rfid_tags as rt', 'rt.id', '=', 'i.rfid_tag_id')
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->join('item_conditions as ic', 'ic.id', '=', 'warehouse_qc.item_condition_id')
+            ->join('users as u', 'u.id', '=', 'warehouse_qc.performed_by')
+            ->join('warehouses as w', 'w.id', '=', 'warehouse_qc.warehouse_id')
+            ->whereIn('warehouse_qc.warehouse_id', $userWarehouseIds)
             ->where('warehouse_qc.qc_type', 'outbound')
             ->select(
                 'warehouse_qc.*',
@@ -425,13 +471,13 @@ class WarehouseQcController extends Controller
                 'rt.value as rfid'
             );
 
-        if ($search)  $dataQuery->where('p.name', 'ILIKE', '%' . $search . '%');
-        if ($status) $dataQuery->where('warehouse_qc.status', '=', $status);
-        if ($from)  $dataQuery->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay());
-        if ($to)  $dataQuery->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay());
+        if ($search)  $query->where('p.name', 'ILIKE', '%' . $search . '%');
+        if ($status) $query->where('warehouse_qc.status', '=', $status);
+        if ($from)  $query->where('warehouse_qc.performed_at', '>=', Carbon::parse($from)->startOfDay());
+        if ($to)  $query->where('warehouse_qc.performed_at', '<=', Carbon::parse($to)->endOfDay());
 
-        $pagination = $dataQuery->orderBy('warehouse_qc.performed_at', 'desc')
-                            ->simplePaginate($pageSize);
+        $pagination = $query->orderBy('warehouse_qc.created_at', 'desc')
+                            ->simplePaginate(10);
 
         return response()->json($pagination);
     }

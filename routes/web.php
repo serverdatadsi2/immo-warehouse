@@ -91,12 +91,14 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | RFID Tagging
-    |--------------------------------------------------------------------------
-    */
+
+/*
+|--------------------------------------------------------------------------
+| RFID
+|--------------------------------------------------------------------------
+*/
     Route::prefix('rfid')->name('rfid.')->middleware('permission:rfid.tagging')->group(function () {
+        //  RFID Tagging
         Route::prefix('tagging')->name('tagging.')->middleware('permission:rfid.tagging')->group(function () {
             Route::get('/', [RFIDTaggingController::class, 'index'])->name('index');
             Route::get('/supplier-inbound-detail-list', [RFIDTaggingController::class, 'supplierInboundDetails'])->name('supplierInboundDetails');
@@ -108,7 +110,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/generate-return-rfid-tag-pdf', [RFIDTaggingController::class, 'generatePdfWithRFIDInboundReturn']);
         });
 
-           Route::prefix('remove')->name('remove.')->middleware('permission:rfid.remove')->group(function () {
+        //  Remove RFID
+        Route::prefix('remove')->name('remove.')->middleware('permission:rfid.remove')->group(function () {
             Route::get("/", [RemoveRFIDController::class, "index"])->name("index");
             Route::get("/check-rfid/{rfidId}", [RemoveRFIDController::class, "checkRfid"])->name('checkRfid');
             Route::post("/remove", [RemoveRFIDController::class, "removeRfid"]);
@@ -117,13 +120,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Items (by inbound details)
     Route::post('/items/by-inbound-details', [RFIDTaggingController::class, 'getRFIDItems']);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Remove RFID
-    |--------------------------------------------------------------------------
-    */
-
 
     /*
     |--------------------------------------------------------------------------
@@ -178,6 +174,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [WarehouseQcController::class, 'indexOutboundQC'])->name('index');
         Route::post('/rejected', [WarehouseQcController::class, 'rejectOutboundQC'])->middleware('permission:outbound_qc.reject');
         Route::get('/monitoring-outbound', [WarehouseQcController::class, 'outboundQC'])->name('outboundQC');
+        Route::get('/history-outbound', [WarehouseQcController::class, 'historyOutboundQC'])->name('historyOutboundQC');
     });
 
     /*

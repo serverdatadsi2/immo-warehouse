@@ -12,6 +12,7 @@ import RejectedModalForm from './reject-form';
 
 const LogTable = () => {
     const [visible, setVisible] = useState<boolean>(false);
+    const [history, setHistory] = useState<boolean>(false);
     const [search, setSearch] = useState<string>();
     const [filters, setFilters] = useState<FilterQc>({
         status: '',
@@ -25,10 +26,10 @@ const LogTable = () => {
         isLoading,
         refetch,
     } = useQuery({
-        queryKey: ['monitoring-outbound-qc', filters],
+        queryKey: ['monitoring-outbound-qc', filters, history],
         queryFn: async () => {
             const res = await axiosIns.get<SimplePagination<OutboundQC>>(
-                '/outbound-qc/monitoring-outbound',
+                history ? '/outbound-qc/history-outbound' : '/outbound-qc/monitoring-outbound',
                 {
                     params: {
                         page: filters.page,
@@ -103,10 +104,12 @@ const LogTable = () => {
                 setSearch={setSearch}
                 search={search}
                 setVisible={setVisible}
+                history={history}
+                setHistory={setHistory}
             />
             <Card
                 style={{
-                    background: '#f5faff',
+                    background: history ? '#bfbfbf' : '#f5faff',
                     borderRadius: 12,
                     boxShadow: '0 2px 8px #1890ff11',
                     marginBottom: 24,
