@@ -69,26 +69,33 @@ class DashboardController extends Controller
         // $startOfWeek = Carbon::now()->startOfWeek();
         // $endOfWeek = Carbon::now()->endOfWeek();
 
-        $inbound = WarehouseInbound::select(
-                DB::raw("DATE(created_at) as date"),
-                DB::raw("'Inbound' as type"),
-                DB::raw("SUM(grand_total) as count")
+        // $results = DB::table(function ($query) use ($startOfWeek, $endOfWeek) {
+        $results = DB::table(function ($query){
+                $query->select(
+                        DB::raw("DATE(created_at) as date"),
+                        DB::raw("'Inbound' as type"),
+                        DB::raw("SUM(grand_total) as count")
+                    )
+                    ->from('warehouse_inbounds')
+                    // ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->groupBy(DB::raw("DATE(created_at)"))
+                ->unionAll(
+                    DB::table('warehouse_outbounds')
+                        ->select(
+                            DB::raw("DATE(created_at) as date"),
+                            DB::raw("'Outbound' as type"),
+                            DB::raw("SUM(quantity_item) as count")
+                        )
+                        // ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                        ->groupBy(DB::raw("DATE(created_at)"))
+                );
+            }, 't')
+            ->select(
+                'date',
+                DB::raw("SUM(CASE WHEN type = 'Inbound' THEN count ELSE 0 END) AS inbound"),
+                DB::raw("SUM(CASE WHEN type = 'Outbound' THEN count ELSE 0 END) AS outbound")
             )
-            // ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-            ->groupBy(DB::raw("DATE(created_at)"));
-
-        $outbound = WarehouseOutbound::select(
-                DB::raw("DATE(created_at) as date"),
-                DB::raw("'Outbound' as type"),
-                DB::raw("SUM(quantity_item) as count")
-            )
-            // ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-            ->groupBy(DB::raw("DATE(created_at)"));
-
-        $query = $inbound->unionAll($outbound);
-
-        $results = DB::query()
-            ->fromSub($query, 't')
+            ->groupBy('date')
             ->orderBy('date')
             ->get();
 
