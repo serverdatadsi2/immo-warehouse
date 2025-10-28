@@ -1,6 +1,7 @@
 import { DateDisplay } from '@/components/displays/date-display';
 import { usePermission } from '@/hooks/use-permission';
 import { router } from '@inertiajs/react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { DescriptionsProps } from 'antd';
 import { Button, Descriptions, message, notification } from 'antd';
 import React, { useCallback, useContext, useMemo } from 'react';
@@ -9,6 +10,7 @@ import { DetailContext } from '../../detail';
 const DescriptionHeader: React.FC = () => {
     const { hasPermission } = usePermission();
     const { header } = useContext(DetailContext);
+    const queryClient = useQueryClient();
 
     const handleProcess = useCallback(() => {
         router.patch(
@@ -17,6 +19,7 @@ const DescriptionHeader: React.FC = () => {
             {
                 onSuccess: () => {
                     message.success('Order berhasil diproses ✅');
+                    queryClient.invalidateQueries({ queryKey: ['all-menu-counts'] }); //refetch
                 },
                 onError: (e) => {
                     notification.error({
@@ -27,7 +30,7 @@ const DescriptionHeader: React.FC = () => {
                 },
             },
         );
-    }, [header]);
+    }, [header?.id, queryClient]);
 
     const items: DescriptionsProps['items'] = useMemo(() => {
         const baseItems = [

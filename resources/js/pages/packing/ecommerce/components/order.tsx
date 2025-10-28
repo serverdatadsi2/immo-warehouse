@@ -4,6 +4,7 @@ import { EcommerceOrderWithDetailRelation } from '@/types/ecommerce-order.type';
 import { LaravelPagination } from '@/types/laravel-pagination.type';
 import { Params } from '@/types/outbound-qc.type';
 import { router } from '@inertiajs/react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
     Button,
     Card,
@@ -29,25 +30,30 @@ interface Props {
 }
 
 export function OrderComponent({ params, pagination }: Props) {
+    const queryClient = useQueryClient();
     const { hasPermission } = usePermission();
-    const handleUpdateStatus = useCallback((orderId: string) => {
-        router.patch(
-            route('packing.ecommerce.updateStatus', { order_id: orderId }),
-            {},
-            {
-                onSuccess: () => {
-                    message.success('Order berhasil packing ✅');
+    const handleUpdateStatus = useCallback(
+        (orderId: string) => {
+            router.patch(
+                route('packing.ecommerce.updateStatus', { order_id: orderId }),
+                {},
+                {
+                    onSuccess: () => {
+                        message.success('Order berhasil packing ✅');
+                        queryClient.invalidateQueries({ queryKey: ['all-menu-counts'] }); //refetch
+                    },
+                    onError: (e) => {
+                        notification.error({
+                            message: 'Error',
+                            description: e.message || 'Terjadi kesalahan saat memproses order.',
+                            duration: 10,
+                        });
+                    },
                 },
-                onError: (e) => {
-                    notification.error({
-                        message: 'Error',
-                        description: e.message || 'Terjadi kesalahan saat memproses order.',
-                        duration: 10,
-                    });
-                },
-            },
-        );
-    }, []);
+            );
+        },
+        [queryClient],
+    );
 
     const handleOutbound = useCallback((order: EcommerceOrderWithDetailRelation) => {
         router.get(`/outbound/detail?ecommerceOrder=${order.id}&orderNumber=${order.order_number}`);
