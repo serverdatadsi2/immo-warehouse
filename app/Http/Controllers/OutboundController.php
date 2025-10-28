@@ -156,6 +156,15 @@ class OutboundController extends Controller
                 $header->update(['invoice_number' => $kodeInvoice]);
             }
 
+            if (empty($header->invoice_number) && $header->order_ref === 'ecommerce') {
+                $kodeInvoice = $kodeInvoice = EcommerceOrder::query()
+                                ->join('payments', 'payments.id', '=', 'ecommerce_orders.payment_id')
+                                ->where('ecommerce_orders.id', $header->order_id)
+                                ->value('payments.transaction_number');
+
+                $header->update(['invoice_number' => $kodeInvoice]);
+            }
+
             $result = WarehouseOutboundDetail::where('warehouse_outbound_id', $header->id)
                 ->selectRaw('COUNT(*) as quantity')
                 ->first();

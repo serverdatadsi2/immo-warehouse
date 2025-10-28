@@ -82,7 +82,7 @@ class PackingController extends Controller
     public function packingEcommerce(Request $request)
     {
         $filters = $request->only(['search', 'dateRange', 'status']);
-        $status = $filters['status'] ?? 'paid';
+        $status = $filters['status'] ?? 'processed';
         $search = $filters['search'] ?? '';
         $dates = $filters['dateRange'] ?? '';
 

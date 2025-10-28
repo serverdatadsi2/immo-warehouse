@@ -151,7 +151,11 @@ export function getMenuItems(
             getMenuItem({
                 key: 'receiving-order',
                 icon: (
-                    <Badge count={data?.store_order ?? 0} size="small" color="volcano">
+                    <Badge
+                        count={Math.max(data?.store_order || 0, data?.ecommerce_order || 0)}
+                        size="small"
+                        color="volcano"
+                    >
                         <Shuffle size={20} />
                     </Badge>
                 ),

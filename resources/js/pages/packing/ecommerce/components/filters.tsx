@@ -16,7 +16,7 @@ const { Text } = Typography;
 export function Filters({ params }: Props) {
     const [filters, setFilters] = useState({
         search: params.search || '',
-        status: params.status || 'paid',
+        status: params.status || 'processed',
         dateRange: params.dateRange || undefined,
     });
 
@@ -118,6 +118,7 @@ export function Filters({ params }: Props) {
                         <Select.Option value="paid">Paid</Select.Option>
                         <Select.Option value="received">Received</Select.Option>
                         <Select.Option value="processed">Processing</Select.Option>
+                        <Select.Option value="packing">Packing</Select.Option>
                         <Select.Option value="shipped">Shipped</Select.Option>
                     </Select>
                 </Col>
