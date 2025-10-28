@@ -12,6 +12,9 @@ class LocationSuggestionController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+
         $pagination = LocationSuggestion::query()
             ->leftJoin('products as p', 'p.id', '=', 'warehouse_item_location_suggestions.product_id')
             ->leftJoin('locations as l', 'l.id', '=', 'warehouse_item_location_suggestions.location_id')
@@ -37,6 +40,7 @@ class LocationSuggestionController extends Controller
                 'lr.id', 'lr.name', 'lr.code',
                 'lrr.id', 'lrr.name', 'lrr.code'
             )
+            ->where('warehouse_item_location_suggestions.warehouse_id', $userWarehouseId)
             ->simplePaginate(10);
 
         return Inertia::render('location-suggestions/index', ['pagination' => $pagination]);
@@ -51,14 +55,20 @@ class LocationSuggestionController extends Controller
 
         $validated = $request->validate($rules);
 
-        DB::transaction(function () use ($validated, $request) {
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+        $payload = array_merge($validated, [
+                        'warehouse_id' => $userWarehouseId,
+                    ]) ;
+
+        DB::transaction(function () use ($payload, $request) {
             if ($request->id) {
                 LocationSuggestion::updateOrCreate(
                     ['id' => $request->id],
-                    $validated
+                    $payload
                 );
             } else {
-                LocationSuggestion::create($validated);
+                LocationSuggestion::create($payload);
             }
         });
 

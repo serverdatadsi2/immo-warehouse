@@ -6,7 +6,6 @@ use App\Models\Item;
 use App\Models\LocationHistory;
 use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -129,22 +128,20 @@ class WarehouseStorageController extends Controller
 
         $rules = [
             'rfid' => ['string', 'required', 'exists:rfid_tags,value'],
-            'location' => ['string', 'required',
-                    Rule::exists('locations', 'id')->where(function ($query) {
-                        return $query->where('type', 'layer');
-                    }),],
+            'location' => ['string', 'required', 'exists:location_rfid_tags,value']
         ];
 
         $validated = $request->validate($rules);
 
-        $hasAccess = \DB::table('locations as l')
+        $location = \DB::table('location_rfid_tags as lrt')
             // Join ke tabel pivot 'warehouse_locations'
-            ->join('warehouse_locations as wl', 'l.id', '=', 'wl.location_id')
-            ->where('l.id', $validated['location'])
+            ->join('warehouse_locations as wl', 'wl.location_id', '=', 'lrt.location_id')
+            ->where('lrt.value', $validated['location'])
             ->where('wl.warehouse_id', $userWarehouseId)
-            ->exists();
+            ->value('wl.location_id');
+            // ->exists();
 
-        if (!$hasAccess) {
+        if (!$location) {
             throw ValidationException::withMessages([
                 'location' => ['Lokasi yang dipilih tidak terkait dengan gudang yang dapat diakses oleh Anda.'],
             ]);
@@ -160,7 +157,6 @@ class WarehouseStorageController extends Controller
             // Cek jika Item tidak ditemukan
             if (!$item) {
                 \DB::rollback();
-                // Throw exception agar frontend menerima error yang jelas
                 throw ValidationException::withMessages([
                     'rfid' => 'RFID ini tidak terdaftar atau sudah tidak aktif.'
                 ]);
@@ -168,16 +164,17 @@ class WarehouseStorageController extends Controller
 
             $item->update([
                 'status' => 'warehouse_stock',
-                'current_location_id' => $validated['location']
+                'current_location_id' => $location
             ]);
 
-            WarehouseStock::firstOrCreate(
-                ['warehouse_id' => $userWarehouseId, 'item_id' => $item->id]
-            );
+            WarehouseStock::firstOrCreate([
+                'warehouse_id' => $userWarehouseId,
+                'item_id' => $item->id
+            ]);
 
             LocationHistory::create([
                 'item_id' => $item->id,
-                'location_id' => $validated['location'],
+                'location_id' => $location,
             ]);
 
             \DB::commit();

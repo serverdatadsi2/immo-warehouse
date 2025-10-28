@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\EcommerceOrder;
 use App\Models\StoreOrder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 class PackingController extends Controller
 {
@@ -14,6 +13,8 @@ class PackingController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
         $filters = $request->only(['search', 'dateRange', 'status']);
         $status = $filters['status'] ?? 'processing';
         $search = $filters['search'] ?? '';
@@ -36,16 +37,14 @@ class PackingController extends Controller
                     $query->select('id', 'name');
                 },
             ])
-            ->when($status, function ($query, $status) {
-                $query->where('status', $status);
+            ->where(function ($query) use ($status) {
+                if ($status === 'all') {
+                    $query->whereIn('status', ['received', 'processing', 'packing']);
+                } else {
+                    $query->where('status', $status);
+                }
             })
-            ->unless($status, function ($query) {
-                $query->where(function ($subQuery) {
-                    $subQuery->orWhere('status', 'received')
-                            ->orWhere('status', 'processing')
-                            ->orWhere('status', 'packing');
-                });
-            })
+            ->Where('store_orders.warehouse_id', $userWarehouseId)
             ->orderBy('approved_at', 'asc');
 
         if (!empty($dates) && count($dates) === 2) {
@@ -81,6 +80,8 @@ class PackingController extends Controller
 
     public function packingEcommerce(Request $request)
     {
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
         $filters = $request->only(['search', 'dateRange', 'status']);
         $status = $filters['status'] ?? 'processed';
         $search = $filters['search'] ?? '';
@@ -108,6 +109,7 @@ class PackingController extends Controller
                             ->orWhere('status', 'packing');
                 });
             })
+            ->where('ecommerce_orders.handled_by_warehouse_id', $userWarehouseId)
             ->orderBy('created_at', 'asc');
 
             if (!empty($dates) && count($dates) === 2) {

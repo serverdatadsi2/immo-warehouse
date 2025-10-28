@@ -19,9 +19,12 @@ class OutboundController extends Controller
     public function index(Request $request)
     {
         // Gate::authorize('formula.read');
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
         $pagination = WarehouseOutbound::query()
         ->with(['warehouse:id,name,code', 'user:id,name', 'courier:id,name'])
+        ->where('warehouse_id', $userWarehouseId)
         ->simplePaginate(10);
 
 

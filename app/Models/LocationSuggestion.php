@@ -14,6 +14,7 @@ class LocationSuggestion extends Model
     protected $fillable = [
         'product_id',
         'location_id',
+        'warehouse_id',
     ];
 
     protected $guarded = [];

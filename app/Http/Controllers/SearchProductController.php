@@ -18,94 +18,12 @@ class SearchProductController extends Controller
     {
         $rfid = $request->input('rfid');
         $productId = $request->input('productId');
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
         if (!empty($rfid)) {
             $productId = Item::where('rfid_tag_id', $rfid)->value('product_id');
         }
-
-        // $stocks = WarehouseStock::query()
-        //     ->join('warehouses as w', 'w.id', '=', 'warehouse_items.warehouse_id')
-        //     ->join('items as i', 'i.id', '=', 'warehouse_items.item_id')
-        //     ->leftJoin('locations as la', 'la.id', '=', 'i.current_location_id')
-        //     ->leftJoin('locations as ra', 'ra.id', '=', 'la.location_parent_id')
-        //     ->leftJoin('locations as ru', 'ru.id', '=', 'ra.location_parent_id')
-        //     ->leftJoin('item_conditions as ic', 'ic.id', '=', 'i.current_condition_id')
-        //     ->join('products as p', 'p.id', '=', 'i.product_id')
-        //     ->join('units as u', 'u.id', '=', 'p.unit_id')
-        //     // ->where('i.rfid_tag_id', $rfid)
-        //     ->where('p.id', $productId)
-        //     ->where('i.status', 'warehouse_stock')
-        //     ->selectRaw(
-        //         '
-        //     p.id as product_id,
-        //     p.name as product_name,
-        //     p.code as product_code,
-        //     u.name as product_unit,
-        //     ru.name as room_name,
-        //     ru.code as room_code,
-        //     ra.name as rack_name,
-        //     ra.code as rack_code,
-        //     la.name as layer_name,
-        //     la.code as layer_code,
-        //     w.name as warehouse_name,
-        //     w.code as warehouse_code,
-        //     COUNT(warehouse_items.id) as stock_qty,
-        //     (CASE
-        //         WHEN ic.name IS NULL THEN NULL
-        //         WHEN ic.name = "Good" THEN "Good"
-        //         ELSE "Bad"
-        //     END) AS status
-        // ',
-        //     )
-        //     ->groupBy(
-        //         'p.id',
-        //         'p.name',
-        //         'p.code',
-        //         'u.name',
-        //         'ru.name',
-        //         'ru.code',
-        //         'ra.name',
-        //         'ra.code',
-        //         'la.name',
-        //         'la.code',
-        //         'w.name',
-        //         'w.code',
-        //         \DB::raw("(CASE
-        //             WHEN ic.name IS NULL THEN NULL
-        //             WHEN ic.name = 'Good' THEN 'Good'
-        //             ELSE 'Bad'
-        //         END)"),
-        //     )
-        //     ->get();
-
-        // $result = $stocks
-        //     ->groupBy('product_id')
-        //     ->map(function ($group) {
-        //         $first = $group->first();
-
-        //         return [
-        //             'product_name' => $first->product_name,
-        //             'product_code' => $first->product_code,
-        //             'product_unit' => $first->product_unit,
-        //             'grand_total' => $group->sum('stock_qty'),
-        //             'locations' => $group
-        //                 ->map(function ($item) {
-        //                     return [
-        //                         'warehouse_name' => $item->warehouse_name,
-        //                         'warehouse_code' => $item->warehouse_code,
-        //                         'room_name' => $item->room_name,
-        //                         'room_code' => $item->room_code,
-        //                         'rack_name' => $item->rack_name,
-        //                         'rack_code' => $item->rack_code,
-        //                         'layer_name' => $item->layer_name,
-        //                         'layer_code' => $item->layer_code,
-        //                         'quantity' => $item->stock_qty,
-        //                     ];
-        //                 })
-        //                 ->values(),
-        //         ];
-        //     })
-        //     ->first();
 
         $stocks = WarehouseStock::query()
             ->join('warehouses as w', 'w.id', '=', 'warehouse_items.warehouse_id')
@@ -117,6 +35,7 @@ class SearchProductController extends Controller
             ->join('products as p', 'p.id', '=', 'i.product_id')
             ->join('units as u', 'u.id', '=', 'p.unit_id')
             ->where('p.id', $productId)
+            ->where('w.id', $userWarehouseId)
             ->where('i.status', 'warehouse_stock')
             ->selectRaw('
                 p.id as product_id,

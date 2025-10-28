@@ -22,17 +22,19 @@ export default function Page({ detailsPagination, params, headerData }: PageProp
             <DetailContext.Provider value={{ detailsPagination, headerData, params }}>
                 <Space direction="vertical" className="w-full">
                     <HeaderForm />
-                    <Card
-                        size="small"
-                        style={{
-                            background: '#f5faff',
-                            boxShadow: '0 2px 8px #1890ff11',
-                            paddingLeft: 20,
-                        }}
-                    >
-                        <DetailForm />
-                        <DetailTable />
-                    </Card>
+                    {headerData && (
+                        <Card
+                            size="small"
+                            style={{
+                                background: '#f5faff',
+                                boxShadow: '0 2px 8px #1890ff11',
+                                paddingLeft: 20,
+                            }}
+                        >
+                            <DetailForm />
+                            <DetailTable />
+                        </Card>
+                    )}
                 </Space>
             </DetailContext.Provider>
         </AppLayout>

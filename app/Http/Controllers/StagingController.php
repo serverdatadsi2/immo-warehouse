@@ -17,6 +17,8 @@ class StagingController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
         $filters = $request->only(['search', 'status']);
         $search = $filters['search'] ?? '';
         $status = $filters['status'] ?? '';
@@ -33,7 +35,7 @@ class StagingController extends Controller
                 if($status==='relesed') $q->whereNotNull('released_at');
                 else $q->whereNull('released_at');
             })
-            // ->unless($status, fn ($q) => $q->whereNull('released_at'))
+            ->where('warehouse_id', $userWarehouseId)
             ->orderBy('created_at', 'desc')
             ->simplePaginate(10);
 

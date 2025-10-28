@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
-use App\Models\WarehouseInbound;
-use App\Models\WarehouseOutbound;
 use App\Models\WarehouseStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -66,18 +64,20 @@ class DashboardController extends Controller
 
     private function chartData ()
     {
-        // $startOfWeek = Carbon::now()->startOfWeek();
-        // $endOfWeek = Carbon::now()->endOfWeek();
+        $user = auth()->user();
+        $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
 
-        // $results = DB::table(function ($query) use ($startOfWeek, $endOfWeek) {
-        $results = DB::table(function ($query){
+        $results = DB::table(function ($query) use ($startOfWeek, $endOfWeek, $userWarehouseId) {
                 $query->select(
                         DB::raw("DATE(created_at) as date"),
                         DB::raw("'Inbound' as type"),
                         DB::raw("SUM(grand_total) as count")
                     )
                     ->from('warehouse_inbounds')
-                    // ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                    ->where('warehouse_id', $userWarehouseId)
+                    ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
                     ->groupBy(DB::raw("DATE(created_at)"))
                 ->unionAll(
                     DB::table('warehouse_outbounds')
@@ -86,7 +86,8 @@ class DashboardController extends Controller
                             DB::raw("'Outbound' as type"),
                             DB::raw("SUM(quantity_item) as count")
                         )
-                        // ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                        ->where('warehouse_id', $userWarehouseId)
+                        ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
                         ->groupBy(DB::raw("DATE(created_at)"))
                 );
             }, 't')

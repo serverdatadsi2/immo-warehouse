@@ -115,7 +115,7 @@ export function Filters({ params }: Props) {
                         allowClear
                         placeholder="Semua Status"
                     >
-                        <Select.Option value="">Semua</Select.Option>
+                        <Select.Option value="all">Semua</Select.Option>
                         <Select.Option value="received">Received</Select.Option>
                         <Select.Option value="processing">Processing</Select.Option>
                         <Select.Option value="packing">Packing</Select.Option>
