@@ -118,7 +118,6 @@ export function Filters({ params }: Props) {
                         <Select.Option value="all">Semua</Select.Option>
                         <Select.Option value="processing">Processing</Select.Option>
                         <Select.Option value="packing">Packing</Select.Option>
-                        <Select.Option value="shipped">Shipped</Select.Option>
                     </Select>
                 </Col>
             </Row>

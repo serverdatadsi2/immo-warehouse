@@ -24,16 +24,16 @@ class ReceivingOrderEcommerceController extends Controller
         $query = EcommerceOrder::query()
             ->join('customers as c', 'c.id', '=', 'ecommerce_orders.customer_id')
             ->join('payments as p', 'p.id', '=', 'ecommerce_orders.payment_id')
-            ->when(!empty($dates) && count($dates) === 2, function ($q) use ($dates) {
-                    $from = trim($dates[0]);
-                    $to = trim($dates[1]);
-                    $q->whereBetween('p.completed_at', [
-                        Carbon::parse($from)->startOfDay(),
-                        Carbon::parse($to)->endOfDay(),
-                    ]);
-                }, function ($q) {
-                    $q->whereNotNull('p.completed_at');
-            })
+            // ->when(!empty($dates) && count($dates) === 2, function ($q) use ($dates) {
+            //         $from = trim($dates[0]);
+            //         $to = trim($dates[1]);
+            //         $q->whereBetween('p.completed_at', [
+            //             Carbon::parse($from)->startOfDay(),
+            //             Carbon::parse($to)->endOfDay(),
+            //         ]);
+            //     }, function ($q) {
+            //         $q->whereNotNull('p.completed_at');
+            // })
             ->select('ecommerce_orders.*', 'c.name as order_by', 'c.wa_number', 'p.completed_at as approve_at')
             ->where('ecommerce_orders.status', $filters['status'] ?? 'paid')
             ->where('ecommerce_orders.handled_by_warehouse_id', $userWarehouseId)

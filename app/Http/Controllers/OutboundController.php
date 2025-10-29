@@ -173,12 +173,12 @@ class OutboundController extends Controller
             }
 
             if (empty($header->delivery_order_number)) {
-                $kodeSuratJalan = $this->generateDeliveryOrderNumber();
+                $kodeSuratJalan = $this->generateDeliveryOrderNumber($header->id);
                 $header->update(['delivery_order_number' => $kodeSuratJalan]);
             }
 
             if (empty($header->invoice_number) && $header->order_ref === 'store') {
-                $kodeInvoice = $this->generateInvoiceNumber();
+                $kodeInvoice = $this->generateInvoiceNumber($header->id);
                 $header->update(['invoice_number' => $kodeInvoice]);
             }
 
@@ -317,7 +317,7 @@ class OutboundController extends Controller
         return Response::json($data);
     }
 
-    private function generateDeliveryOrderNumber()
+    private function generateDeliveryOrderNumber($headerId)
     {
         $date = now();
         $dateCode = $date->format('Ymd'); // contoh: 20251014
@@ -325,6 +325,7 @@ class OutboundController extends Controller
         // Ambil surat jalan terakhir yang dibuat pada hari ini
         $lastRecord = WarehouseOutbound::whereDate('created_at', $date->toDateString())
             // ->where('delivery_order_number', 'ILIKE', "SJ-{$dateCode}-%")
+            ->where('id', '!=', $headerId)
             ->orderBy('created_at', 'desc')
             ->first();
 
@@ -342,20 +343,21 @@ class OutboundController extends Controller
         return $kodeSuratJalan;
     }
 
-    private function generateInvoiceNumber()
+    private function generateInvoiceNumber($headerId)
     {
         $date = now();
         $dateCode = $date->format('Ymd');
 
         $lastRecord = WarehouseOutbound::whereDate('created_at', $date->toDateString())
             // ->where('invoice_number', 'ILIKE', "INV-SO-{$dateCode}-%")
+            ->where('id', '!=', $headerId)
             ->orderBy('created_at', 'desc')
             ->first();
 
         $nextNumber = 1;
         if ($lastRecord && !empty($lastRecord->invoice_number)) {
             $parts = explode('-', $lastRecord->invoice_number);
-            $lastNumber = isset($parts[2]) ? (int) $parts[2] : 0;
+            $lastNumber = isset($parts[3]) ? (int) $parts[3] : 0;
             $nextNumber = $lastNumber + 1;
         }
 

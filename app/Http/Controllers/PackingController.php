@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EcommerceOrder;
 use App\Models\StoreOrder;
+use App\Models\WarehouseOutbound;
 use Illuminate\Http\Request;
 
 class PackingController extends Controller
@@ -39,7 +40,7 @@ class PackingController extends Controller
             ])
             ->where(function ($query) use ($status) {
                 if ($status === 'all') {
-                    $query->whereIn('status', [ 'processing', 'packing', 'shipped']);
+                    $query->whereIn('status', [ 'processing', 'packing']);
                 } else {
                     $query->where('status', $status);
                 }
@@ -101,7 +102,7 @@ class PackingController extends Controller
             ])
             ->where(function ($query) use ($status) {
                 if ($status === 'all') {
-                    $query->whereIn('status', ['processed','packing', 'shipped']);
+                    $query->whereIn('status', ['processed','packing']);
                 } else {
                     $query->where('status', $status);
                 }

@@ -97,7 +97,7 @@ export function Filters({ params }: Props) {
                         value={filters.search}
                         suffix={<SearchOutlined />}
                         allowClear
-                        placeholder="Nama toko atau nomor order..."
+                        placeholder="Nama cutomer atau nomor order..."
                         style={{ marginTop: 4, borderRadius: 8 }}
                         onChange={(e) => handleFilterChange('search', e.target.value)}
                     />

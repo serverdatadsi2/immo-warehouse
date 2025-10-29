@@ -50,10 +50,10 @@ export function HeaderTable({ pagination }: Props) {
             },
             {
                 title: 'Pengiriman',
-                dataIndex: ['courier', 'name'],
+                // dataIndex: ['courier', 'name'],
                 key: 'pengiriman',
                 render: (_, d) =>
-                    d?.courier?.name || d?.ecommerce_order.shipping_method.courier_name,
+                    d?.ecommerce_order?.shipping_method?.courier_name || d?.courier?.name,
             },
             {
                 title: 'QTY',
