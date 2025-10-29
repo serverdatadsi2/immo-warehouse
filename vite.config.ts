@@ -26,14 +26,5 @@ export default defineConfig({
     build: {
         // chunkSizeWarningLimit: 1600,
         minify: 'esbuild',
-        rollupOptions: {
-            output: {
-                manualChunks: {
-                    vendor: ['react', 'react-dom'],
-                    ui: ['antd', '@ant-design/icons'],
-                    utils: ['axios'],
-                },
-            },
-        },
     },
 });
