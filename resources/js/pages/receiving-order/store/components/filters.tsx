@@ -131,9 +131,7 @@ export function Filters({ params }: Props) {
                         placeholder="Semua Status"
                     >
                         <Select.Option value="approved">Approved</Select.Option>
-                        <Select.Option value="received">Received</Select.Option>
                         <Select.Option value="processing">Processing</Select.Option>
-                        <Select.Option value="shipped">Shipped</Select.Option>
                     </Select>
                 </Col>
                 {(filters.search !== '' ||

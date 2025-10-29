@@ -23,6 +23,7 @@
         "handle-order-to-outbound",
         "spatie-permition",
         "menu",
-        "role-management"
+        "role-management",
+        "all-orders"
     ]
 }

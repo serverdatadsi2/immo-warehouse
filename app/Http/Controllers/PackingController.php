@@ -39,7 +39,7 @@ class PackingController extends Controller
             ])
             ->where(function ($query) use ($status) {
                 if ($status === 'all') {
-                    $query->whereIn('status', ['received', 'processing', 'packing']);
+                    $query->whereIn('status', [ 'processing', 'packing', 'shipped']);
                 } else {
                     $query->where('status', $status);
                 }
@@ -99,15 +99,12 @@ class PackingController extends Controller
                 'customer:id,name',
                 'payment:id,completed_at,status',
             ])
-            ->when($status, function ($query, $status) {
-                $query->where('status', $status);
-            })
-            ->unless($status, function ($query) {
-                $query->where(function ($subQuery) {
-                    $subQuery->orWhere('status', 'received')
-                            ->orWhere('status', 'processed')
-                            ->orWhere('status', 'packing');
-                });
+            ->where(function ($query) use ($status) {
+                if ($status === 'all') {
+                    $query->whereIn('status', ['processed','packing', 'shipped']);
+                } else {
+                    $query->where('status', $status);
+                }
             })
             ->where('ecommerce_orders.handled_by_warehouse_id', $userWarehouseId)
             ->orderBy('created_at', 'asc');

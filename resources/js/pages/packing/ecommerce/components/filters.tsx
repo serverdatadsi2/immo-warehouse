@@ -113,10 +113,9 @@ export function Filters({ params }: Props) {
                         style={{ marginTop: 4, borderRadius: 8, width: '100%' }}
                         onChange={(value) => handleFilterChange('status', value)}
                         allowClear
-                        placeholder="Paid"
+                        placeholder="Processing"
                     >
-                        <Select.Option value="paid">Paid</Select.Option>
-                        <Select.Option value="received">Received</Select.Option>
+                        <Select.Option value="all">Semua</Select.Option>
                         <Select.Option value="processed">Processing</Select.Option>
                         <Select.Option value="packing">Packing</Select.Option>
                         <Select.Option value="shipped">Shipped</Select.Option>

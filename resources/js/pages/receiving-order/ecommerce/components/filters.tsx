@@ -131,9 +131,7 @@ export function Filters({ params }: Props) {
                         placeholder="Paid"
                     >
                         <Select.Option value="paid">Paid</Select.Option>
-                        <Select.Option value="received">Received</Select.Option>
                         <Select.Option value="processed">Processing</Select.Option>
-                        <Select.Option value="shipped">Shipped</Select.Option>
                     </Select>
                 </Col>
                 {(filters.search !== '' ||
