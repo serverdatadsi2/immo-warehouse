@@ -2,6 +2,7 @@ import { Courier } from './courier.type';
 import { Customer } from './customer.type';
 import { Product } from './product.type';
 import { RFIDTag } from './rfid-tag.types';
+import { ShippingMethod } from './shipping-method.type';
 import { StoreOrder } from './store-order.type';
 import { Store } from './store.type';
 import { User } from './user.type';
@@ -38,6 +39,7 @@ export interface OutboundDetailWithRelation extends OutboundDetail {
 }
 
 export interface OutboundWithRelations extends Outbound {
+    ecommerce_order: EcommerceOrder;
     warehouse: Warehouse;
     user: User;
     courier: Courier;
@@ -100,4 +102,5 @@ interface EcommerceOrder {
 
     customer: Customer;
     shipping_address: ShippingAddress;
+    shipping_method: ShippingMethod;
 }

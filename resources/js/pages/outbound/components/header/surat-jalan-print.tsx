@@ -75,63 +75,163 @@ const SuratJalanPrinter = ({ headerId }: Props) => {
                 textY += 3;
             });
 
-            // === INFO PENGIRIMAN ===
+            // // === INFO PENGIRIMAN ===
+            // let y = 38;
+            // doc.setFont('helvetica', 'bold');
+            // doc.setFontSize(10);
+            // doc.text('Informasi Pengiriman', marginX, y);
+
+            // y += 6;
+            // doc.setFont('helvetica', 'normal');
+            // doc.setFontSize(9);
+
+            // const colRightX = pageWidth / 2 + 5;
+
+            // // Kolom kanan
+            // const rightColumn = [
+            //     `No. Surat               : ${header.delivery_order_number}`,
+            //     `Tanggal Dokumen : ${formatDate(header.created_at)}`,
+            //     `Asal                       : ${header.warehouse.name}`,
+            // ];
+
+            // // Kolom kiri
+            // const alamatTujuan =
+            //     header?.store_order?.store.address ??
+            //     formatFullAddress(header.ecommerce_order.shipping_address);
+            // const labelWidth = 28; // lebar teks label sebelum isi (agar sejajar)
+            // const maxWidth = pageWidth / 2 - marginX - labelWidth; // sisa lebar kolom kiri setelah label
+
+            // // Pisahkan alamat menjadi beberapa baris sesuai lebar
+            // const alamatLines = doc.splitTextToSize(alamatTujuan, maxWidth);
+
+            // const leftColumn = [
+            //     `Tanggal Kirim  : ${formatDate(header.shipment_date)}`,
+            //     `Tujuan             : ${header?.store_order?.store?.name ?? header.ecommerce_order.customer.name}`,
+            // ];
+
+            // // Cetak kolom kiri biasa
+            // let leftY = y;
+            // leftColumn.forEach((text) => {
+            //     doc.text(text, marginX, leftY);
+            //     leftY += 5;
+            // });
+
+            // // Cetak alamat dengan wrap rapi
+            // const alamatLabel = 'Alamat             : ';
+            // doc.text(alamatLabel, marginX, leftY); // label
+            // const alamatX = marginX + labelWidth - 5; // posisi mulai isi alamat
+            // doc.text(alamatLines, alamatX, leftY, { maxWidth }); // isi multi-line alamat
+            // leftY += alamatLines.length * 5;
+
+            // // Cetak kolom kanan
+            // let rightY = y;
+            // rightColumn.forEach((text) => {
+            //     doc.text(text, colRightX, rightY);
+            //     rightY += 5;
+            // });
+
+            // // Set posisi Y paling bawah (supaya tabel mulai di bawah teks terpanjang)
+            // y = Math.max(leftY, rightY) + 6;
+
+            // === INFORMASI KURIR ===
             let y = 38;
+            const courier = header?.ecommerce_order?.shipping_method;
+
+            if (courier) {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                doc.text('Informasi Kurir', marginX, y);
+
+                y += 6;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+
+                // Kolom kiri dan kanan
+                const leftColumn = [
+                    `Kurir                : ${courier.courier_name ?? '-'}`,
+                    // `Layanan     : ${courier.service ?? '-'}`,
+                    `Jenis               : ${courier.type ?? '-'}`,
+                ];
+
+                const rightColumn = [
+                    `Durasi                    : ${courier.duration ?? '-'}`,
+                    `Biaya Kirim            : Rp ${Number(courier.price).toLocaleString('id-ID')}`,
+                ];
+
+                const colRightX = pageWidth / 2 + 5;
+                let leftY = y;
+                let rightY = y;
+
+                leftColumn.forEach((text) => {
+                    doc.text(text, marginX, leftY);
+                    leftY += 5;
+                });
+
+                rightColumn.forEach((text) => {
+                    doc.text(text, colRightX, rightY);
+                    rightY += 5;
+                });
+
+                y = Math.max(leftY, rightY) + 2;
+            }
+
+            // === INFORMASI PENGIRIMAN ===
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(10);
             doc.text('Informasi Pengiriman', marginX, y);
 
-            y += 6;
+            y += 2;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
 
             const colRightX = pageWidth / 2 + 5;
 
-            // Kolom kanan
+            // Kolom kanan (no surat, tanggal dokumen, asal)
             const rightColumn = [
                 `No. Surat               : ${header.delivery_order_number}`,
                 `Tanggal Dokumen : ${formatDate(header.created_at)}`,
                 `Asal                       : ${header.warehouse.name}`,
             ];
 
-            // Kolom kiri
-            const alamatTujuan =
-                header?.store_order?.store.address ??
-                formatFullAddress(header.ecommerce_order.shipping_address);
-            const labelWidth = 28; // lebar teks label sebelum isi (agar sejajar)
-            const maxWidth = pageWidth / 2 - marginX - labelWidth; // sisa lebar kolom kiri setelah label
-
-            // Pisahkan alamat menjadi beberapa baris sesuai lebar
-            const alamatLines = doc.splitTextToSize(alamatTujuan, maxWidth);
-
-            const leftColumn = [
-                `Tanggal Kirim  : ${formatDate(header.shipment_date)}`,
-                `Tujuan             : ${header?.store_order?.store?.name ?? header.ecommerce_order.customer.name}`,
-            ];
-
-            // Cetak kolom kiri biasa
-            let leftY = y;
-            leftColumn.forEach((text) => {
-                doc.text(text, marginX, leftY);
-                leftY += 5;
-            });
-
-            // Cetak alamat dengan wrap rapi
-            const alamatLabel = 'Alamat             : ';
-            doc.text(alamatLabel, marginX, leftY); // label
-            const alamatX = marginX + labelWidth - 5; // posisi mulai isi alamat
-            doc.text(alamatLines, alamatX, leftY, { maxWidth }); // isi multi-line alamat
-            leftY += alamatLines.length * 5;
-
             // Cetak kolom kanan
-            let rightY = y;
+            let rightY = y + 4;
             rightColumn.forEach((text) => {
                 doc.text(text, colRightX, rightY);
                 rightY += 5;
             });
 
-            // Set posisi Y paling bawah (supaya tabel mulai di bawah teks terpanjang)
-            y = Math.max(leftY, rightY) + 6;
+            // === DETAIL TUJUAN ===
+            let leftY = y + 4;
+
+            const alamatTujuan =
+                header?.store_order?.store.address ??
+                formatFullAddress(header.ecommerce_order.shipping_address);
+
+            const labelWidth = 28;
+            const maxWidth = pageWidth / 2 - marginX - labelWidth;
+            const alamatLines = doc.splitTextToSize(alamatTujuan, maxWidth);
+
+            const leftColumnAfter = [
+                `Tanggal Kirim  : ${formatDate(header.shipment_date)}`,
+                `Tujuan             : ${
+                    header?.store_order?.store?.name ?? header.ecommerce_order.customer.name
+                }`,
+            ];
+
+            // Cetak kolom kiri
+            leftColumnAfter.forEach((text) => {
+                doc.text(text, marginX, leftY);
+                leftY += 5;
+            });
+
+            // Alamat multiline
+            const alamatLabel = 'Alamat             : ';
+            doc.text(alamatLabel, marginX, leftY);
+            const alamatX = marginX + labelWidth - 5;
+            doc.text(alamatLines, alamatX, leftY, { maxWidth });
+            leftY += alamatLines.length * 5;
+
+            y = Math.max(leftY, rightY);
 
             // === TABEL BARANG ===
             const totalQty = details.reduce((sum, i) => sum + i.quantity, 0);
@@ -175,7 +275,11 @@ const SuratJalanPrinter = ({ headerId }: Props) => {
 
             // === AREA TANDA TANGAN ===
             const colW = pageWidth / 3;
-            const roles = ['Pengirim', 'Supir', 'Penerima'];
+            const roles = [
+                'Pengirim',
+                header?.ecommerce_order?.shipping_method?.courier_name ?? 'Supir',
+                'Penerima',
+            ];
             roles.forEach((role, idx) => {
                 const x = marginX + colW * idx + colW / 2 - 10;
                 doc.text(role, x, finalY, { align: 'center' });

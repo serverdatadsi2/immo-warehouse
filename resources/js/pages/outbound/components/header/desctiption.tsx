@@ -6,7 +6,7 @@ import { useContext, useMemo } from 'react';
 import { DetailContext } from '../../detail';
 
 const DescriptionHeader = () => {
-    const { headerData } = useContext(DetailContext);
+    const { headerData, shippingMethod } = useContext(DetailContext);
     const { props } = usePage<SharedData>();
 
     const items: DescriptionsProps['items'] = useMemo(() => {
@@ -35,6 +35,13 @@ const DescriptionHeader = () => {
                 children: headerData.invoice_number,
             });
         }
+        if (shippingMethod?.courier_name) {
+            baseItems.push({
+                key: '6',
+                label: 'Courier',
+                children: shippingMethod.courier_name,
+            });
+        }
 
         baseItems.push({
             key: '3',
@@ -43,9 +50,15 @@ const DescriptionHeader = () => {
         });
 
         return baseItems;
-    }, [headerData, props]);
+    }, [headerData, props, shippingMethod]);
 
-    return <Descriptions layout="vertical" column={headerData?.id ? 5 : 3} items={items} />;
+    return (
+        <Descriptions
+            layout="vertical"
+            column={headerData && shippingMethod ? 6 : headerData ? 5 : shippingMethod ? 4 : 3}
+            items={items}
+        />
+    );
 };
 
 export default DescriptionHeader;

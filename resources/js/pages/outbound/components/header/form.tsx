@@ -17,7 +17,7 @@ export function HeaderForm() {
     const { hasPermission, hasAnyPermission } = usePermission();
     const { form, errors, post, processing, destroy } =
         useAntdInertiaForm<HeaderFormType>('Outbound');
-    const { headerData, params } = useContext(DetailContext);
+    const { headerData, params, shippingMethod } = useContext(DetailContext);
     const { props } = usePage<SharedData>();
 
     const handleSave = useCallback(() => {
@@ -101,16 +101,18 @@ export function HeaderForm() {
                             <LocaleDatePicker />
                         </FormItem>
                     </Col>
-                    <Col span={6}>
-                        <FormItem
-                            errorMessage={errors?.courier_id}
-                            name="courier_id"
-                            label="Courier"
-                        >
-                            <CourierAsyncSelect />
-                        </FormItem>
-                    </Col>
-                    <Col span={4}>
+                    {!shippingMethod && (
+                        <Col span={6}>
+                            <FormItem
+                                errorMessage={errors?.courier_id}
+                                name="courier_id"
+                                label="Courier"
+                            >
+                                <CourierAsyncSelect />
+                            </FormItem>
+                        </Col>
+                    )}
+                    <Col span={shippingMethod ? 6 : 4}>
                         <FormItem
                             errorMessage={errors?.order_ref}
                             name="order_ref"
@@ -125,7 +127,7 @@ export function HeaderForm() {
                             />
                         </FormItem>
                     </Col>
-                    <Col span={4}>
+                    <Col span={shippingMethod ? 6 : 4}>
                         <FormItem
                             errorMessage={errors?.order_id}
                             name="order_id"
@@ -135,7 +137,7 @@ export function HeaderForm() {
                             <OrderAsyncSelect form={form} />
                         </FormItem>
                     </Col>
-                    <Col span={4}>
+                    <Col span={shippingMethod ? 6 : 4}>
                         <FormItem
                             errorMessage={errors?.outbound_type}
                             name="outbound_type"

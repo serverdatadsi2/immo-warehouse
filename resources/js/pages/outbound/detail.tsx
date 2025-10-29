@@ -1,6 +1,7 @@
 import { BackButton } from '@/components/buttons/crud-buttons';
 import { AppLayout } from '@/layouts/app-layout';
 import { SimplePagination } from '@/types/laravel-pagination.type';
+import { ShippingMethod } from '@/types/shipping-method.type';
 import { OutboundDetailWithRelation, OutboundWithRelations } from '@/types/warehouse-outbound.type';
 import { Head } from '@inertiajs/react';
 import { Card, Space } from 'antd';
@@ -13,13 +14,16 @@ export const DetailContext = createContext<PageProps>({
     detailsPagination: null,
     headerData: null,
     params: null,
+    shippingMethod: null,
 });
 
-export default function Page({ detailsPagination, params, headerData }: PageProps) {
+export default function Page({ detailsPagination, params, headerData, shippingMethod }: PageProps) {
     return (
         <AppLayout navBarLeft={<BackButton backUrl="/outbound" />} navBarTitle="Outboud Detail">
             <Head title="Outbound Detail" />
-            <DetailContext.Provider value={{ detailsPagination, headerData, params }}>
+            <DetailContext.Provider
+                value={{ detailsPagination, headerData, params, shippingMethod }}
+            >
                 <Space direction="vertical" className="w-full">
                     <HeaderForm />
                     {headerData && (
@@ -50,4 +54,5 @@ type PageProps = {
     } | null;
     headerData: Partial<OutboundWithRelations> | null;
     detailsPagination: SimplePagination<OutboundDetailWithRelation> | null;
+    shippingMethod: ShippingMethod | null;
 };

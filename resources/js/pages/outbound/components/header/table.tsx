@@ -52,6 +52,8 @@ export function HeaderTable({ pagination }: Props) {
                 title: 'Pengiriman',
                 dataIndex: ['courier', 'name'],
                 key: 'pengiriman',
+                render: (_, d) =>
+                    d?.courier?.name || d?.ecommerce_order.shipping_method.courier_name,
             },
             {
                 title: 'QTY',

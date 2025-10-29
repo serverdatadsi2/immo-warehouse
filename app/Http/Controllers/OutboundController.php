@@ -23,7 +23,13 @@ class OutboundController extends Controller
         $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
         $pagination = WarehouseOutbound::query()
-        ->with(['warehouse:id,name,code', 'user:id,name', 'courier:id,name'])
+        ->with([
+            'warehouse:id,name,code',
+            'user:id,name',
+            'courier:id,name',
+            'ecommerceOrder:id,shipping_method_id',
+            'ecommerceOrder.shippingMethod:id,courier_code,courier_name,duration,price,type,service',
+            ])
         ->where('warehouse_id', $userWarehouseId)
         ->simplePaginate(10);
 
@@ -39,6 +45,7 @@ class OutboundController extends Controller
         $storeOrderId = $request->input('storeOrder');
         $ecommerceOrderId = $request->input('ecommerceOrder');
         $header = null;
+        $shippingMethod = null;
         $detailsPagination = null;
 
         if($headerId){
@@ -48,6 +55,12 @@ class OutboundController extends Controller
                             'courier:id,name'
                             ])
                             ->findOrFail($headerId);
+            if(!empty($header) && $header->order_ref === 'ecommerce'){
+                $shippingMethod = EcommerceOrder::join('ecommerce_order_shipping_methods as eosm', 'eosm.id', '=', 'ecommerce_orders.shipping_method_id')
+                                    ->where('ecommerce_orders.id', $header->order_id)
+                                    ->select('eosm.*')
+                                    ->first();
+            }
 
         }else if($storeOrderId || $ecommerceOrderId) {
             $header = WarehouseOutbound::with([
@@ -57,6 +70,13 @@ class OutboundController extends Controller
                             ])
                             ->where('order_id',$storeOrderId ?? $ecommerceOrderId)
                             ->first();
+
+            if($ecommerceOrderId){
+                $shippingMethod = EcommerceOrder::join('ecommerce_order_shipping_methods as eosm', 'eosm.id', '=', 'ecommerce_orders.shipping_method_id')
+                                    ->where('ecommerce_orders.id', $ecommerceOrderId)
+                                    ->select('eosm.*')
+                                    ->first();
+            }
         }
 
         if($header){
@@ -74,6 +94,7 @@ class OutboundController extends Controller
         return Inertia::render('outbound/detail', [
             'detailsPagination' => $detailsPagination,
             'headerData' => $header,
+            'shippingMethod' => $shippingMethod,
             'params' => $params
         ]);
     }
@@ -91,12 +112,13 @@ class OutboundController extends Controller
                             'courier:id,name',
                             'storeOrder:id,store_id',
                             'storeOrder.store:id,name,address',
-                            'ecommerceOrder:id,shipping_address_id,customer_id',
+                            'ecommerceOrder:id,shipping_address_id,customer_id,shipping_method_id',
                             'ecommerceOrder.customer:id,name',
                             'ecommerceOrder.shippingAddress.provincy:id,code,name',
                             'ecommerceOrder.shippingAddress.regency:id,code,name',
                             'ecommerceOrder.shippingAddress.district:id,code,name',
                             'ecommerceOrder.shippingAddress.village:id,code,name',
+                            'ecommerceOrder.shippingMethod:id,courier_code,courier_name,duration,price,type,service',
                             ])
                             ->findOrFail($headerId);
 
@@ -111,6 +133,7 @@ class OutboundController extends Controller
                                 'u.name as unit_name',
                                 DB::raw('COUNT(warehouse_outbound_details.id) as quantity')
                             ])
+                            ->where('warehouse_outbound_details.warehouse_outbound_id', $header->id)
                             ->groupBy('i.product_id', 'p.name', 'u.name', 'p.code')
                             ->get();
         }
