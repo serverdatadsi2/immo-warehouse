@@ -102,7 +102,7 @@ export function DetailForm({ onClose, existingData, open }: Props) {
                                     </Text>
                                 }
                                 name="rfid"
-                                rules={[{ required: true, message: 'Harap masukkan RFID Tag!' }]}
+                                // rules={[{ required: true, message: 'Harap masukkan RFID Tag!' }]}
                                 errorMessage={errors?.rfid}
                             >
                                 <Input

@@ -1,4 +1,5 @@
 import { AppLayout } from '@/layouts/app-layout';
+import { LowStock } from '@/types/dashboard.type';
 import { SimplePagination } from '@/types/laravel-pagination.type';
 import { Storage } from '@/types/storage.type';
 import {
@@ -11,21 +12,16 @@ import { Head } from '@inertiajs/react';
 import { Card, Col, Row, Space, Statistic } from 'antd';
 import ChartTrend from './components/chart';
 import TableLocation from './components/table';
+import TableStockBarier from './components/table-low-stock';
 
 interface Props {
+    stockBarier: LowStock[];
     pagination: SimplePagination<Storage>;
     chartData: any[];
     summary: any;
 }
 
-export default function Dashboard({ pagination, chartData, summary }: Props) {
-    // const summary = {
-    //     total_items: 1240,
-    //     total_stock: 7320,
-    //     total_locations: 18,
-    //     active_tags: 689,
-    // };
-
+export default function Dashboard({ pagination, stockBarier, chartData, summary }: Props) {
     return (
         <AppLayout navBarTitle="Dashboard">
             <Head title="Dashboard" />
@@ -70,6 +66,7 @@ export default function Dashboard({ pagination, chartData, summary }: Props) {
                 </Row>
 
                 <ChartTrend data={chartData} />
+                {stockBarier.length > 0 && <TableStockBarier data={stockBarier} />}
 
                 <TableLocation pagination={pagination} />
             </Space>

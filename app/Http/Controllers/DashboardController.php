@@ -13,6 +13,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        $search = $request->input('search')??'';
         $user = auth()->user();
         $userWarehouseId = $user->warehouses()->pluck('warehouses.id')->first();
 
@@ -54,11 +55,13 @@ class DashboardController extends Controller
 
         $chartData = $this->chartData();
         $summary = $this->summary($userWarehouseId);
+        $stockBarier = $this->stockBarier($userWarehouseId);
 
         return inertia('dashboard/index',[
             'pagination' => $pagination,
             'chartData' => $chartData,
-            'summary' => $summary
+            'summary' => $summary,
+            'stockBarier' =>$stockBarier
         ]);
     }
 
@@ -133,5 +136,64 @@ class DashboardController extends Controller
         ];
 
         return $results;
+    }
+    private function stockBarier(string $warehouseId)
+    {
+        $selectColumns = [
+            'p.id as product_id',
+            'p.name as product_name',
+            'p.code as product_code',
+            'ic.name as condition_status',
+            'u.name as unit_name',
+            'pc.name as product_category',
+            'wsb.stock_barrier',
+            'wsb.tolerance_percentage',
+            \DB::raw('COUNT(wi.id) AS stock')
+        ];
+
+        $groupingColumns = [
+            'p.id', 'p.name', 'p.code', 'u.name',
+            'pc.name', 'ic.name', 'wsb.stock_barrier', 'wsb.tolerance_percentage',
+        ];
+
+        $results = \DB::table('warehouse_items as wi')
+            ->join('items as i', function ($join) {
+                $join->on('i.id', '=', 'wi.item_id')
+                    ->where('i.status', '=', 'warehouse_stock');
+            })
+            ->join('item_conditions as ic', 'ic.id', '=', 'i.current_condition_id')
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->join('units as u', 'u.id', '=', 'p.unit_id')
+            ->join('product_categories as pc', 'pc.id', '=', 'p.category_id')
+            ->leftJoin('warehouse_stock_barriers as wsb', function ($join) {
+                $join->on('wsb.product_id', '=', 'p.id')
+                    ->on('wsb.warehouse_id', '=', 'wi.warehouse_id');
+            })
+            ->where('wi.warehouse_id', $warehouseId)
+            ->where('ic.name', 'Good')
+            ->select($selectColumns)
+            ->groupBy($groupingColumns)
+            ->get();
+
+
+        $filtered = $results->map(function ($item) {
+            $item->status_level = 'normal';
+
+            if ($item->stock_barrier) {
+                $tolerance = $item->stock_barrier + ($item->stock_barrier * ($item->tolerance_percentage / 100));
+
+                if ($item->stock <= $item->stock_barrier) {
+                    $item->status_level = 'CRITICAL';
+                } elseif ($item->stock <= $tolerance) {
+                    $item->status_level = 'WARNING';
+                }
+            }
+
+            return $item;
+        })->filter(function ($item) {
+            return in_array($item->status_level, ['WARNING', 'CRITICAL']);
+        })->values();
+
+        return $filtered;
     }
 }
