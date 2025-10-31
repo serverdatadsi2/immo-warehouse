@@ -104,3 +104,9 @@ interface EcommerceOrder {
     shipping_address: ShippingAddress;
     shipping_method: ShippingMethod;
 }
+
+export interface OrderWithRelation {
+    product_id: string;
+    quantity: number;
+    product: Product;
+}

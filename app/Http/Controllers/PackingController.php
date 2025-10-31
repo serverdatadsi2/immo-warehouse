@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\EcommerceOrder;
 use App\Models\StoreOrder;
-use App\Models\WarehouseOutbound;
 use Illuminate\Http\Request;
 
 class PackingController extends Controller
@@ -70,7 +69,7 @@ class PackingController extends Controller
             $storeOrder->save();
 
             return redirect()
-                ->route('packing.store.index')
+                ->route('packing.store.index', ['status' => 'all'])
                 ->with('success', "Status Store Order {$storeOrder->order_number} berhasil diperbarui.");
         } catch (\Exception $e) {
             return redirect()
@@ -92,7 +91,8 @@ class PackingController extends Controller
             ->when($search, function ($query, $search) {
                 $query->whereHas('customer', function ($subQuery) use ($search) {
                     $subQuery->where('name', 'ILIKE', '%' . $search . '%');
-                });
+                })
+                ->orWhere('order_number', 'ILIKE', '%' . $search . '%');
             })
             ->with([
                 'details:id,ecommerce_order_id,product_id,quantity,note' ,
@@ -133,7 +133,7 @@ class PackingController extends Controller
             $order->save();
 
             return redirect()
-                ->route('packing.ecommerce.index')
+                ->route('packing.ecommerce.index',['status'=> 'all'])
                 ->with('success', "Status Ecommerce Order {$order->order_number} berhasil diperbarui.");
         } catch (\Exception $e) {
             return redirect()

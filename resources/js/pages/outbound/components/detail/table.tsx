@@ -28,6 +28,16 @@ export function DetailTable() {
 
     const columns = useMemo(
         (): TableProps<OutboundDetailWithRelation>['columns'] => [
+            {
+                title: 'No.',
+                key: 'serial',
+                align: 'center',
+                render: (_: any, __: OutboundDetailWithRelation, index: number) => {
+                    const currentPage = pagination?.current_page ?? 1;
+                    const perPage = 10;
+                    return (currentPage - 1) * perPage + index + 1;
+                },
+            },
             { title: 'Product', dataIndex: ['item', 'product', 'name'], key: 'product.name' },
             {
                 title: 'RFID Tag',
@@ -48,7 +58,7 @@ export function DetailTable() {
                   ]
                 : []),
         ],
-        [handleDelete, hasPermission],
+        [handleDelete, hasPermission, pagination],
     );
 
     const handlePageChange = useCallback((page: number) => {

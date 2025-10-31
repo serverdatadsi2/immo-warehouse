@@ -64,7 +64,7 @@ export function DetailForm() {
                 </div>
             ) : (
                 <Row gutter={5} align="middle">
-                    <Col span={17}>
+                    <Col span={15}>
                         <FormItem
                             label={
                                 <Text

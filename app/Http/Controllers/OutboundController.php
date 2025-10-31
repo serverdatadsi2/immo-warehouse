@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\EcommerceOrder;
+use App\Models\EcommerceOrderDetail;
 use App\Models\Item;
 use App\Models\StoreOrder;
+use App\Models\StoreOrderDetail;
 use App\Models\WarehouseOutbound;
 use App\Models\WarehouseOutboundDetail;
 use Illuminate\Support\Facades\Response;
@@ -31,6 +33,7 @@ class OutboundController extends Controller
             'ecommerceOrder.shippingMethod:id,courier_code,courier_name,duration,price,type,service',
             ])
         ->where('warehouse_id', $userWarehouseId)
+        ->orderBy('updated_at','desc')
         ->simplePaginate(10);
 
 
@@ -47,6 +50,7 @@ class OutboundController extends Controller
         $header = null;
         $shippingMethod = null;
         $detailsPagination = null;
+        $order = null;
 
         if($headerId){
             $header = WarehouseOutbound::with([
@@ -55,11 +59,14 @@ class OutboundController extends Controller
                             'courier:id,name'
                             ])
                             ->findOrFail($headerId);
+
             if(!empty($header) && $header->order_ref === 'ecommerce'){
-                $shippingMethod = EcommerceOrder::join('ecommerce_order_shipping_methods as eosm', 'eosm.id', '=', 'ecommerce_orders.shipping_method_id')
-                                    ->where('ecommerce_orders.id', $header->order_id)
-                                    ->select('eosm.*')
-                                    ->first();
+                $shippingMethod = $this->shippingMethod($header->order_id);
+                $order = $this->ecommerceOrder($header->order_id);
+
+            }else if(!empty($header) && $header->order_ref === 'store'){
+                $order = $this->storeOrder($header->order_id);
+
             }
 
         }else if($storeOrderId || $ecommerceOrderId) {
@@ -72,10 +79,13 @@ class OutboundController extends Controller
                             ->first();
 
             if($ecommerceOrderId){
-                $shippingMethod = EcommerceOrder::join('ecommerce_order_shipping_methods as eosm', 'eosm.id', '=', 'ecommerce_orders.shipping_method_id')
-                                    ->where('ecommerce_orders.id', $ecommerceOrderId)
-                                    ->select('eosm.*')
-                                    ->first();
+                $shippingMethod = $this->shippingMethod($ecommerceOrderId);
+                $order = $this->ecommerceOrder($ecommerceOrderId);
+
+            }
+            if($storeOrderId){
+                $order = $this->storeOrder($storeOrderId);
+
             }
         }
 
@@ -95,6 +105,7 @@ class OutboundController extends Controller
             'detailsPagination' => $detailsPagination,
             'headerData' => $header,
             'shippingMethod' => $shippingMethod,
+            'order' => $order,
             'params' => $params
         ]);
     }
@@ -364,5 +375,36 @@ class OutboundController extends Controller
         $runningNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
         return "INV-SO-{$dateCode}-{$runningNumber}";
         // return "INV-SO{$kodeStore}-{$dateCode}-{$runningNumber}"; //nantinya akan di rubah berdsarkan kode store
+    }
+
+    private function shippingMethod($orderId)
+    {
+       $result =  EcommerceOrder::join('ecommerce_order_shipping_methods as eosm', 'eosm.id', '=', 'ecommerce_orders.shipping_method_id')
+                                    ->where('ecommerce_orders.id', $orderId)
+                                    ->select('eosm.*')
+                                    ->first();
+        return $result;
+    }
+
+    private function ecommerceOrder($orderId)
+    {
+       $result =  EcommerceOrderDetail::with([
+                            'product:id,name,code'
+                            ])
+                            ->where('ecommerce_order_id', $orderId)
+                            ->select('id', 'product_id', 'quantity')
+                            ->get();
+        return $result;
+    }
+
+    private function storeOrder($orderId)
+    {
+       $result = StoreOrderDetail::with([
+                            'product:id,name,code'
+                            ])
+                            ->where('store_order_id', $orderId)
+                            ->select('id', 'approved_qty as quantity', 'product_id')
+                            ->get();
+        return $result;
     }
 }
