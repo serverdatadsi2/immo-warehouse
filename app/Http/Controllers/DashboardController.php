@@ -56,12 +56,16 @@ class DashboardController extends Controller
         $chartData = $this->chartData();
         $summary = $this->summary($userWarehouseId);
         $stockBarier = $this->stockBarier($userWarehouseId);
+        $slowMoving = $this->slowMoving($userWarehouseId);
+        $deadStock = $this->deadStock($userWarehouseId);
 
         return inertia('dashboard/index',[
             'pagination' => $pagination,
             'chartData' => $chartData,
             'summary' => $summary,
-            'stockBarier' =>$stockBarier
+            'stockBarier' =>$stockBarier,
+            'slowMoving' =>$slowMoving,
+            'deadStock' =>$deadStock,
         ]);
     }
 
@@ -195,5 +199,114 @@ class DashboardController extends Controller
         })->values();
 
         return $filtered;
+    }
+
+    private function slowMoving (string $userWarehouseId)
+    {
+        $sixMonthsAgo = now()->subMonths(6);
+        $threeMonthsAgo   = now()->subMonths(3);
+
+        $selectColumns = [
+            'p.id as product_id', 'p.name as product_name', 'p.code as product_code',
+            DB::raw("(CASE WHEN ic.name = 'Good' THEN 'Good' ELSE 'Bad' END) as status"),
+            'lr.name as layer_name', 'rk.name as rack_name', 'rm.name as room_name',
+        ];
+
+        $groupingColumns = [
+            'p.id', 'p.name', 'p.code',
+            DB::raw("(CASE WHEN ic.name = 'Good' THEN 'Good' ELSE 'Bad' END)"),
+            'lr.name', 'rk.name', 'rm.name',
+        ];
+
+        $query = DB::table('warehouse_items as wi')
+            ->join('items as i', function ($join) {
+                $join->on('i.id', '=', 'wi.item_id')
+                    ->whereIn('i.status', ['warehouse_stock', 'warehouse_processing']);
+            })
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->leftJoin('item_conditions as ic', 'ic.id', '=', 'i.current_condition_id')
+            ->leftJoin('locations as lr', 'lr.id', '=', 'i.current_location_id')
+            ->leftJoin('locations as rk', 'rk.id', '=', 'lr.location_parent_id')
+            ->leftJoin('locations as rm', 'rm.id', '=', 'rk.location_parent_id')
+            ->leftJoin('warehouse_inbound_details as ind', 'ind.id', '=', 'i.warehouse_inbound_detail_id')
+            ->leftJoin('warehouse_inbounds as inh', 'inh.id', '=', 'ind.warehouse_inbound_id')
+            ->where('wi.warehouse_id', $userWarehouseId)
+
+            # FILTER SLOW-MOVING
+            ->where(function ($q) use ($threeMonthsAgo, $sixMonthsAgo) {
+
+                // Normal item → berdasarkan tanggal inbound
+                $q->whereNull('i.old_item_id')
+                ->whereBetween('inh.received_date', [$sixMonthsAgo, $threeMonthsAgo])
+
+                // Recycle item → berdasarkan created_at
+                ->orWhere(function ($q) use ($threeMonthsAgo, $sixMonthsAgo) {
+                    $q->whereNotNull('i.old_item_id')
+                    ->whereBetween('i.created_at', [$sixMonthsAgo, $threeMonthsAgo]);
+                });
+            })
+
+            ->select(array_merge($selectColumns, [
+                DB::raw('COUNT(wi.id) AS quantity')
+            ]));
+
+        $query->groupBy($groupingColumns);
+
+        $result = $query->get();
+        return $result;
+    }
+
+    private function deadStock (string $userWarehouseId)
+    {
+        $sixMonthsAgo = now()->subMonths(6);
+
+        $selectColumns = [
+            'p.id as product_id', 'p.name as product_name', 'p.code as product_code',
+            'lr.name as layer_name', 'rk.name as rack_name', 'rm.name as room_name',
+            DB::raw("(CASE WHEN ic.name = 'Good' THEN 'Good' ELSE 'Bad' END) as status")
+        ];
+
+        $groupingColumns = [
+            'p.id', 'p.name', 'p.code',
+            DB::raw("(CASE WHEN ic.name = 'Good' THEN 'Good' ELSE 'Bad' END)"),
+            'lr.name', 'rk.name', 'rm.name',
+        ];
+
+        $query = DB::table('warehouse_items as wi')
+            ->join('items as i', function ($join) {
+                $join->on('i.id', '=', 'wi.item_id')
+                    ->whereIn('i.status', ['warehouse_stock', 'warehouse_processing']);
+            })
+            ->join('products as p', 'p.id', '=', 'i.product_id')
+            ->leftJoin('item_conditions as ic', 'ic.id', '=', 'i.current_condition_id')
+            ->leftJoin('locations as lr', 'lr.id', '=', 'i.current_location_id')
+            ->leftJoin('locations as rk', 'rk.id', '=', 'lr.location_parent_id')
+            ->leftJoin('locations as rm', 'rm.id', '=', 'rk.location_parent_id')
+            ->leftJoin('warehouse_inbound_details as ind', 'ind.id', '=', 'i.warehouse_inbound_detail_id')
+            ->leftJoin('warehouse_inbounds as inh', 'inh.id', '=', 'ind.warehouse_inbound_id')
+            ->where('wi.warehouse_id', $userWarehouseId)
+
+            # FILTER DEAD STOCK
+            ->where(function ($q) use ($sixMonthsAgo) {
+
+                // Normal item → berdasarkan tanggal inbound
+                $q->whereNull('i.old_item_id')
+                ->whereDate('inh.received_date', '<=', $sixMonthsAgo)
+
+                // Recycle item → berdasarkan created_at
+                ->orWhere(function ($q) use ($sixMonthsAgo) {
+                    $q->whereNotNull('i.old_item_id')
+                    ->whereDate('i.created_at', '<=', $sixMonthsAgo);
+                });
+            })
+
+            ->select(array_merge($selectColumns, [
+                DB::raw('COUNT(wi.id) AS quantity')
+            ]));
+
+        $query->groupBy($groupingColumns);
+
+        $result = $query->get();
+        return $result;
     }
 }

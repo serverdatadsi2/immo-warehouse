@@ -60,7 +60,9 @@ export default function TableLowStock({ data }: Props) {
     );
 
     return (
-        <Card className="!shadow-md !border-yellow-400 ">
+        <Card
+            className={`!shadow-md ${data.find((d) => d.status_level === 'CRITICAL') ? '!border-red-300' : '!border-yellow-400'}`}
+        >
             <Card.Meta
                 title={
                     <span className="space-x-5">
@@ -68,7 +70,7 @@ export default function TableLowStock({ data }: Props) {
                         <span className="absolute rounded-full size-5 bg-yellow-400 opacity-75 animate-ping" />
                     </span>
                 }
-                description="Stock has reached its limit. Please review and contact the head office to reorder from the supplier if needed."
+                description="Stok telah mencapai batasnya. Silakan hubungi holding untuk dilakukan purchase order ke supplier."
             />
 
             <Table<LowStock>

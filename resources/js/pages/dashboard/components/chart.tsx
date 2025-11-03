@@ -1,3 +1,4 @@
+import { ChartType } from '@/types/dashboard.type';
 import { Card } from 'antd';
 import {
     CartesianGrid,
@@ -11,11 +12,7 @@ import {
 } from 'recharts';
 
 interface Props {
-    data: {
-        date: string;
-        inbound: number;
-        outbound: string;
-    }[];
+    data: ChartType[];
 }
 
 export default function ChartTrend({ data }: Props) {

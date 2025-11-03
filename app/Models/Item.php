@@ -38,4 +38,9 @@ class Item extends Model
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
+
+    public function inboundDetail()
+    {
+        return $this->belongsTo(WarehouseInboundDetail::class, 'warehouse_inbound_detail_id');
+    }
 }
