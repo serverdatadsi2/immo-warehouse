@@ -7,7 +7,8 @@ use App\Http\Controllers\Api\{
     ProductApiController,
     SupplierApiController,
     WarehouseApiController,
-    LocationApiController
+    LocationApiController,
+    QCApiController
 };
 
 Route::apiResource('/suppliers', SupplierApiController::class);
@@ -16,3 +17,4 @@ Route::apiResource('/products', ProductApiController::class);
 Route::apiResource('/conditions', ConditionApiController::class);
 Route::get('/locations', [LocationApiController::class, 'index']);
 Route::get('/couriers', [CourierApiController::class, 'index']);
+Route::get('/inbound-qc', [QCApiController::class, 'updateLabelInboundQc']);
