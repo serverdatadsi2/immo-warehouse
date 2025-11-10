@@ -24,6 +24,7 @@
         "spatie-permition",
         "menu",
         "role-management",
-        "all-orders"
+        "all-orders",
+        "integrated-rfid-inound-qc"
     ]
 }
