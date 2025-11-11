@@ -25,6 +25,7 @@
         "menu",
         "role-management",
         "all-orders",
-        "integrated-rfid-inound-qc"
+        "integrated-rfid-inound-qc",
+        "api"
     ]
 }

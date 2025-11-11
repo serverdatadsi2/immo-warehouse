@@ -46,9 +46,12 @@ export function HeaderTable({ pagination }: Props) {
                 dataIndex: 'status',
                 key: 'status',
                 align: 'center',
-                render: (qty) => (
-                    <Tag color="blue" style={{ fontWeight: 'bold' }}>
-                        {qty}
+                render: (v) => (
+                    <Tag
+                        color={v === 'received' ? 'blue' : 'orange'}
+                        style={{ fontWeight: 'bold' }}
+                    >
+                        {v}
                     </Tag>
                 ),
             },

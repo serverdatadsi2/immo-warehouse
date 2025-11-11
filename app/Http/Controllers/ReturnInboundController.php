@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\RFIDTag;
-use App\Models\StoreOrder;
 use App\Models\StoreReturn;
 use App\Models\WarehouseInbound;
-use App\Models\WarehouseInboundDetail;
 use App\Models\WarehouseReturnInboundDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -49,6 +47,7 @@ class ReturnInboundController extends Controller
             ->whereNotNull('approved_at')
             ->whereNotNull('approved_by')
             ->whereNotNull('shipped_at')
+            ->orderBy('shipped_at', 'desc')
             ->simplePaginate(10);
 
         return Inertia::render('inbounds/return-inbound/index', ['pagination' => $pagination]);
@@ -59,30 +58,23 @@ class ReturnInboundController extends Controller
         $storeReturnId = $request->input('storeReturnId');
 
         $header = null;
-        // $storeReturn = null;
         $detailsPagination = null;
 
         if ($storeReturnId) {
-            // $storeReturn = StoreReturn::query()
-            // ->with(['details', 'store:id,name','approved:id,name'])
-            // ->where('warehouse_id',$userWarehouseId)
-            // ->whereNotNull('approved_at')
-            // ->whereNotNull('approved_by')
-            // ->findOrFail($storeReturnId);
-
             $header = WarehouseInbound::where('store_return_id', $storeReturnId)->first();
-            $detailsPagination = WarehouseReturnInboundDetail::query()
-                ->leftJoin('products as p', 'p.id', '=', 'warehouse_return_inbound_details.product_id')
-                ->leftJoin('items as i', 'i.id', '=', 'warehouse_return_inbound_details.item_id')
-                ->where('warehouse_inbound_id', $header->id)
-                ->select('warehouse_return_inbound_details.*', 'p.name as product_name', 'i.expired_date', 'i.rfid_tag_id')
-                ->simplePaginate(5);
+            if($header){
+                $detailsPagination = WarehouseReturnInboundDetail::query()
+                    ->leftJoin('products as p', 'p.id', '=', 'warehouse_return_inbound_details.product_id')
+                    ->leftJoin('items as i', 'i.id', '=', 'warehouse_return_inbound_details.item_id')
+                    ->where('warehouse_inbound_id', $header->id)
+                    ->select('warehouse_return_inbound_details.*', 'p.name as product_name', 'i.expired_date', 'i.rfid_tag_id')
+                    ->simplePaginate(5);
+            }
         }
 
         return Inertia::render('inbounds/return-inbound/detail', [
             'detailsPagination' => $detailsPagination,
             'header' => $header,
-            // 'storeReturn' => $storeReturn,
             'storeReturnId' => $storeReturnId
         ]);
     }
