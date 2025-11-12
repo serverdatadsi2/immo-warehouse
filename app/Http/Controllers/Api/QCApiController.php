@@ -9,7 +9,6 @@ use App\Models\ItemCondition;
 use App\Models\ItemConditionHistory;
 use App\Models\WarehouseQC;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class QCApiController extends Controller
 {
