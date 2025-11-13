@@ -26,6 +26,7 @@
         "role-management",
         "all-orders",
         "integrated-rfid-inound-qc",
-        "api"
+        "api",
+        "desktop-app"
     ]
 }

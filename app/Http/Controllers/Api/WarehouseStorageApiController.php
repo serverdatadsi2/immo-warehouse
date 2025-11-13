@@ -53,23 +53,23 @@ class WarehouseStorageApiController extends Controller
                     continue;
                 }
 
-                // Update status dan lokasi item
-                $item->update([
-                    'status' => 'warehouse_stock',
-                    'current_location_id' => $location,
-                ]);
+                // // Update status dan lokasi item
+                // $item->update([
+                //     'status' => 'warehouse_stock',
+                //     'current_location_id' => $location,
+                // ]);
 
-                // Catat ke WarehouseStock
-                WarehouseStock::firstOrCreate([
-                    'warehouse_id' => $validated['warehouse_id'],
-                    'item_id' => $item->id,
-                ]);
+                // // Catat ke WarehouseStock
+                // WarehouseStock::firstOrCreate([
+                //     'warehouse_id' => $validated['warehouse_id'],
+                //     'item_id' => $item->id,
+                // ]);
 
-                // Simpan ke LocationHistory
-                LocationHistory::create([
-                    'item_id' => $item->id,
-                    'location_id' => $location,
-                ]);
+                // // Simpan ke LocationHistory
+                // LocationHistory::create([
+                //     'item_id' => $item->id,
+                //     'location_id' => $location,
+                // ]);
 
                 $processed[] = [
                     'rfid' => $rfid,

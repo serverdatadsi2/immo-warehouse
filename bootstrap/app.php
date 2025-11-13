@@ -2,11 +2,13 @@
 
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Spatie\Permission\Exceptions\UnauthorizedException;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->statefulApi();
 
         $middleware->web(append: [
             HandleAppearance::class,
@@ -33,5 +36,24 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
            $exceptions->render(function (UnauthorizedException $e, $request) {
                return inertia('forbidden/index', ['exception' => $e]);
+            });
+
+            $exceptions->renderable(function (AuthenticationException $e, $request) {
+                if ($request->is('api/*') || $request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Unauthenticated.',
+                    ], Response::HTTP_UNAUTHORIZED);
+                }
+
+                return redirect()->guest(route('login'));
+            });
+
+            $exceptions->renderable(function (Throwable $e, $request) {
+                if ($request->is('api/*')) {
+                    return response()->json([
+                        'error' => $e->getMessage(),
+                        'type' => class_basename($e),
+                    ], method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
+                }
             });
     })->create();
