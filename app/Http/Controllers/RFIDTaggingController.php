@@ -221,7 +221,7 @@ class RFIDTaggingController extends Controller
 
         $qty = (int) $validated['quantity'];
 
-        $items = Item::query()
+        $items = Item::with('rfidTag:id,value')
                     ->where('warehouse_inbound_detail_id', $validated['warehouse_inbound_detail_id'])
                     ->where('product_id', $validated['product_id'])
                     ->whereNull('current_condition_id') // Hanya yang belum QC
@@ -244,7 +244,7 @@ class RFIDTaggingController extends Controller
                 ]);
 
                 // Simpan Item
-                $createdItems[] = Item::updateOrCreate(
+               $item = Item::updateOrCreate(
                     [
                         'warehouse_inbound_detail_id' => $validated['warehouse_inbound_detail_id'],
                         'rfid_tag_id' => $rfid->id,
@@ -255,6 +255,10 @@ class RFIDTaggingController extends Controller
                         'status' => 'warehouse_processing',
                     ],
                 );
+
+                $item->load('rfidTag:id,value');
+
+                $createdItems[] = $item;
             }
             return $createdItems;
         });
@@ -321,7 +325,7 @@ class RFIDTaggingController extends Controller
                         ->pluck('item_id')
                         ->toArray();
 
-            $items = Item::whereIn('id', $itemIds)->get()->toArray();
+            $items = Item::with('rfidTag:id,value')->whereIn('id', $itemIds)->get()->toArray();
 
             $product = Product::findOrFail($request->product_id);
 
@@ -358,7 +362,7 @@ class RFIDTaggingController extends Controller
         $y = 10;
 
         foreach ($items as $i => $item) {
-            $rfid_tag_id = is_array($item) ? $item['rfid_tag_id'] : $item->rfid_tag_id;
+            $rfid_tag = is_array($item) ? $item['rfid_tag']['value'] : $item->rfid_tag->value;
 
             // Generate QR ke binary string PNG
             $options = new QROptions([
@@ -367,12 +371,12 @@ class RFIDTaggingController extends Controller
                 'scale'      => 3,
                 'imageBase64' => false,
             ]);
-            $qrcode = (new QRCode($options))->render($rfid_tag_id);
+            $qrcode = (new QRCode($options))->render($rfid_tag);
             if (!$qrcode) {
-                throw new \Exception("Gagal generate QR untuk $rfid_tag_id");
+                throw new \Exception("Gagal generate QR untuk $rfid_tag");
             }
             // Simpan ke file sementara dengan ekstensi .png
-            $tempFile = storage_path("app/tmp/".md5($rfid_tag_id).".png");
+            $tempFile = storage_path("app/tmp/".md5($rfid_tag).".png");
             if (!file_exists(dirname($tempFile))) {
                 mkdir(dirname($tempFile), 0777, true);
             }
@@ -383,7 +387,7 @@ class RFIDTaggingController extends Controller
 
             // Text di bawah
             $pdf->SetFont('Arial','',7);
-            $pdf->Text($x+2, $y+$qrSize+1, $rfid_tag_id);
+            $pdf->Text($x+2, $y+$qrSize+1, $rfid_tag);
 
             // Mulai tulis teks di kanan QR
             $pdf->SetXY($x + $qrSize , $y+2);
