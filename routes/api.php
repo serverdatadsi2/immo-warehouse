@@ -39,4 +39,4 @@ Route::post('/inbound-qc', [QCApiController::class, 'inboundQc']);
 Route::post('/outbound-qc', [QCApiController::class, 'outboundQc']);
 
 Route::post('/login', [AuthApiController::class, 'login']);
-Route::post('/logout', [AuthApiController::class, 'logout']);
+Route::post('/logout', [AuthApiController::class, 'logout'])->middleware('auth:sanctum');
