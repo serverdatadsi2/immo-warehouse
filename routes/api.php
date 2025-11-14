@@ -11,7 +11,8 @@ use App\Http\Controllers\Api\{
     SupplierApiController,
     WarehouseApiController,
     LocationApiController,
-    QCApiController
+    QCApiController,
+    AuthApiController
 };
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -36,3 +37,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // fixed reader el-uhf-rc4-91
 Route::post('/inbound-qc', [QCApiController::class, 'inboundQc']);
 Route::post('/outbound-qc', [QCApiController::class, 'outboundQc']);
+
+Route::post('/login', [AuthApiController::class, 'login']);
+Route::post('/logout', [AuthApiController::class, 'logout']);
